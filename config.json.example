@@ -1,0 +1,217 @@
+{
+  "network_mode": "router_children",
+  "flat_network": false,
+  "no_parent": false,
+  "preserve_network_config": false,
+  "app": {
+    "name": "LQoSync",
+    "auto_apply": true,
+    "dry_run_default": false,
+    "backup_before_apply": true,
+    "backup_retention": 30,
+    "file_drift_policy": "overwrite_with_backup"
+  },
+  "paths": {
+    "shaped_devices_csv": "/opt/libreqos/src/ShapedDevices.csv",
+    "network_json": "/opt/libreqos/src/network.json",
+    "backup_dir": "/opt/lqosync/backups",
+    "log_file": "/opt/lqosync/logs/lqos_shaped_sync.log",
+    "runtime_state": "/opt/lqosync/state/runtime_state.json",
+    "lock_file": "/opt/lqosync/state/lqosync.lock",
+    "audit_log": "/opt/lqosync/logs/audit.jsonl",
+    "libreqos_apply_log_dir": "/opt/lqosync/logs/libreqos_apply",
+    "collector_cache": "/opt/lqosync/state/collector_cache.json"
+  },
+  "libreqos": {
+    "cmd": "/opt/libreqos/src/LibreQoS.py",
+    "args": [
+      "--updateonly"
+    ],
+    "working_dir": "/opt/libreqos/src",
+    "timeout_seconds": 300,
+    "run_only_when_files_changed": true,
+    "retry_if_last_apply_failed": true,
+    "sudo": true,
+    "run_mode": "direct"
+  },
+  "scheduler": {
+    "enabled": false,
+    "active_interval_seconds": 30,
+    "idle_interval_seconds": 120,
+    "error_retry_interval_seconds": 30,
+    "apply_cooldown_seconds": 20,
+    "max_instances": 1
+  },
+  "defaults": {
+    "id_length": 8,
+    "min_rate_percentage": 0.5,
+    "default_pppoe_profile": "default",
+    "default_pppoe_rate": "10M/10M",
+    "default_dhcp_per_client_mbps": 15,
+    "default_hotspot_per_client_mbps": 10,
+    "duplicate_ip_policy": "warn_and_skip",
+    "static_comment_value": "static"
+  },
+  "collector": {
+    "selective_fields": true,
+    "pppoe": {
+      "read_active": true,
+      "read_secrets": true,
+      "read_profiles": true
+    },
+    "dhcp": {
+      "lease_mode": "permissive",
+      "read_server_metadata": true
+    },
+    "hotspot": {
+      "enhanced_metadata": true
+    }
+  },
+  "preflight": {
+    "enabled": true,
+    "duplicate_ip_policy": "warn_and_skip",
+    "missing_parent_policy": "block",
+    "invalid_bandwidth_policy": "block"
+  },
+  "ui": {
+    "refresh_seconds": 5,
+    "show_raw_json_editor": true,
+    "default_theme": "light"
+  },
+  "services": {
+    "units": [
+      "lqosd",
+      "lqos_scheduler",
+      "lqos_shaped_sync"
+    ],
+    "legacy_optional_units": [
+      "lqos_node_manager"
+    ],
+    "show_legacy_optional_not_installed": false,
+    "unit_metadata": {
+      "lqosd": {
+        "label": "LibreQoS daemon",
+        "role": "required",
+        "note": "Main LibreQoS daemon; newer LibreQoS installs may also serve the Web UI on port 9123."
+      },
+      "lqos_scheduler": {
+        "label": "LibreQoS scheduler",
+        "role": "required",
+        "note": "Runs LibreQoS scheduler/integration refresh jobs."
+      },
+      "lqos_node_manager": {
+        "label": "Legacy Web UI service",
+        "role": "legacy_optional",
+        "note": "Older LibreQoS installs only. Newer LibreQoS usually exposes Web UI through lqosd, so this unit may be not installed."
+      },
+      "lqos_shaped_sync": {
+        "label": "LQoSync service",
+        "role": "required",
+        "note": "LQoSync dashboard, scheduler, and MikroTik-to-LibreQoS sync engine."
+      }
+    },
+    "restart_groups": {
+      "libreqos_core": [
+        "lqosd",
+        "lqos_scheduler"
+      ]
+    },
+    "journal_lines_default": 100
+  },
+  "routers": [
+    {
+      "name": "RB5k9-Distro",
+      "enabled": true,
+      "address": "10.200.1.2",
+      "port": 8728,
+      "username": "libreqos",
+      "password": "libreqos",
+      "root_download_mbps": 115,
+      "root_upload_mbps": 115,
+      "root_type": "site",
+      "root_virtual": false,
+      "dhcp": {
+        "enabled": true,
+        "servers": [
+          {
+            "name": "LAN",
+            "enabled": true,
+            "mode": "per_site",
+            "plan_source": "config_default",
+            "default_plan_down_mbps": 15,
+            "default_plan_up_mbps": 15,
+            "download_factor": 0.3,
+            "upload_factor": 0.3,
+            "node_type": "site",
+            "node_name": "DHCP-{server}-{router}",
+            "speed_comment": ""
+          },
+          {
+            "name": "LibreQoEMgt",
+            "enabled": true,
+            "mode": "per_site",
+            "download_limit_mbps": 15,
+            "upload_limit_mbps": 15,
+            "download_factor": 1.0,
+            "upload_factor": 1.0,
+            "node_type": "site",
+            "node_name": "DHCP-{server}-{router}",
+            "default_plan_down_mbps": 15,
+            "default_plan_up_mbps": 15,
+            "speed_comment": ""
+          },
+          {
+            "name": "Wifi5Soft",
+            "enabled": true,
+            "mode": "per_site",
+            "download_limit_mbps": 20,
+            "upload_limit_mbps": 20,
+            "download_factor": 1.0,
+            "upload_factor": 1.0,
+            "node_type": "site",
+            "node_name": "DHCP-{server}-{router}",
+            "default_plan_down_mbps": 20,
+            "default_plan_up_mbps": 20,
+            "speed_comment": ""
+          }
+        ]
+      },
+      "hotspot": {
+        "enabled": false,
+        "include_mac": true,
+        "download_limit_mbps": 10,
+        "upload_limit_mbps": 10,
+        "download_factor": 1.0,
+        "upload_factor": 1.0,
+        "node_type": "site",
+        "node_name": "HS-{router}",
+        "enhanced_metadata": true
+      },
+      "pppoe": {
+        "enabled": true,
+        "per_plan_node": true,
+        "flat_aggregate_factor": 0.3,
+        "node_type": "plan",
+        "flat_node_name": "PPP-{router}",
+        "plan_node_name": "{profile}-{router}",
+        "factor_rules": [
+          {
+            "max_plan_mbps": 15,
+            "download_factor": 0.31,
+            "upload_factor": 0.31
+          },
+          {
+            "max_plan_mbps": 50,
+            "download_factor": 1.0,
+            "upload_factor": 1.0
+          },
+          {
+            "max_plan_mbps": 9999,
+            "download_factor": 1.0,
+            "upload_factor": 1.0
+          }
+        ]
+      }
+    }
+  ]
+}

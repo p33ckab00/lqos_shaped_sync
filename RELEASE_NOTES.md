@@ -1,0 +1,871 @@
+# Release Notes
+
+## v2.38.0 - Selective MikroTik Collection
+
+- Added selective RouterOS field reads for PPPoE, DHCP, and Hotspot collectors.
+- Added universal speed resolver with explicit speed-source labels and raw source values.
+- Updated PPPoE speed priority: secret comment, active comment, profile comment, profile name, profile rate-limit, default.
+- Updated DHCP speed priority: DHCP server comment/speed_comment, DHCP server name, server config speed, global default.
+- Added Hotspot enhanced metadata reads from `/ip/hotspot/user` and `/ip/hotspot/user/profile`.
+- Added metadata cache state file at `/opt/lqosync/state/collector_cache.json`.
+- Added source-aware cleanup so stale rows are removed only for successfully scanned sources.
+- Added Dashboard collector monitoring, cache efficiency, speed source breakdown, and richer Last Sync Timeline details.
+- Added Config Center Collector Settings module and updated About module documentation.
+
+
+## v2.37.0 - About Module Documentation Expansion
+
+- Expanded the in-app **About LQoSync** module into a complete operator manual while retaining the existing dashboard-style UI/UX design.
+- Added detailed About sections for project purpose, sync workflow, LibreQoS apply policy, feature modules, network layout modes, fresh installation, existing install adoption, GitHub updates, uninstall and permission restore, MikroTik setup, important paths, commands, and troubleshooting.
+- Added atomic troubleshooting explanations with expected outcomes for common production issues: wrong LibreQoS working directory, `nsenter` on bare-metal, temp-file permission errors, pending apply retry, false service status, blank `/var/log` output, non-Git installations, port conflicts, and validation failures.
+- Added `docs/ABOUT_MODULE_OPERATOR_GUIDE.md` as the Markdown source companion for the About module.
+- Updated repository documentation guidance so every meaningful project change should update both repo docs and `templates/about.html`.
+
+## v2.34.0 - Bounded Table Views
+
+## v2.35.0 - GitHub source installer and smart updater
+
+- Added `install-from-github.sh` for direct GitHub-based bare-metal installation without requiring GitHub CLI.
+- Reworked `upgrade.sh` into a smart Git updater with policies: `pull_only`, `code_only`, `preserve_and_migrate`, `refresh_with_backup`, and `factory_reset`.
+- Default update policy is production-safe: preserve live `config.json`, `users.json`, `ShapedDevices.csv`, `network.json`, `.env`, state, and logs while pulling source code and running safe config migration.
+- Added Git conversion support for systems previously installed from ZIP/manual copy; runtime files are backed up and preserved while the install directory becomes Git-managed.
+- Added `docs/GITHUB_INSTALL.md` and expanded installation/manual documentation for GitHub source install, Git updates, preservation policies, and no-`gh` requirements.
+
+- Added row-limit controls to Logs & Backups → Audit Events so large audit logs do not overflow the page.
+- Added selectable table limits: 25, 50, 100, 200, 300, 400, and 500 visible lines.
+- Added the same bounded table view control to Shaped Devices.
+- Counts now show visible rows, filtered rows, and total rows so operators know when results are limited.
+- Filters and sorting still apply to the full dataset; only the rendered visible rows are capped by the selected view size.
+
+## v2.33.0 - Audit Events Table and Dashboard Client Change Timeline
+
+- Added operator-friendly client change summaries for each sync cycle.
+- Audit events now include affected clients, speeds, parent nodes, source type, changed fields, and elapsed timings when file changes occur.
+- Logs & Backups now renders Audit Events as a searchable/filterable table similar to the Shaped Devices table.
+- Dashboard Last Sync Timeline now shows client-change info bits so operators can immediately see who changed, what speed, and which parent node was affected.
+- Added a reusable change-summary builder that converts raw ShapedDevices.csv diffs into UI/audit-friendly records.
+
+# Release Notes
+
+## v2.32.0 - MikroTik Setup Requirement Notice
+
+- Added a dedicated MikroTik setup requirement notice for fresh installations.
+- Added recommended RouterOS terminal commands for creating a restricted `API_READ` group and `libreqosyncAPI` user.
+- Updated bare-metal and Docker installers to print the MikroTik API setup notice when a fresh LibreQoS file set is detected.
+- Added `docs/MIKROTIK_SETUP.md` and surfaced the same guidance in README, installation manuals, command docs, and the in-app About module.
+- Clarified terminology: this is an **Important Notice** / **Setup Requirement**, not a generic warning.
+
+## v2.31.0 - Smart Fresh Install File Initialization
+
+- Added smart install initialization for fresh LibreQoS systems where `/opt/libreqos/src/config.json`, `ShapedDevices.csv`, and `network.json` do not exist yet.
+- Installer now creates missing managed files dynamically from bundled templates.
+- Existing live LibreQoS files are no longer overwritten by default in smart mode; interactive bare-metal installs ask the operator to preserve, overwrite with backup, create missing only, or abort.
+- Non-interactive installs preserve existing files unless `LQOSYNC_INIT_POLICY=overwrite_with_backup` is explicitly set.
+- Docker entrypoint now uses the same smart policy, preserving existing mounted LibreQoS files by default while creating missing files on fresh systems.
+- Documentation updated with fresh install behavior, init-policy options, and production-safe recommendations.
+
+
+## v2.30.0 - Uninstall Permission Restore
+
+- Added `uninstall.sh` for safer bare-metal removal.
+- Added `scripts/restore_libreqos_permissions.sh` to restore LibreQoS-managed paths after LQoSync uninstall.
+- Bare-metal uninstall now documents how to remove LQoSync ACL entries and return `/opt/libreqos/src` plus managed files to `root:root`.
+- Added conservative default restore mode for managed files only: `config.json`, `ShapedDevices.csv`, and `network.json`.
+- Added optional full restore mode for operators who intentionally want to run `chown -R root:root /opt/libreqos/src`.
+- Updated troubleshooting notes for stale ACLs, root ownership restoration, and manual uninstall verification.
+
+## v2.29.0 - Mobile-responsive UI
+
+- Improves the LQoSync interface for phones and tablets.
+- Adds a mobile navigation drawer with backdrop and touch-friendly menu button.
+- Stacks dashboard cards, service panels, network cards, Config Center sections, and detail panels on narrow screens.
+- Keeps large data tables usable with horizontal swipe scrolling and responsive hints.
+- Improves Config Center mobile navigation with horizontally scrollable module tabs.
+- Preserves the desktop dashboard-style UI while making the app easier to operate from mobile devices.
+
+## v2.28.0 - Legacy LibreQoS Service Labeling
+
+- Treats `lqos_node_manager` as a legacy/optional LibreQoS Web UI service instead of a required service.
+- Fresh `config.json.example` now uses `lqosd`, `lqos_scheduler`, and `lqos_shaped_sync` as primary units.
+- Adds `services.legacy_optional_units`, `services.unit_metadata`, and `services.show_legacy_optional_not_installed`.
+- Services & Journals now auto-hides missing legacy optional services by default and labels them clearly when shown.
+- Config Center now has a Service Monitor Settings section for service units, legacy optional units, journal defaults, and restart groups.
+- Documentation updated to clarify that the main LibreQoS status command is `sudo systemctl status lqosd lqos_scheduler`.
+
+
+## v2.27.0 - LibreQoS working-directory enforcement
+
+- Enforces `libreqos.working_dir` during every LibreQoS apply run so `LibreQoS.py --updateonly` always executes from `/opt/libreqos/src` in bare-metal direct mode.
+- Falls back to the directory containing the configured `LibreQoS.py` command when `working_dir` is missing.
+- Adds clearer apply metadata with the effective working directory and an early validation error if the directory is invalid.
+- Resolves bare-metal apply failures where LibreQoS reported `FileNotFoundError: ShapedDevices.csv` because it was launched from `/opt/lqosync` or another directory instead of `/opt/libreqos/src`.
+
+
+## v2.26.0 - Config Example Hardening and Startup Migration
+
+- Hardened `config.json.example`, the template used by fresh installations, so it explicitly contains the production-safe LibreQoS apply defaults:
+  - `libreqos.working_dir=/opt/libreqos/src`
+  - `libreqos.retry_if_last_apply_failed=true`
+  - `libreqos.run_mode=direct`
+  - `libreqos.sudo=true`
+  - absolute `/opt/lqosync` runtime paths.
+- Added startup config normalization in `app.py`. This persists missing safe defaults even when an operator updates by `git pull` and restarts the service without running `install.sh`.
+- Strengthened bare-metal detection in `engine/config_loader.py` so Docker-only `host_nsenter` cannot survive on systemd/bare-metal installs.
+- Added `scripts/validate_config_example.py` to verify the fresh-install template contains mandatory production defaults.
+- Keeps Docker support available, but prioritizes bare-metal/systemd as the default production deployment.
+
+# LQoSync Release Notes
+
+## v2.25.0 - Bare-metal direct runner enforcement
+
+- Prioritizes bare-metal/systemd installation as the default production path.
+- Forces `libreqos.run_mode=direct` and `libreqos.sudo=true` during bare-metal install/update migration.
+- Ensures `libreqos.working_dir=/opt/libreqos/src` and `libreqos.retry_if_last_apply_failed=true` remain present in live `config.json`.
+- Normalizes `/opt/lqosync/.env` during bare-metal install/update so old Docker/nsenter values cannot survive upgrades.
+- Protects service status and journal viewers from using `nsenter` on bare-metal systems.
+- Prevents the bare-metal error `nsenter: cannot open /proc/1/ns/ipc: Permission denied`.
+- Keeps Docker host-integrated mode available only through Docker environment variables and compose settings.
+
+
+## v2.23.0 - Config migration included in install/update
+
+- Added `scripts/migrate_config.py` to persist newly introduced config defaults into existing `/opt/libreqos/src/config.json` during upgrades.
+- Bare-metal `install.sh` now normalizes existing config even when `LQOSYNC_INIT_POLICY=preserve_existing` is used. This means `libreqos.working_dir=/opt/libreqos/src` and `libreqos.retry_if_last_apply_failed=true` are added automatically instead of requiring manual JSON edits.
+- Docker `docker-entrypoint.sh` now performs the same safe config migration on startup while preserving operator settings.
+- Re-applies config ownership/permissions after atomic config migration so the `lqosync` service user can continue writing temp files safely.
+
+# Release Notes
+
+## v2.22.0 - LibreQoS apply retry and scheduler auto-apply policy
+
+- Added `libreqos.working_dir` with default `/opt/libreqos/src` so `LibreQoS.py --updateonly` runs from the same directory used by manual LibreQoS execution. This fixes relative-file issues such as `ShapedDevices.lastLoaded.csv` lookups.
+- Added `libreqos.retry_if_last_apply_failed=true` so LQoSync retries LibreQoS apply on the next non-dry-run cycle when files were already written but LibreQoS.py failed.
+- Added pending LibreQoS apply state fields in `runtime_state.json`: `pending_libreqos_apply`, `last_libreqos_apply_failed`, `last_libreqos_apply_success`, `last_libreqos_apply_reason`, and `last_libreqos_exit_code`.
+- Added Force LibreQoS Apply action in Services & Journals for applying current LibreQoS files without waiting for a new file diff.
+- Updated Dashboard behavior: when scheduler auto-apply is active, manual Run Sync Now is disabled to avoid overlapping operator-triggered applies. Dry Run remains available for preview.
+- Improved live status behavior by marking manual jobs queued/running immediately so dashboard/API polling reflects state changes on the fly.
+- Documented the production apply policy: dry-run never applies; non-dry-run file writes automatically trigger LibreQoS; failed applies remain pending until successfully retried.
+
+# LQoSync Release Notes
+
+LQoSync is a database-free LibreQoS companion dashboard and sync engine. It reads live MikroTik PPPoE, DHCP, and Hotspot data, generates LibreQoS-compatible `ShapedDevices.csv` and `network.json`, and calls `LibreQoS.py --updateonly` only when generated files change.
+
+---
+
+## v2.21.0 - Release Notes Maintenance
+
+Documentation-only release.
+
+- Rebuilt `RELEASE_NOTES.md` into a clean, chronological, up-to-date changelog.
+- Consolidated duplicate headings from earlier documentation updates.
+- Added all major releases from early prototype through the current ACL installer hardening release.
+- Clarified which releases changed runtime behavior, installer behavior, UI/UX, documentation, and service monitoring.
+- No sync engine behavior change.
+- No database added.
+- No MikroTik write behavior added.
+
+---
+
+## v2.20.0 - Installer ACL + Permission Troubleshooting
+
+- Added automatic ACL installation and permission setup to the bare-metal installer.
+- Bare-metal `install.sh` now installs the `acl` package when needed.
+- Bare-metal installer now grants the `lqosync` service user write access to `/opt/libreqos/src` and the managed LibreQoS files:
+  - `/opt/libreqos/src/config.json`
+  - `/opt/libreqos/src/ShapedDevices.csv`
+  - `/opt/libreqos/src/network.json`
+- Added default ACL support for future temporary files created during atomic writes.
+- Added a permission smoke test for `.tmp` file creation inside `/opt/libreqos/src`.
+- Added troubleshooting documentation for this common error:
+
+```text
+Permission denied: /opt/libreqos/src/config.json.tmp
+```
+
+- Updated manuals with manual ACL repair commands and verification steps.
+
+---
+
+## v2.19.0 - Browser Tab Favicon
+
+- Added a browser tab icon, technically called a favicon.
+- Added SVG favicon, ICO fallback, PNG icons, mobile touch icons, Android icons, and web manifest.
+- Wired favicon links into:
+  - `templates/base.html`
+  - `templates/login.html`
+- Browser tab, bookmarks, and supported mobile shortcuts now show the LQoSync icon.
+
+---
+
+## v2.18.0 - Uninstall + Git Documentation
+
+- Added `UNINSTALLATION.md`.
+- Added `GIT_INSTALL.md`.
+- Documented Docker uninstall.
+- Documented bare-metal uninstall.
+- Documented Git-source folder cleanup.
+- Documented `/opt/lqosync` backup/removal.
+- Documented systemd service removal.
+- Documented sudoers cleanup.
+- Documented ACL cleanup for `/opt/libreqos/src`.
+- Documented how to restore the old `updatecsv.service`.
+- Added Git clone installation instructions.
+- Added Docker install from GitHub.
+- Added bare-metal install from GitHub.
+- Added Git update steps.
+- Added Git upload safety notes.
+- Updated:
+  - `README.md`
+  - `INSTALLATION.md`
+  - `DOCKER_INSTALL.md`
+  - `BARE_METAL_INSTALL.md`
+  - `FULL_DOCUMENTATION.md`
+  - `docs/COMMANDS.md`
+- Added or updated `.gitignore` rules to avoid committing live runtime files and secrets.
+
+---
+
+## v2.17.0 - `/opt/lqosync` Install Path
+
+- Changed LQoSync application/runtime install path from `/opt/lqos_shaped_sync` to:
+
+```text
+/opt/lqosync
+```
+
+- Keeps LQoSync beside LibreQoS in `/opt`:
+
+```text
+/opt/libreqos
+/opt/lqosync
+```
+
+- Docker persistent runtime volume now maps:
+
+```text
+/opt/lqosync:/opt/lqosync
+```
+
+- Bare-metal installer now installs app files, `users.json`, state, logs, backups, and config backups under `/opt/lqosync`.
+- LibreQoS-managed files remain under `/opt/libreqos/src`:
+  - `config.json`
+  - `ShapedDevices.csv`
+  - `network.json`
+- Service/container name remains `lqos_shaped_sync` for compatibility.
+- Updated documentation, commands, About page, Dockerfile, compose files, and installer scripts.
+
+---
+
+## v2.16.0 - Default Web Port 9202
+
+- Changed default LQoSync web UI port from `5050` to `9202`.
+- Updated:
+  - `.env.example`
+  - `Dockerfile`
+  - `compose.yaml`
+  - `app.py` default port handling
+  - `install.sh`
+  - `README.md`
+  - `DOCKER_INSTALL.md`
+  - `BARE_METAL_INSTALL.md`
+  - `INSTALLATION.md`
+  - `docs/COMMANDS.md`
+- New default UI URL:
+
+```text
+http://<server-ip>:9202
+```
+
+---
+
+## v2.15.0 - About Module
+
+- Added About module at:
+
+```text
+/about
+```
+
+- Added Help/About navigation in the UI.
+- Added operator-friendly web documentation page with:
+  - Project Description
+  - Process Workflow
+  - Features and Modules
+  - Network Layout Modes
+  - Docker Installation Guide
+  - Bare-metal Ubuntu Installation Guide
+  - Project Requirements
+  - Important Paths
+  - Operator Commands
+  - Notes and Safety Model
+- About page is light/dark theme compatible.
+- About page is designed as an easy-to-read in-app operator reference.
+
+---
+
+## v2.14.0 - README Documentation Expansion
+
+- Expanded `README.md` into a full granular project manual.
+- Added project purpose, mental model, and GitHub project description.
+- Added detailed Docker installation instructions.
+- Added detailed bare-metal Ubuntu/systemd installation instructions.
+- Added update, uninstall, troubleshooting, and operator commands.
+- Added feature documentation for:
+  - Dashboard
+  - Dry Run Preview
+  - Config Center
+  - Network Layout
+  - Shaped Devices
+  - Services & Journals
+  - User Settings
+- Added detailed sync engine workflow.
+- Added PPPoE, DHCP, and Hotspot logic explanation.
+- Added network mode documentation for:
+  - `router_children`
+  - `flat_router_root`
+  - `flat_no_parent`
+- Added security model and performance notes.
+
+---
+
+## v2.13.0 - Shaped Devices Column Filters
+
+- Added per-column filters to the Shaped Devices table.
+- Added filters for:
+  - Circuit Name
+  - Type
+  - Parent Node
+  - IPv4
+  - Download Max
+  - Upload Max
+  - Download Min
+  - Upload Min
+  - MAC
+  - Speed Source
+  - Status
+- Every visible table header is now sortable.
+- Global search remains available.
+- PPP/DHCP/Hotspot/Static/Duplicate IP filter chips remain available.
+- Column filters can be combined with global search and type/status chips.
+
+---
+
+## v2.12.0 - User Settings UI
+
+- Added Settings → User Settings page.
+- Added JSON-backed user management using `users.json`.
+- Added admin-only UI features:
+  - Add user
+  - Edit username
+  - Change role: `admin` or `viewer`
+  - Change password
+  - Delete user
+- Passwords are stored only as bcrypt hashes.
+- Added safety protections:
+  - Cannot delete currently logged-in user.
+  - Cannot delete the last admin.
+  - Cannot demote the last admin.
+  - Passwords are never displayed in the UI.
+  - `users.json` is written atomically.
+- Added audit logs for user changes.
+
+---
+
+## v2.11.0 - Documentation Command Fix
+
+- Added `docs/COMMANDS.md`.
+- Updated Docker password reset command to explicitly target:
+
+```text
+/opt/lqosync/users.json
+```
+
+- Updated bare-metal password reset command.
+- Added command reference for:
+  - Docker status/logs/rebuild
+  - Docker password reset
+  - Bare-metal service commands
+  - Bare-metal password reset
+  - LibreQoS service status
+  - LibreQoS grouped restart
+  - Manual `LibreQoS.py --updateonly` apply
+
+---
+
+## v2.10.0 - Status Helper Fix
+
+- Fixed runtime dashboard error:
+
+```text
+NameError: name 'get_status' is not defined
+```
+
+- Added missing `get_status()` helper.
+- Dashboard route now loads `config.json` and `runtime_state.json` correctly.
+- Network, layout, devices, services, and API status routes now use the same status helper.
+
+---
+
+## v2.9.0 - Auth Boot Fix
+
+- Fixed Gunicorn worker boot failure caused by missing auth helpers.
+- Restored missing `login_required` decorator.
+- Restored missing `admin_required` decorator.
+- Restored `current_user()` helper.
+- Restored CSRF helper wiring.
+- Fixed error:
+
+```text
+NameError: name 'login_required' is not defined
+```
+
+---
+
+## v2.8.0 - LibreQoS Service Unit Fix
+
+- Corrected LibreQoS service unit names.
+- Correct service status command:
+
+```bash
+sudo systemctl status lqosd lqos_scheduler
+```
+
+- Correct grouped restart command:
+
+```bash
+sudo systemctl restart lqosd lqos_scheduler
+```
+
+- Updated default service units:
+  - `lqosd`
+  - `lqos_scheduler`
+  - `lqos_node_manager`
+  - `lqos_shaped_sync`
+- Added migration normalization for older names like `lqos` or `lqosd_scheduler`.
+
+---
+
+## v2.7.0 - Services, Journals, and Timing Metrics
+
+- Added Services & Journals page.
+- Added service status cards for LQoSync and LibreQoS-related units.
+- Added journal viewer per service.
+- Added restart button per allowlisted service.
+- Added LibreQoS grouped restart action:
+
+```bash
+sudo systemctl restart lqosd lqos_scheduler
+```
+
+- Added configurable `services` section in `config.json`:
+  - `services.units`
+  - `services.restart_groups`
+  - `services.journal_lines_default`
+- Added `LibreQoS.py --updateonly` apply log history.
+- Apply log captures:
+  - stdout
+  - stderr
+  - exit code
+  - elapsed time
+  - command metadata
+- Added elapsed-time metrics per sync cycle for:
+  - config load
+  - CSV read/parse
+  - `network.json` read/parse
+  - MikroTik connect
+  - PPPoE process
+  - DHCP process
+  - Hotspot process
+  - cleanup
+  - CSV render
+  - network render
+  - diff
+  - backup
+  - CSV write
+  - network write
+  - LibreQoS apply
+  - full cycle total
+- Added performance timing cards to the dashboard.
+- Added last-cycle process timeline.
+
+---
+
+## v2.6.0 - Network Layout Modes
+
+- Added `network_mode` to `config.json`.
+- Added Config Center dropdown for Network Layout Mode.
+- Added automatic config normalization:
+
+| Mode | `flat_network` | `no_parent` |
+|---|---:|---:|
+| `router_children` | false | false |
+| `flat_router_root` | true | false |
+| `flat_no_parent` | true | true |
+
+- Added support for three output layouts:
+  - `router_children`: router root + PPPoE/DHCP/Hotspot child nodes.
+  - `flat_router_root`: all generated devices use router name as Parent Node.
+  - `flat_no_parent`: generated devices have blank Parent Node and `network.json` can be empty.
+- Engine now changes Parent Node behavior based on selected network mode.
+- `network.json` builder now follows selected network mode.
+- Preflight allows blank Parent Node only in `flat_no_parent` mode.
+- Dry-run can preview network mode changes.
+- Documentation updated for all three modes.
+
+---
+
+## v2.5.0 - Shaped Devices Light Mode Detail Fix
+
+- Fixed selected device detail panel header in Shaped Devices page.
+- Removed hardcoded dark styling from the detail panel header.
+- Detail panel header now follows theme variables in both light and dark modes.
+
+---
+
+## v2.4.0 - Documentation + Bare-Metal Installation
+
+- Added complete documentation package.
+- Added bare-metal Ubuntu/systemd installation path.
+- Added:
+  - `FULL_DOCUMENTATION.md`
+  - `INSTALLATION.md`
+  - `DOCKER_INSTALL.md`
+  - `BARE_METAL_INSTALL.md`
+  - `README.md`
+  - `install.sh`
+  - `install-baremetal.sh`
+- Docker and bare-metal installation are both supported.
+- Added safe installation notes for production LibreQoS files.
+
+---
+
+## v2.3.0 - UI Polish + Advanced Network JSON View
+
+- Fixed Config Center light-mode styling.
+- Config Center panels, inputs, raw JSON preview, modals, tabs, and warnings now follow light theme properly.
+- Added Advanced JSON View button to Network Layout filter row.
+- Network Layout page can now show read-only `network.json` output.
+- Added Copy JSON button.
+- Renamed Shaped Devices table column from `Source` to `Speed source` to avoid confusion.
+
+---
+
+## v2.2.0 - Light/Dark Theme Switch
+
+- Added Light/Dark mode switch in the topbar.
+- Added Light/Dark mode switch on login page.
+- Set Light mode as the default theme.
+- Theme preference is saved in browser `localStorage`.
+- Added config value:
+
+```json
+"ui": {
+  "default_theme": "light"
+}
+```
+
+---
+
+## v2.1.0 - Core Parity Docker
+
+- Aligned Docker-ready engine with the real production `updatecsv.py` workflow.
+- DHCP lease handling now follows the original script behavior:
+  - match DHCP server name
+  - require `mac-address`
+  - require `active-address` or `address`
+  - do not require `status=bound`
+- Default Docker config template now matches the real production model:
+  - router-as-root: `RB5k9-Distro`
+  - PPPoE `per_plan_node=true`
+  - Tier-15M factor `0.31`
+  - DHCP-LAN factor `0.3`
+  - LibreQoEMgt included by default
+  - Wifi5Soft included by default
+- Added backward-compatible config handling:
+  - `flat_network`
+  - `no_parent`
+  - `preserve_network_config`
+  - old `download_limit_mbps` / `upload_limit_mbps`
+  - new `default_plan_down_mbps` / `default_plan_up_mbps`
+
+---
+
+## v2.0.0 - Docker Ready
+
+- Added Docker support.
+- Added:
+  - `Dockerfile`
+  - `compose.yaml`
+  - `compose.preserve-existing.yaml`
+  - `docker-entrypoint.sh`
+  - `DOCKER_INSTALL.md`
+- Docker deployment uses host integration because LQoSync must:
+  - write `/opt/libreqos/src/config.json`
+  - write `/opt/libreqos/src/ShapedDevices.csv`
+  - write `/opt/libreqos/src/network.json`
+  - call host LibreQoS apply command
+- Added init policy support:
+  - `overwrite_with_backup`
+  - `preserve_existing`
+  - `create_missing_only`
+- Added Docker install and operation guide.
+
+---
+
+## v1.9.0 - Fully Wired UI
+
+- Dashboard buttons wired to backend actions:
+  - Run Sync Now
+  - Dry Run
+  - Enable Scheduler
+  - Disable Scheduler
+  - Pause Scheduler
+  - Resume Scheduler
+  - Service restart buttons
+- Dry-run page wired to:
+  - Run dry-run
+  - Run fresh apply
+  - Show CSV diff
+  - Show network diff
+  - Show bandwidth math
+  - Show warnings/errors
+- Logs & Backups page wired to:
+  - Download log
+  - Restore backup
+  - View audit JSON
+  - View latest log lines
+- Added API endpoints for sync, scheduler, backups, services, and status.
+
+---
+
+## v1.8.0 - UI Facelift
+
+- Added enterprise-style app shell.
+- Added topbar and sidebar.
+- Improved dashboard cards.
+- Improved service/status indicators.
+- Improved Network Layout page with router-as-root cards, node badges, bandwidth bars, and math display.
+- Improved Shaped Devices page with searchable/filterable table, badges, duplicate IP display, and detail panel.
+
+---
+
+## v1.7.0 - Route-Safe Config Actions
+
+- Fixed Config UI action URL issue that generated paths like:
+
+```text
+/config/router//test
+```
+
+- Added safer endpoints:
+  - `/config/router/test-current`
+  - `/config/router/discover-dhcp-current`
+- Router index is now submitted as hidden POST field.
+- Backend now validates missing routers, invalid router index, and out-of-range router index.
+- Kept older indexed routes for compatibility.
+
+---
+
+## v1.6.0 - Installer Init Policy
+
+- Installer now checks for existing LibreQoS files in:
+  - `/opt/libreqos/src/config.json`
+  - `/opt/libreqos/src/ShapedDevices.csv`
+  - `/opt/libreqos/src/network.json`
+- Added init policy options:
+  - `overwrite_with_backup`
+  - `preserve_existing`
+  - `create_missing_only`
+- Added install backup directory.
+- Added templates:
+  - `config.json.example`
+  - `ShapedDevices.csv.example`
+  - `network.json.example`
+
+---
+
+## v1.5.0 - Config Path Alignment
+
+- Changed default `CONFIG_PATH` to:
+
+```text
+/opt/libreqos/src/config.json
+```
+
+- Aligned config location with LibreQoS source directory.
+- Updated install script, app fallback, config loader fallback, doctor script, upgrade script, and documentation.
+- Final path convention established:
+  - `/opt/libreqos/src/config.json`
+  - `/opt/libreqos/src/ShapedDevices.csv`
+  - `/opt/libreqos/src/network.json`
+
+---
+
+## v1.4.0 - Enterprise UI Sync
+
+- Fixed mismatch between Router Settings UI and Advanced Raw JSON.
+- Router settings UI and Advanced Raw JSON now mirror each other explicitly.
+- Added Selected Router JSON Mirror panel.
+- Router API test can now use current unsaved UI JSON payload.
+- DHCP discovery can now use current UI JSON.
+- Added client-side config normalization for nested router/PPPoE/DHCP/Hotspot fields.
+- Added missing config controls:
+  - `app.dry_run_default`
+  - `scheduler.max_instances`
+  - `libreqos.sudo`
+
+---
+
+## v1.3.0 - Enterprise Config UI
+
+- Added full Config Center UI.
+- Added UI-backed editor for `config.json`.
+- Added live Advanced Raw JSON preview.
+- Added editable raw JSON modal.
+- Added router editor.
+- Added PPPoE editor.
+- Added DHCP editor.
+- Added Hotspot editor.
+- Added live node preview.
+- Improved base UI and layout.
+
+---
+
+## v1.2.0 - Enterprise Hardened
+
+- Added inter-process lock.
+- Fixed Gunicorn deployment to use one worker to avoid multiple embedded schedulers.
+- Added CSRF protection.
+- Added structured audit log.
+- Added config backup before every config save.
+- Added Audit Events table.
+- Added operator scripts:
+  - `scripts/doctor.py`
+  - `scripts/set_password.py`
+- Added install hardening.
+- Added config additions:
+  - `paths.lock_file`
+  - `paths.audit_log`
+
+---
+
+## v1.1.0 - Enterprise Improvements
+
+- Improved scheduler lock handling.
+- Added `next_run_at` runtime display.
+- Added file drift detection.
+- Added node math metadata.
+- Added DHCP discovery from MikroTik.
+- Added Router API test button.
+- Improved rollback safety.
+- Added backup retention.
+- Added config validation before saving.
+- Switched production service to Gunicorn.
+- Added download buttons for current `ShapedDevices.csv` and `network.json`.
+- Improved dashboard, dry-run, network layout, and shaped devices UI.
+
+---
+
+## v1.0.0 - Full System
+
+- First full system package.
+- Added database-free config-driven engine.
+- Added Flask + Jinja + Tailwind UI.
+- Added bcrypt-backed `users.json` login.
+- Added scheduler enable/disable.
+- Added manual sync.
+- Added dry-run preview.
+- Added Network Layout viewer.
+- Added Shaped Devices viewer.
+- Added Config editor.
+- Added DHCP include/exclude toggle.
+- Added Logs/Backups page.
+- Added atomic writes.
+- Added backup before apply.
+- Added rollback from UI.
+- Added `LibreQoS.py --updateonly` runner.
+- Added read-only MikroTik collector layer.
+- Added offline self-test script.
+- Added install script and systemd service installer.
+
+---
+
+## v0.1.0 - Initial Scaffold
+
+- First working scaffold/prototype.
+- Added standalone LQoSync project structure.
+- Added Flask + Jinja basic dashboard.
+- Added config-driven no-database model.
+- Added early scheduler thread.
+- Added early manual sync and dry-run preview.
+- Added early MikroTik collectors and PPPoE/DHCP/Hotspot processors.
+- Added early CSV/network builders.
+- Added early backup and LibreQoS apply runner.
+- Added initial installer and systemd service template.
+
+---
+
+## Core Design That Remains True Across Releases
+
+- No database.
+- MikroTik is read-only.
+- `config.json` is the persistent configuration source.
+- `users.json` stores local web UI users with bcrypt password hashes.
+- LQoSync writes LibreQoS-compatible:
+  - `ShapedDevices.csv`
+  - `network.json`
+- LQoSync calls:
+
+```bash
+sudo /opt/libreqos/src/LibreQoS.py --updateonly
+```
+
+- LibreQoS remains the actual shaping applier.
+- LQoSync does not replace LibreQoS.
+- LQoSync is not a billing system, CRM, or ISP Manager.
+
+## v2.24.0 - Config Center UX and Apply Config Wiring
+
+- Reworked Config Center into a cleaner dashboard-style control plane with professional card layout, left-side module navigation, status summaries, and live raw JSON mirror.
+- Added a dedicated Apply Policy section for LibreQoS command, arguments, working directory, run mode, sudo, timeout, run-on-change behavior, and failed-apply retry.
+- Ensured the UI always wires `libreqos.working_dir=/opt/libreqos/src` and `libreqos.retry_if_last_apply_failed=true` into the saved `config.json`.
+- Improved config migration so live installs normalize relative runtime paths to `/opt/lqosync` and LibreQoS file paths to `/opt/libreqos/src` without overwriting operator router settings.
+- Kept dry-run safe: dry-run never writes files and never applies LibreQoS; scheduled/manual non-dry-run applies changes immediately when files change.
+## v2.36.0 - Smart Existing Install Adoption
+
+Added production-safe existing installation handling for GitHub-source installs.
+
+### Added
+
+- `install-from-github.sh` now detects existing LQoSync installations regardless of whether they came from ZIP, manual copy, Git clone, Docker leftovers, bare-metal installs, or partial/broken installs.
+- Interactive action menu when an existing install is detected:
+  - Adopt and update existing install
+  - Update code only
+  - Repair install, preserve all data
+  - Backup and replace app files
+  - Remove existing LQoSync then fresh install
+  - Abort
+- Non-interactive action support using `EXISTING_INSTALL_ACTION`:
+  - `adopt`
+  - `code_only`
+  - `repair`
+  - `replace_app`
+  - `remove_fresh`
+  - `abort`
+- Safety backup for local runtime/operator-owned files before action.
+- New documentation: `docs/EXISTING_INSTALL_ADOPTION.md`.
+
+### Preserved by default
+
+- `/opt/libreqos/src/config.json`
+- `/opt/libreqos/src/ShapedDevices.csv`
+- `/opt/libreqos/src/network.json`
+- `/opt/lqosync/users.json`
+- `/opt/lqosync/.env`
+- `/opt/lqosync/state/`
+- `/opt/lqosync/logs/`
+- `/opt/lqosync/backups/`
+
+### Notes
+
+This update keeps LibreQoS integrity intact while allowing older ZIP/manual installs to become Git-managed and safely updatable from GitHub.

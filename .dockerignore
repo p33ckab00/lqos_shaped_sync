@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.env
+.git/
+backups/
+logs/
+state/*.lock
+state/runtime_state.json
+config_backups/
+install_backups/
+*.zip

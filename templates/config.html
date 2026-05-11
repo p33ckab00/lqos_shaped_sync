@@ -1,0 +1,367 @@
+{% extends "base.html" %}{% block content %}
+<script>
+window.initialConfig = {{ config | tojson }};
+function cfgEditor(initial) {
+  const blankFactor = () => ({max_plan_mbps: 9999, download_factor: 1.0, upload_factor: 1.0});
+  const blankDhcp = () => ({
+    name: 'LAN', enabled: false, mode: 'per_site', plan_source: 'config_default',
+    default_plan_down_mbps: 15, default_plan_up_mbps: 15,
+    download_factor: 1.0, upload_factor: 1.0,
+    node_type: 'site', node_name: 'DHCP-{server}-{router}', speed_comment: ''
+  });
+  const blankRouter = () => ({
+    name: 'New-Router', enabled: true, address: '', port: 8728, username: '', password: '',
+    root_download_mbps: 100, root_upload_mbps: 100, root_type: 'site', root_virtual: false,
+    pppoe: {enabled: false, per_plan_node: true, flat_aggregate_factor: 0.3, node_type: 'plan', flat_node_name: 'PPP-{router}', plan_node_name: '{profile}-{router}', factor_rules: [{max_plan_mbps: 15, download_factor: 0.31, upload_factor: 0.31}, {max_plan_mbps: 9999, download_factor: 1.0, upload_factor: 1.0}]},
+    dhcp: {enabled: false, servers: []},
+    hotspot: {enabled: false, include_mac: true, download_limit_mbps: 10, upload_limit_mbps: 10, download_factor: 1.0, upload_factor: 1.0, node_type: 'site', node_name: 'HS-{router}'}
+  });
+  const absPaths = (cfg) => {
+    cfg.paths.backup_dir ||= '/opt/lqosync/backups';
+    cfg.paths.log_file ||= '/opt/lqosync/logs/lqos_shaped_sync.log';
+    cfg.paths.runtime_state ||= '/opt/lqosync/state/runtime_state.json';
+    cfg.paths.lock_file ||= '/opt/lqosync/state/lqosync.lock';
+    cfg.paths.audit_log ||= '/opt/lqosync/logs/audit.jsonl';
+    cfg.paths.libreqos_apply_log_dir ||= '/opt/lqosync/logs/libreqos_apply';
+    cfg.paths.collector_cache ||= '/opt/lqosync/state/collector_cache.json';
+    cfg.paths.shaped_devices_csv ||= '/opt/libreqos/src/ShapedDevices.csv';
+    cfg.paths.network_json ||= '/opt/libreqos/src/network.json';
+  };
+  const ensure = (cfg) => {
+    cfg.app ||= {}; cfg.paths ||= {}; cfg.libreqos ||= {}; cfg.scheduler ||= {}; cfg.defaults ||= {}; cfg.collector ||= {}; cfg.collector.pppoe ||= {}; cfg.collector.dhcp ||= {}; cfg.collector.hotspot ||= {}; cfg.preflight ||= {}; cfg.ui ||= {}; cfg.routers ||= []; cfg.services ||= {};
+    cfg.network_mode ??= ((cfg.flat_network && cfg.no_parent) ? 'flat_no_parent' : (cfg.flat_network ? 'flat_router_root' : 'router_children'));
+    cfg.app.name ??= 'LQoSync'; cfg.app.auto_apply ??= true; cfg.app.dry_run_default ??= false; cfg.app.backup_before_apply ??= true; cfg.app.backup_retention ??= 30; cfg.app.file_drift_policy ??= 'overwrite_with_backup';
+    absPaths(cfg);
+    cfg.collector.selective_fields ??= true; cfg.collector.pppoe.read_active ??= true; cfg.collector.pppoe.read_secrets ??= true; cfg.collector.pppoe.read_profiles ??= true; cfg.collector.dhcp.lease_mode ??= 'permissive'; cfg.collector.dhcp.read_server_metadata ??= true; cfg.collector.hotspot.enhanced_metadata ??= true;
+    cfg.libreqos.cmd ??= '/opt/libreqos/src/LibreQoS.py'; cfg.libreqos.args ??= ['--updateonly']; cfg.libreqos.working_dir ??= '/opt/libreqos/src'; cfg.libreqos.timeout_seconds ??= 300; cfg.libreqos.run_only_when_files_changed ??= true; cfg.libreqos.retry_if_last_apply_failed ??= true; cfg.libreqos.sudo ??= true; cfg.libreqos.run_mode ??= 'direct';
+    cfg.scheduler.enabled ??= false; cfg.scheduler.active_interval_seconds ??= 30; cfg.scheduler.idle_interval_seconds ??= 120; cfg.scheduler.error_retry_interval_seconds ??= 30; cfg.scheduler.apply_cooldown_seconds ??= 20; cfg.scheduler.max_instances ??= 1;
+    cfg.defaults.id_length ??= 8; cfg.defaults.min_rate_percentage ??= 0.5; cfg.defaults.default_pppoe_profile ??= 'default'; cfg.defaults.default_pppoe_rate ??= '10M/10M'; cfg.defaults.default_dhcp_per_client_mbps ??= 15; cfg.defaults.default_hotspot_per_client_mbps ??= 10; cfg.defaults.duplicate_ip_policy ??= 'warn_and_skip'; cfg.defaults.static_comment_value ??= 'static';
+    cfg.preflight.enabled ??= true; cfg.preflight.duplicate_ip_policy ??= 'warn_and_skip'; cfg.preflight.missing_parent_policy ??= 'block'; cfg.preflight.invalid_bandwidth_policy ??= 'block';
+    cfg.ui.refresh_seconds ??= 5; cfg.ui.show_raw_json_editor ??= true; cfg.ui.default_theme ??= 'light';
+    cfg.services.units ??= ['lqosd','lqos_scheduler','lqos_shaped_sync']; cfg.services.legacy_optional_units ??= ['lqos_node_manager']; cfg.services.show_legacy_optional_not_installed ??= false; cfg.services.restart_groups ??= {libreqos_core: ['lqosd','lqos_scheduler']}; cfg.services.journal_lines_default ??= 100; cfg.services.unit_metadata ??= {lqos_node_manager:{label:'Legacy Web UI service',role:'legacy_optional',note:'Older LibreQoS installs only. Newer installs usually use lqosd for the Web UI.'}};
+    cfg.routers.forEach((r) => {
+      r.enabled ??= true; r.name ??= 'Router'; r.address ??= ''; r.port ??= 8728; r.username ??= ''; r.password ??= '';
+      r.root_download_mbps ??= 100; r.root_upload_mbps ??= 100; r.root_type ??= 'site'; r.root_virtual ??= false;
+      r.pppoe ||= {}; r.pppoe.enabled ??= false; r.pppoe.per_plan_node ??= false; r.pppoe.flat_aggregate_factor ??= 0.3; r.pppoe.node_type ??= 'plan'; r.pppoe.flat_node_name ??= 'PPP-{router}'; r.pppoe.plan_node_name ??= '{profile}-{router}'; r.pppoe.factor_rules ??= [blankFactor()];
+      r.dhcp ||= {}; r.dhcp.enabled ??= false; r.dhcp.servers ??= [];
+      r.dhcp.servers.forEach((s) => { s.enabled ??= true; s.name ??= ''; s.mode ??= 'per_site'; s.plan_source ??= 'config_default'; s.default_plan_down_mbps ??= s.download_limit_mbps ?? cfg.defaults.default_dhcp_per_client_mbps; s.default_plan_up_mbps ??= s.upload_limit_mbps ?? cfg.defaults.default_dhcp_per_client_mbps; s.download_factor ??= 0.5; s.upload_factor ??= 0.5; s.node_type ??= 'site'; s.node_name ??= (s.mode === 'per_plan' ? 'PLAN-DHCP-{plan}-{router}' : 'DHCP-{server}-{router}'); s.speed_comment ??= ''; });
+      r.hotspot ||= {}; r.hotspot.enabled ??= false; r.hotspot.include_mac ??= true; r.hotspot.enhanced_metadata ??= cfg.collector?.hotspot?.enhanced_metadata ?? true; r.hotspot.download_limit_mbps ??= cfg.defaults.default_hotspot_per_client_mbps; r.hotspot.upload_limit_mbps ??= cfg.defaults.default_hotspot_per_client_mbps; r.hotspot.download_factor ??= 1.0; r.hotspot.upload_factor ??= 1.0; r.hotspot.node_type ??= 'site'; r.hotspot.node_name ??= 'HS-{router}';
+    });
+    return cfg;
+  };
+  return {
+    cfg: ensure(JSON.parse(JSON.stringify(initial))),
+    tab: 'overview', routerIndex: 0, rawDraft: '', rawError: '', showRawEditor: false,
+    get routers(){ return this.cfg.routers || []; },
+    get currentRouter(){ return this.routers[this.routerIndex] || null; },
+    get jsonText(){ this.normalizeNetworkMode(); return JSON.stringify(this.cfg, null, 2); },
+    get currentRouterJson(){ return this.currentRouter ? JSON.stringify(this.currentRouter, null, 2) : '{}'; },
+    get applyPolicyLabel(){ return this.cfg.scheduler.enabled && this.cfg.app.auto_apply ? 'Scheduler auto-apply active' : (this.cfg.app.auto_apply ? 'Manual/scheduled applies enabled' : 'Auto apply disabled'); },
+    selectRouter(i){ this.routerIndex = i; this.tab = 'router'; },
+    normalizeNetworkMode(){
+      if(!['router_children','flat_router_root','flat_no_parent'].includes(this.cfg.network_mode)) this.cfg.network_mode = 'router_children';
+      if(this.cfg.network_mode === 'router_children'){ this.cfg.flat_network = false; this.cfg.no_parent = false; }
+      if(this.cfg.network_mode === 'flat_router_root'){ this.cfg.flat_network = true; this.cfg.no_parent = false; }
+      if(this.cfg.network_mode === 'flat_no_parent'){ this.cfg.flat_network = true; this.cfg.no_parent = true; }
+    },
+    networkModeLabel(){
+      return {router_children: 'Hierarchy: router root + service/plan child nodes', flat_router_root: 'Flat: all generated circuits under router root', flat_no_parent: 'Flat: blank Parent Node, no generated node tree'}[this.cfg.network_mode] || 'Hierarchy';
+    },
+    syncHidden(){ this.normalizeNetworkMode(); this.cfg = ensure(this.cfg); this.$refs.configJson.value = this.jsonText; },
+    openRaw(){ this.rawDraft = this.jsonText; this.rawError=''; this.showRawEditor = true; },
+    applyRaw(){ try { this.cfg = ensure(JSON.parse(this.rawDraft)); this.rawError=''; this.showRawEditor=false; if(this.routerIndex >= this.cfg.routers.length) this.routerIndex = 0; } catch(e) { this.rawError = e.message; } },
+    addRouter(){ this.cfg.routers.push(blankRouter()); this.routerIndex = this.cfg.routers.length - 1; this.tab = 'router'; },
+    removeRouter(i){ if(confirm('Remove router from config.json? This does not touch MikroTik.')) { this.cfg.routers.splice(i,1); this.routerIndex = Math.max(0, Math.min(this.routerIndex, this.cfg.routers.length-1)); } },
+    addDhcp(router){ router.dhcp ||= {enabled: true, servers: []}; router.dhcp.servers.push(blankDhcp()); },
+    removeDhcp(router, i){ if(confirm('Remove DHCP server entry from config.json? This does not touch MikroTik.')) router.dhcp.servers.splice(i,1); },
+    addFactor(router){ router.pppoe ||= {factor_rules: []}; router.pppoe.factor_rules.push(blankFactor()); },
+    removeFactor(router, i){ router.pppoe.factor_rules.splice(i,1); },
+    submitTest(){ this.syncHidden(); this.$refs.testRouterIdx.value = String(this.routerIndex ?? 0); this.$refs.testPayload.value = this.jsonText; this.$refs.testForm.submit(); },
+    submitDiscover(){ this.syncHidden(); this.$refs.discoverRouterIdx.value = String(this.routerIndex ?? 0); this.$refs.discoverPayload.value = this.jsonText; this.$refs.discoverForm.submit(); },
+    nodePreview(template, values){ return (template || '').replaceAll('{router}', values.router || '').replaceAll('{server}', values.server || '').replaceAll('{profile}', values.profile || 'Tier-15M').replaceAll('{plan}', values.plan || '15M'); }
+  }
+}
+</script>
+
+<style>
+  .cfg-shell{display:grid;grid-template-columns:260px minmax(0,1fr) 430px;gap:12px;align-items:start}.cfg-nav{position:sticky;top:74px}.cfg-side{position:sticky;top:74px}.cfg-nav-card{padding:10px}.cfg-nav-btn{width:100%;display:flex;align-items:center;gap:9px;text-align:left;border:1px solid transparent;border-radius:10px;padding:10px 11px;color:var(--muted);font-size:12px;transition:.12s}.cfg-nav-btn:hover{background:var(--bg2);color:var(--txt)}.cfg-nav-btn.active{background:rgba(0,200,150,.10);border-color:rgba(0,200,150,.35);color:var(--c-accent);font-weight:700}.cfg-section{display:grid;gap:12px}.cfg-field{display:block;font-size:12px}.cfg-label{display:block;color:var(--muted);font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}.cfg-help{display:block;color:var(--hint);font-size:11px;margin-top:6px;line-height:1.35}.cfg-input,.cfg-select,.cfg-textarea{width:100%;background:var(--bg1);color:var(--txt);border:1px solid var(--br1);border-radius:10px;padding:9px 10px;outline:none}.cfg-input:focus,.cfg-select:focus,.cfg-textarea:focus{border-color:var(--c-accent);box-shadow:0 0 0 3px rgba(0,200,150,.08)}.cfg-toggle{display:flex;align-items:center;justify-content:space-between;gap:14px}.cfg-toggle input{width:20px;height:20px}.cfg-kpi{padding:13px;border:1px solid var(--br0);background:var(--bg1);border-radius:12px}.cfg-kpi-label{color:var(--hint);font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.05em}.cfg-kpi-value{font-family:var(--font-mono);font-size:18px;font-weight:700;margin-top:4px}.cfg-json{max-height:52vh;overflow:auto;font-family:var(--font-mono);font-size:11px;line-height:1.45;background:var(--bg1);color:var(--txt);border:1px solid var(--br0);border-radius:12px;padding:12px}.cfg-subtle{border:1px solid var(--br0);background:var(--bg1);border-radius:12px;padding:12px}.cfg-router-row{border:1px solid var(--br0);background:var(--bg1);border-radius:12px;padding:13px;display:flex;align-items:center;justify-content:space-between;gap:12px}.cfg-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--br1);background:var(--bg2);border-radius:999px;padding:4px 8px;font-size:10px;color:var(--muted);font-family:var(--font-mono)}.cfg-danger{background:rgba(239,68,68,.11);border-color:rgba(239,68,68,.35);color:#f87171}.cfg-ok{background:rgba(0,200,150,.10);border-color:rgba(0,200,150,.35);color:var(--c-accent)}.cfg-warn{background:rgba(245,158,11,.10);border-color:rgba(245,158,11,.35);color:var(--c-warn)}
+  @media(max-width:1180px){.cfg-shell{grid-template-columns:1fr}.cfg-nav,.cfg-side{position:static}.cfg-nav-card{display:flex;flex-wrap:wrap}.cfg-nav-btn{width:auto}.cfg-json{max-height:420px}}
+  @media(max-width:760px){.cfg-shell{display:block}.cfg-nav{margin-bottom:10px}.cfg-side{margin-top:10px}.cfg-nav-card{display:flex;overflow-x:auto;flex-wrap:nowrap;padding:8px;gap:6px}.cfg-nav-btn{flex:0 0 auto;white-space:nowrap;width:auto;min-height:40px;padding:9px 10px}.cfg-router-row{display:block}.cfg-router-row .btn-row{margin-top:10px}.cfg-toggle{align-items:flex-start}.cfg-kpi-value{font-size:15px;word-break:break-word}.cfg-json{max-height:300px;font-size:10px}.cfg-input,.cfg-select,.cfg-textarea{min-height:42px}.cfg-subtle{padding:10px}}
+</style>
+
+<div x-data="cfgEditor(window.initialConfig)" class="space-y-4">
+  <form method="post" @submit="syncHidden()" class="space-y-4">{{ csrf_field()|safe }}
+    <input type="hidden" name="config_json" x-ref="configJson">
+
+    <div class="page-header">
+      <div>
+        <div class="page-title" style="font-size:22px">Config Center</div>
+        <div class="page-subtitle">Professional config.json control plane. UI fields, network mode, LibreQoS runner, and raw JSON are mirrored live.</div>
+      </div>
+      <div class="btn-row">
+        <button type="button" @click="openRaw()" class="btn"><i class="ti ti-code"></i>Raw JSON</button>
+        <button class="btn btn-primary"><i class="ti ti-device-floppy"></i>Normalize & Save</button>
+      </div>
+    </div>
+
+    {% if config_errors %}<div class="card" style="border-color:rgba(239,68,68,.4)"><div class="card-title text-err"><i class="ti ti-alert-triangle"></i> Config Errors</div><ul class="list-disc ml-6 text-sm">{% for e in config_errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+    {% if config_warnings %}<div class="card" style="border-color:rgba(245,158,11,.45)"><div class="card-title text-warn"><i class="ti ti-alert-circle"></i> Warnings</div><ul class="list-disc ml-6 text-sm">{% for w in config_warnings %}<li>{{ w }}</li>{% endfor %}</ul></div>{% endif %}
+
+    <div class="cfg-shell">
+      <aside class="cfg-nav">
+        <div class="card cfg-nav-card">
+          <button type="button" @click="tab='overview'" :class="tab==='overview' && 'active'" class="cfg-nav-btn"><i class="ti ti-layout-dashboard"></i>Overview</button>
+          <button type="button" @click="tab='apply'" :class="tab==='apply' && 'active'" class="cfg-nav-btn"><i class="ti ti-refresh-dot"></i>Apply Policy</button>
+          <button type="button" @click="tab='paths'" :class="tab==='paths' && 'active'" class="cfg-nav-btn"><i class="ti ti-folder-cog"></i>Paths</button>
+          <button type="button" @click="tab='collector'" :class="tab==='collector' && 'active'" class="cfg-nav-btn"><i class="ti ti-database-search"></i>Collectors</button>
+          <button type="button" @click="tab='scheduler'" :class="tab==='scheduler' && 'active'" class="cfg-nav-btn"><i class="ti ti-clock-cog"></i>Scheduler</button>
+          <button type="button" @click="tab='services'" :class="tab==='services' && 'active'" class="cfg-nav-btn"><i class="ti ti-server-cog"></i>Services</button>
+          <button type="button" @click="tab='defaults'" :class="tab==='defaults' && 'active'" class="cfg-nav-btn"><i class="ti ti-ruler-measure"></i>Defaults</button>
+          <button type="button" @click="tab='routers'" :class="tab==='routers' && 'active'" class="cfg-nav-btn"><i class="ti ti-router"></i>Routers</button>
+          <button type="button" @click="tab='router'" :disabled="!currentRouter" :class="tab==='router' && 'active'" class="cfg-nav-btn"><i class="ti ti-settings-automation"></i>Selected Router</button>
+        </div>
+      </aside>
+
+      <main class="space-y-4 min-w-0">
+        <section x-show="tab==='overview'" x-cloak class="cfg-section">
+          <div class="grid md:grid-cols-4 gap-3">
+            <div class="cfg-kpi"><div class="cfg-kpi-label">Network mode</div><div class="cfg-kpi-value text-accent" x-text="cfg.network_mode"></div></div>
+            <div class="cfg-kpi"><div class="cfg-kpi-label">Auto apply</div><div class="cfg-kpi-value" x-text="cfg.app.auto_apply ? 'ON' : 'OFF'"></div></div>
+            <div class="cfg-kpi"><div class="cfg-kpi-label">Scheduler</div><div class="cfg-kpi-value" x-text="cfg.scheduler.enabled ? 'ON' : 'OFF'"></div></div>
+            <div class="cfg-kpi"><div class="cfg-kpi-label">Routers</div><div class="cfg-kpi-value" x-text="routers.length"></div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><i class="ti ti-topology-star-3"></i> Network Layout Mode</div>
+            <div class="grid lg:grid-cols-[1fr_360px] gap-4 items-start">
+              <div>
+                <div class="text-lg font-bold" x-text="networkModeLabel()"></div>
+                <p class="text-sm" style="color:var(--muted);margin-top:6px">This selector controls Parent Node behavior and generated network.json. LQoSync automatically keeps <code>network_mode</code>, <code>flat_network</code>, and <code>no_parent</code> consistent.</p>
+                <div class="grid md:grid-cols-3 gap-2 mt-4">
+                  <div class="cfg-subtle"><div class="cfg-kpi-label">flat_network</div><div class="cfg-kpi-value" x-text="String(cfg.flat_network)"></div></div>
+                  <div class="cfg-subtle"><div class="cfg-kpi-label">no_parent</div><div class="cfg-kpi-value" x-text="String(cfg.no_parent)"></div></div>
+                  <div class="cfg-subtle"><div class="cfg-kpi-label">preserve network</div><div class="cfg-kpi-value" x-text="String(cfg.preserve_network_config || false)"></div></div>
+                </div>
+              </div>
+              <label class="cfg-field"><span class="cfg-label">Mode</span><select x-model="cfg.network_mode" @change="normalizeNetworkMode()" class="cfg-select"><option value="router_children">Hierarchy — router + child nodes</option><option value="flat_router_root">Flat — router root only</option><option value="flat_no_parent">Flat — no parent</option></select><span class="cfg-help">Hierarchy is the current production model: PPPoE Tier nodes, DHCP site nodes, and optional Hotspot node.</span></label>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><i class="ti ti-apps"></i> Application Settings</div>
+            <div class="grid md:grid-cols-2 gap-3">
+              <label class="cfg-field"><span class="cfg-label">App name</span><input x-model="cfg.app.name" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Backup retention</span><input type="number" x-model.number="cfg.app.backup_retention" class="cfg-input"><span class="cfg-help">Number of generated backups to keep.</span></label>
+              <label class="cfg-toggle cfg-subtle"><span><b>Auto Apply</b><span class="cfg-help">Non-dry-run file changes automatically trigger LibreQoS.py.</span></span><input type="checkbox" x-model="cfg.app.auto_apply"></label>
+              <label class="cfg-toggle cfg-subtle"><span><b>Backup Before Apply</b><span class="cfg-help">Recommended for production rollback safety.</span></span><input type="checkbox" x-model="cfg.app.backup_before_apply"></label>
+              <label class="cfg-toggle cfg-subtle"><span><b>Dry-run Default</b><span class="cfg-help">Preview only. Never writes files or applies LibreQoS.</span></span><input type="checkbox" x-model="cfg.app.dry_run_default"></label>
+              <label class="cfg-field"><span class="cfg-label">File Drift Policy</span><select x-model="cfg.app.file_drift_policy" class="cfg-select"><option>overwrite_with_backup</option><option>warn_only</option><option>block</option></select></label>
+            </div>
+          </div>
+        </section>
+
+        <section x-show="tab==='apply'" x-cloak class="cfg-section">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-refresh-dot"></i> LibreQoS Apply Policy</div>
+            <div class="grid md:grid-cols-3 gap-3 mb-4">
+              <div class="cfg-kpi"><div class="cfg-kpi-label">Policy status</div><div class="cfg-kpi-value text-accent" x-text="applyPolicyLabel"></div></div>
+              <div class="cfg-kpi"><div class="cfg-kpi-label">Working dir</div><div class="cfg-kpi-value" style="font-size:13px" x-text="cfg.libreqos.working_dir"></div></div>
+              <div class="cfg-kpi"><div class="cfg-kpi-label">Retry failed apply</div><div class="cfg-kpi-value" x-text="cfg.libreqos.retry_if_last_apply_failed ? 'ON' : 'OFF'"></div></div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-3">
+              <label class="cfg-field"><span class="cfg-label">Command</span><input x-model="cfg.libreqos.cmd" class="cfg-input mono"></label>
+              <label class="cfg-field"><span class="cfg-label">Arguments</span><input :value="(cfg.libreqos.args || []).join(' ')" @input="cfg.libreqos.args = $event.target.value.split(' ').filter(Boolean)" class="cfg-input mono"></label>
+              <label class="cfg-field"><span class="cfg-label">Working Directory</span><input x-model="cfg.libreqos.working_dir" class="cfg-input mono"><span class="cfg-help">Required: <code>/opt/libreqos/src</code>. LibreQoS.py reads relative files like ShapedDevices.lastLoaded.csv.</span></label>
+              <label class="cfg-field"><span class="cfg-label">Run Mode</span><select x-model="cfg.libreqos.run_mode" class="cfg-select"><option>direct</option><option>host_nsenter</option></select><span class="cfg-help">Use direct for bare metal. Docker host-integrated mode may use host_nsenter.</span></label>
+              <label class="cfg-field"><span class="cfg-label">Timeout seconds</span><input type="number" x-model.number="cfg.libreqos.timeout_seconds" class="cfg-input"></label>
+              <label class="cfg-toggle cfg-subtle"><span><b>Run via sudo</b><span class="cfg-help">Bare metal normally needs sudo for LibreQoS.py.</span></span><input type="checkbox" x-model="cfg.libreqos.sudo"></label>
+              <label class="cfg-toggle cfg-subtle"><span><b>Run only when files changed</b><span class="cfg-help">Normal optimization; failed apply retry still runs if pending.</span></span><input type="checkbox" x-model="cfg.libreqos.run_only_when_files_changed"></label>
+              <label class="cfg-toggle cfg-subtle"><span><b>Retry failed apply</b><span class="cfg-help">If files were written but LibreQoS failed, retry next non-dry-run cycle.</span></span><input type="checkbox" x-model="cfg.libreqos.retry_if_last_apply_failed"></label>
+            </div>
+          </div>
+        </section>
+
+        <section x-show="tab==='paths'" x-cloak class="cfg-section">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-folder-cog"></i> File Paths</div>
+            <div class="grid md:grid-cols-2 gap-3">
+              <template x-for="key in ['shaped_devices_csv','network_json','backup_dir','log_file','runtime_state','lock_file','audit_log','libreqos_apply_log_dir','collector_cache']" :key="key"><label class="cfg-field"><span class="cfg-label" x-text="'paths.' + key"></span><input x-model="cfg.paths[key]" class="cfg-input mono"></label></template>
+            </div>
+          </div>
+        </section>
+
+
+        <section x-show="tab==='collector'" x-cloak class="cfg-section">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-database-search"></i> Selective MikroTik Collection</div>
+            <p class="text-sm" style="color:var(--muted);margin-bottom:12px">LQoSync bulk-reads MikroTik resources but requests only the fields needed for <code>ShapedDevices.csv</code> and <code>network.json</code>. This reduces RouterOS API payload size for larger client counts.</p>
+            <div class="grid md:grid-cols-2 gap-3">
+              <label class="cfg-toggle cfg-subtle"><span><b>Selective RouterOS fields</b><span class="cfg-help">Requests .proplist fields where supported. Falls back safely if RouterOS/API wrapper rejects it.</span></span><input type="checkbox" x-model="cfg.collector.selective_fields"></label>
+              <label class="cfg-field"><span class="cfg-label">DHCP lease mode</span><select x-model="cfg.collector.dhcp.lease_mode" class="cfg-select"><option>permissive</option><option>strict</option></select><span class="cfg-help">Permissive matches current production behavior. Strict requires status=bound and active-address.</span></label>
+              <label class="cfg-toggle cfg-subtle"><span><b>Read DHCP server metadata</b><span class="cfg-help">Reads /ip/dhcp-server name/comment so server comments can define speed.</span></span><input type="checkbox" x-model="cfg.collector.dhcp.read_server_metadata"></label>
+              <label class="cfg-toggle cfg-subtle"><span><b>Hotspot enhanced metadata</b><span class="cfg-help">Reads /ip/hotspot/user and /ip/hotspot/user/profile to resolve speed from user/profile comments, profile names, and rate-limit.</span></span><input type="checkbox" x-model="cfg.collector.hotspot.enhanced_metadata"></label>
+            </div>
+          </div>
+          <div class="grid lg:grid-cols-3 gap-3">
+            <div class="card"><div class="card-title"><span class="badge b-ppp">PPP</span> PPPoE Read Order</div><ol class="text-sm" style="color:var(--muted);padding-left:18px;line-height:1.7"><li>/ppp/active</li><li>/ppp/secret</li><li>/ppp/profile</li></ol><p class="text-xs" style="color:var(--muted)">Speed priority: secret comment → active comment → profile comment → profile name → profile rate-limit → default.</p></div>
+            <div class="card"><div class="card-title"><span class="badge b-dhcp">DHCP</span> DHCP Read Order</div><ol class="text-sm" style="color:var(--muted);padding-left:18px;line-height:1.7"><li>/ip/dhcp-server/lease</li><li>/ip/dhcp-server name/comment</li><li>DHCP server config</li></ol><p class="text-xs" style="color:var(--muted)">Speed priority: DHCP server comment → server name → server config speed → global default.</p></div>
+            <div class="card"><div class="card-title"><span class="badge b-hs">HS</span> Hotspot Read Order</div><ol class="text-sm" style="color:var(--muted);padding-left:18px;line-height:1.7"><li>/ip/hotspot/active</li><li>/ip/hotspot/user</li><li>/ip/hotspot/user/profile</li></ol><p class="text-xs" style="color:var(--muted)">Enhanced metadata can be disabled if fixed config speed is preferred.</p></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-history-toggle"></i> Metadata Cache</div>
+            <div class="grid md:grid-cols-2 gap-3">
+              <label class="cfg-field"><span class="cfg-label">Collector cache path</span><input x-model="cfg.paths.collector_cache" class="cfg-input mono"><span class="cfg-help">Stores source hashes and metadata-cache state. This is not a database.</span></label>
+              <div class="cfg-subtle"><b>Expected behavior</b><p class="text-sm" style="color:var(--muted);margin-top:4px">Cache hits/misses and source hash changes appear in Dashboard monitoring cards and Last Sync Timeline.</p></div>
+            </div>
+          </div>
+        </section>
+
+        <section x-show="tab==='scheduler'" x-cloak class="cfg-section">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-clock-cog"></i> Scheduler</div>
+            <div class="grid md:grid-cols-2 gap-3">
+              <label class="cfg-toggle cfg-subtle"><span><b>Scheduler Enabled</b><span class="cfg-help">When enabled with Auto Apply, scheduled runs own live updates.</span></span><input type="checkbox" x-model="cfg.scheduler.enabled"></label>
+              <label class="cfg-field"><span class="cfg-label">Max instances</span><input type="number" x-model.number="cfg.scheduler.max_instances" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Active interval seconds</span><input type="number" x-model.number="cfg.scheduler.active_interval_seconds" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Idle interval seconds</span><input type="number" x-model.number="cfg.scheduler.idle_interval_seconds" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Error retry seconds</span><input type="number" x-model.number="cfg.scheduler.error_retry_interval_seconds" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Apply cooldown seconds</span><input type="number" x-model.number="cfg.scheduler.apply_cooldown_seconds" class="cfg-input"></label>
+            </div>
+          </div>
+        </section>
+
+
+        <section x-show="tab==='services'" x-cloak class="cfg-section">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-server-cog"></i> Service Monitor Settings</div>
+            <div class="grid md:grid-cols-2 gap-3">
+              <label class="cfg-field"><span class="cfg-label">Required/current service units</span><textarea class="cfg-textarea mono" style="height:120px" :value="(cfg.services.units || []).join('\n')" @input="cfg.services.units = $event.target.value.split('\n').map(x => x.trim()).filter(Boolean)"></textarea><span class="cfg-help">One systemd unit per line. Recommended bare-metal units: <code>lqosd</code>, <code>lqos_scheduler</code>, <code>lqos_shaped_sync</code>.</span></label>
+              <label class="cfg-field"><span class="cfg-label">Legacy optional units</span><textarea class="cfg-textarea mono" style="height:120px" :value="(cfg.services.legacy_optional_units || []).join('\n')" @input="cfg.services.legacy_optional_units = $event.target.value.split('\n').map(x => x.trim()).filter(Boolean)"></textarea><span class="cfg-help"><code>lqos_node_manager</code> is an older LibreQoS Web UI unit. Newer LibreQoS installs commonly serve Web UI from <code>lqosd</code>, so this is optional and auto-hidden when not installed.</span></label>
+              <label class="cfg-field"><span class="cfg-label">Journal lines default</span><input type="number" x-model.number="cfg.services.journal_lines_default" class="cfg-input"></label>
+              <label class="cfg-toggle cfg-subtle"><span><b>Show missing legacy optional services</b><span class="cfg-help">When off, legacy units like lqos_node_manager are hidden if systemd says not installed.</span></span><input type="checkbox" x-model="cfg.services.show_legacy_optional_not_installed"></label>
+              <label class="cfg-field md:col-span-2"><span class="cfg-label">Restart groups JSON</span><textarea class="cfg-textarea mono" style="height:150px" :value="JSON.stringify(cfg.services.restart_groups || {}, null, 2)" @change="try { cfg.services.restart_groups = JSON.parse($event.target.value || '{}') } catch(e) { alert('Invalid restart groups JSON: ' + e.message) }"></textarea><span class="cfg-help">Recommended core group: <code>{"libreqos_core":["lqosd","lqos_scheduler"]}</code>. Do not include <code>lqos_node_manager</code> unless it exists on your host.</span></label>
+            </div>
+          </div>
+          <div class="card" style="border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.08)">
+            <div class="card-title"><i class="ti ti-info-circle text-dhcp"></i> About lqos_node_manager</div>
+            <p class="text-sm" style="color:var(--muted)"><code>lqos_node_manager</code> is kept only for older LibreQoS installs that used it as a separate Web UI service. In newer LibreQoS setups, the important health checks are usually <code>lqosd</code> and <code>lqos_scheduler</code>. LQoSync will auto-hide <code>lqos_node_manager</code> when it is not installed, or mark it as legacy/optional when displayed.</p>
+          </div>
+        </section>
+
+        <section x-show="tab==='defaults'" x-cloak class="cfg-section">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-ruler-measure"></i> Default Rules</div>
+            <div class="grid md:grid-cols-2 gap-3">
+              <label class="cfg-field"><span class="cfg-label">ID length</span><input type="number" x-model.number="cfg.defaults.id_length" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Min rate percentage</span><input type="number" step="0.01" x-model.number="cfg.defaults.min_rate_percentage" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Default PPPoE profile</span><input x-model="cfg.defaults.default_pppoe_profile" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Default PPPoE rate</span><input x-model="cfg.defaults.default_pppoe_rate" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Default DHCP Mbps</span><input type="number" x-model.number="cfg.defaults.default_dhcp_per_client_mbps" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Default Hotspot Mbps</span><input type="number" x-model.number="cfg.defaults.default_hotspot_per_client_mbps" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Duplicate IP policy</span><select x-model="cfg.defaults.duplicate_ip_policy" class="cfg-select"><option>warn_and_skip</option><option>warn</option><option>block</option><option>ignore</option></select></label>
+              <label class="cfg-field"><span class="cfg-label">Static comment value</span><input x-model="cfg.defaults.static_comment_value" class="cfg-input"></label>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-shield-check"></i> Preflight</div>
+            <div class="grid md:grid-cols-2 gap-3">
+              <label class="cfg-toggle cfg-subtle"><span><b>Enable preflight validation</b><span class="cfg-help">Validate CSV/network output before writing/apply.</span></span><input type="checkbox" x-model="cfg.preflight.enabled"></label>
+              <label class="cfg-field"><span class="cfg-label">Duplicate IP policy</span><select x-model="cfg.preflight.duplicate_ip_policy" class="cfg-select"><option>warn_and_skip</option><option>warn</option><option>block</option><option>ignore</option></select></label>
+              <label class="cfg-field"><span class="cfg-label">Missing parent policy</span><select x-model="cfg.preflight.missing_parent_policy" class="cfg-select"><option>block</option><option>warn</option><option>ignore</option></select></label>
+              <label class="cfg-field"><span class="cfg-label">Invalid bandwidth policy</span><select x-model="cfg.preflight.invalid_bandwidth_policy" class="cfg-select"><option>block</option><option>warn</option><option>ignore</option></select></label>
+            </div>
+          </div>
+        </section>
+
+        <section x-show="tab==='routers'" x-cloak class="cfg-section">
+          <div class="card">
+            <div class="flex items-center justify-between gap-3 mb-4"><div><div class="card-title"><i class="ti ti-router"></i> Routers</div><p class="text-sm" style="color:var(--muted)">LQoSync reads MikroTik only. Add/remove here affects config.json only.</p></div><button type="button" @click="addRouter()" class="btn btn-primary"><i class="ti ti-plus"></i>Add Router</button></div>
+            <div class="space-y-3">
+              <template x-for="(router, i) in routers" :key="i"><div class="cfg-router-row"><div class="min-w-0"><div class="font-bold" style="color:var(--c-accent)" x-text="router.name"></div><div class="text-xs mono" style="color:var(--muted)"><span x-text="router.address + ':' + router.port"></span> · root <span x-text="router.root_download_mbps + '/' + router.root_upload_mbps"></span> Mbps · PPPoE <span x-text="router.pppoe.enabled ? 'on' : 'off'"></span> · DHCP <span x-text="router.dhcp.enabled ? 'on' : 'off'"></span></div></div><div class="btn-row"><button type="button" @click="selectRouter(i)" class="btn"><i class="ti ti-edit"></i>Edit</button><button type="button" @click="removeRouter(i)" class="btn btn-danger"><i class="ti ti-trash"></i>Remove</button></div></div></template>
+              <div x-show="routers.length===0" class="cfg-subtle" style="color:var(--muted)">No routers configured yet.</div>
+            </div>
+          </div>
+        </section>
+
+        <section x-show="tab==='router' && currentRouter" x-cloak class="cfg-section">
+          <div class="card">
+            <div class="flex items-center justify-between gap-3 mb-4"><div class="card-title"><i class="ti ti-router"></i> Router: <span x-text="currentRouter.name"></span></div><label class="cfg-toggle gap-3"><span class="text-sm" style="color:var(--muted)">Enabled</span><input type="checkbox" x-model="currentRouter.enabled"></label></div>
+            <div class="grid md:grid-cols-3 gap-3">
+              <label class="cfg-field"><span class="cfg-label">Name</span><input x-model="currentRouter.name" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Address</span><input x-model="currentRouter.address" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">API Port</span><input type="number" x-model.number="currentRouter.port" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Username</span><input x-model="currentRouter.username" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Password</span><input type="password" x-model="currentRouter.password" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Root type</span><input x-model="currentRouter.root_type" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Root download Mbps</span><input type="number" x-model.number="currentRouter.root_download_mbps" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Root upload Mbps</span><input type="number" x-model.number="currentRouter.root_upload_mbps" class="cfg-input"></label>
+              <label class="cfg-toggle cfg-subtle"><span><b>Root virtual</b></span><input type="checkbox" x-model="currentRouter.root_virtual"></label>
+            </div>
+            <div class="btn-row mt-4"><button type="button" @click="submitTest()" class="btn"><i class="ti ti-plug-connected"></i>Test Current UI API</button></div>
+          </div>
+
+          <div x-show="cfg.network_mode !== 'router_children'" x-cloak class="card" style="border-color:rgba(245,158,11,.45)"><div class="card-title text-warn"><i class="ti ti-alert-circle"></i> Flat mode active</div><p class="text-sm" style="color:var(--muted)">PPPoE/DHCP/Hotspot node templates are kept in config.json but ignored while flat mode is active. Switch back to hierarchy to use child nodes again.</p></div>
+
+          <div class="grid xl:grid-cols-2 gap-4">
+            <div class="card">
+              <div class="flex items-center justify-between mb-3"><div class="card-title"><i class="ti ti-world-www"></i> PPPoE</div><label class="cfg-toggle gap-3"><span class="text-sm" style="color:var(--muted)">Enabled</span><input type="checkbox" x-model="currentRouter.pppoe.enabled"></label></div>
+              <div class="grid md:grid-cols-2 gap-3">
+                <label class="cfg-toggle cfg-subtle"><span><b>Per-plan node</b></span><input type="checkbox" x-model="currentRouter.pppoe.per_plan_node"></label>
+                <label class="cfg-field"><span class="cfg-label">Flat aggregate factor</span><input type="number" step="0.01" x-model.number="currentRouter.pppoe.flat_aggregate_factor" class="cfg-input"></label>
+                <label class="cfg-field"><span class="cfg-label">Node type</span><input x-model="currentRouter.pppoe.node_type" class="cfg-input"></label>
+                <label class="cfg-field"><span class="cfg-label">Flat node name</span><input x-model="currentRouter.pppoe.flat_node_name" class="cfg-input mono"><span class="cfg-help" x-text="nodePreview(currentRouter.pppoe.flat_node_name, {router: currentRouter.name})"></span></label>
+                <label class="cfg-field md:col-span-2"><span class="cfg-label">Plan node name</span><input x-model="currentRouter.pppoe.plan_node_name" class="cfg-input mono"><span class="cfg-help" x-text="nodePreview(currentRouter.pppoe.plan_node_name, {router: currentRouter.name, profile: 'Tier-15M'})"></span></label>
+              </div>
+              <div class="mt-4"><div class="flex items-center justify-between mb-2"><div class="font-bold">Factor Rules</div><button type="button" @click="addFactor(currentRouter)" class="btn"><i class="ti ti-plus"></i>Rule</button></div>
+                <div class="space-y-2"><template x-for="(rule, i) in currentRouter.pppoe.factor_rules" :key="i"><div class="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end cfg-subtle"><label class="cfg-field"><span class="cfg-label">≤ Mbps</span><input type="number" x-model.number="rule.max_plan_mbps" class="cfg-input"></label><label class="cfg-field"><span class="cfg-label">DL factor</span><input type="number" step="0.01" x-model.number="rule.download_factor" class="cfg-input"></label><label class="cfg-field"><span class="cfg-label">UL factor</span><input type="number" step="0.01" x-model.number="rule.upload_factor" class="cfg-input"></label><button type="button" @click="removeFactor(currentRouter, i)" class="btn btn-danger">×</button></div></template></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="flex items-center justify-between mb-3"><div class="card-title"><i class="ti ti-wifi"></i> Hotspot</div><label class="cfg-toggle gap-3"><span class="text-sm" style="color:var(--muted)">Enabled</span><input type="checkbox" x-model="currentRouter.hotspot.enabled"></label></div>
+              <div class="grid md:grid-cols-2 gap-3">
+                <label class="cfg-toggle cfg-subtle"><span><b>Include MAC in Circuit Name</b></span><input type="checkbox" x-model="currentRouter.hotspot.include_mac"></label><label class="cfg-toggle cfg-subtle"><span><b>Enhanced Metadata</b><span class="cfg-help">Read Hotspot user/profile comments, names, and rate-limit for speed resolution.</span></span><input type="checkbox" x-model="currentRouter.hotspot.enhanced_metadata"></label>
+                <label class="cfg-field"><span class="cfg-label">Node type</span><input x-model="currentRouter.hotspot.node_type" class="cfg-input"></label>
+                <label class="cfg-field"><span class="cfg-label">Download limit</span><input type="number" x-model.number="currentRouter.hotspot.download_limit_mbps" class="cfg-input"></label>
+                <label class="cfg-field"><span class="cfg-label">Upload limit</span><input type="number" x-model.number="currentRouter.hotspot.upload_limit_mbps" class="cfg-input"></label>
+                <label class="cfg-field"><span class="cfg-label">DL factor</span><input type="number" step="0.01" x-model.number="currentRouter.hotspot.download_factor" class="cfg-input"></label>
+                <label class="cfg-field"><span class="cfg-label">UL factor</span><input type="number" step="0.01" x-model.number="currentRouter.hotspot.upload_factor" class="cfg-input"></label>
+                <label class="cfg-field md:col-span-2"><span class="cfg-label">Node name</span><input x-model="currentRouter.hotspot.node_name" class="cfg-input mono"><span class="cfg-help" x-text="nodePreview(currentRouter.hotspot.node_name, {router: currentRouter.name})"></span></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="flex items-center justify-between mb-3"><div><div class="card-title"><i class="ti ti-network"></i> DHCP</div><p class="text-sm" style="color:var(--muted)">Use include/exclude to decide which MikroTik DHCP servers feed LibreQoS.</p></div><label class="cfg-toggle gap-3"><span class="text-sm" style="color:var(--muted)">Enabled</span><input type="checkbox" x-model="currentRouter.dhcp.enabled"></label></div>
+            <div class="btn-row mb-4"><button type="button" @click="addDhcp(currentRouter)" class="btn"><i class="ti ti-plus"></i>Add DHCP Server</button><button type="button" @click="submitDiscover()" class="btn"><i class="ti ti-radar"></i>Discover using Current UI</button></div>
+            <div class="space-y-3"><template x-for="(server, i) in currentRouter.dhcp.servers" :key="i"><div class="cfg-subtle"><div class="flex items-center justify-between gap-3 mb-3"><div><b x-text="server.name || '(unnamed)'"></b> <span class="cfg-chip" :class="server.enabled ? 'cfg-ok' : ''" x-text="server.enabled ? 'included' : 'excluded'"></span></div><div class="btn-row"><label class="cfg-toggle gap-2"><span class="text-sm" style="color:var(--muted)">Included</span><input type="checkbox" x-model="server.enabled"></label><button type="button" @click="removeDhcp(currentRouter, i)" class="btn btn-danger"><i class="ti ti-trash"></i></button></div></div><div class="grid md:grid-cols-4 gap-3"><label class="cfg-field"><span class="cfg-label">Name</span><input x-model="server.name" class="cfg-input"></label><label class="cfg-field"><span class="cfg-label">Mode</span><select x-model="server.mode" class="cfg-select"><option>per_site</option><option>per_plan</option></select></label><label class="cfg-field"><span class="cfg-label">Plan source</span><input x-model="server.plan_source" class="cfg-input"></label><label class="cfg-field"><span class="cfg-label">Node type</span><input x-model="server.node_type" class="cfg-input"></label><label class="cfg-field"><span class="cfg-label">DL Mbps</span><input type="number" x-model.number="server.default_plan_down_mbps" class="cfg-input"></label><label class="cfg-field"><span class="cfg-label">UL Mbps</span><input type="number" x-model.number="server.default_plan_up_mbps" class="cfg-input"></label><label class="cfg-field"><span class="cfg-label">DL factor</span><input type="number" step="0.01" x-model.number="server.download_factor" class="cfg-input"></label><label class="cfg-field"><span class="cfg-label">UL factor</span><input type="number" step="0.01" x-model.number="server.upload_factor" class="cfg-input"></label><label class="cfg-field md:col-span-2"><span class="cfg-label">Speed comment / server plan text</span><input x-model="server.speed_comment" class="cfg-input mono" placeholder="15M/15M"><span class="cfg-help">Wins before DHCP server name and config speed.</span></label><label class="cfg-field md:col-span-2"><span class="cfg-label">Node name template</span><input x-model="server.node_name" class="cfg-input mono"><span class="cfg-help" x-text="nodePreview(server.node_name, {router: currentRouter.name, server: server.name, plan: '15M'})"></span></label></div></div></template></div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="cfg-side space-y-3">
+        <div class="card">
+          <div class="flex items-center justify-between mb-3"><div class="card-title" style="margin-bottom:0"><i class="ti ti-code"></i> Live Raw JSON</div><button type="button" @click="openRaw()" class="btn" style="padding:5px 9px">Edit</button></div>
+          <p class="text-xs" style="color:var(--muted);margin-bottom:10px">This is the exact normalized payload posted to config.json on save.</p>
+          <pre class="cfg-json" x-text="jsonText"></pre>
+        </div>
+        <div class="card" x-show="currentRouter" x-cloak>
+          <div class="card-title"><i class="ti ti-router"></i> Selected Router Mirror</div>
+          <pre class="cfg-json" style="max-height:260px" x-text="currentRouterJson"></pre>
+        </div>
+      </aside>
+    </div>
+  </form>
+
+  <form method="post" x-ref="testForm" action="/config/router/test-current" class="hidden">{{ csrf_field()|safe }}<input type="hidden" name="config_json" x-ref="testPayload"><input type="hidden" name="router_idx" x-ref="testRouterIdx" value="0"></form>
+  <form method="post" x-ref="discoverForm" action="/config/router/discover-dhcp-current" class="hidden">{{ csrf_field()|safe }}<input type="hidden" name="config_json" x-ref="discoverPayload"><input type="hidden" name="router_idx" x-ref="discoverRouterIdx" value="0"></form>
+
+  <div x-show="showRawEditor" x-cloak class="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+    <div class="card w-full max-w-5xl" style="max-height:92vh;overflow:auto">
+      <div class="flex items-center justify-between mb-3"><div class="text-xl font-bold">Editable Raw JSON</div><button type="button" @click="showRawEditor=false" class="btn">Close</button></div>
+      <textarea x-model="rawDraft" class="cfg-textarea mono" style="height:65vh"></textarea>
+      <div class="mt-3 flex justify-between items-center gap-3"><div class="text-err text-sm" x-text="rawError"></div><div class="btn-row"><button type="button" @click="rawDraft=jsonText" class="btn">Reset from UI</button><button type="button" @click="applyRaw()" class="btn btn-primary">Apply Raw to UI</button></div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

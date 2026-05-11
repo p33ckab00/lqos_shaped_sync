@@ -1,0 +1,28 @@
+# Local secrets / runtime config
+config.json
+users.json
+.env
+
+# LibreQoS generated/runtime files
+ShapedDevices.csv
+network.json
+runtime_state.json
+
+# Runtime folders
+state/
+logs/
+backups/
+install_backups/
+config_backups/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/

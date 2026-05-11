@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" data-theme="{{ default_theme|default('light') }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LQoSync Login</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+  <meta name="theme-color" content="#00C896">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    (function () {
+      var fallback = {{ default_theme|default('light')|tojson }};
+      var saved = localStorage.getItem('lqosync_theme');
+      var theme = saved || fallback || 'light';
+      if (theme !== 'dark' && theme !== 'light') theme = 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+  <style>
+    :root{--bg:#f6f8fb;--card:#ffffff;--card2:#f8fafc;--border:#dbe3ee;--text:#0f172a;--muted:#64748b;--accent:#00C896;--accent2:#0FA5E9;}
+    :root[data-theme=dark]{--bg:#020617;--card:#0b1220;--card2:#111827;--border:#1f2937;--text:#e5edf8;--muted:#94a3b8;}
+    body{background:radial-gradient(circle at 0 0,rgba(14,165,233,.10),transparent 34%),radial-gradient(circle at 100% 18%,rgba(0,200,150,.10),transparent 32%),var(--bg);color:var(--text);}
+    .login-card{background:rgba(255,255,255,.88);border:1px solid var(--border);box-shadow:0 20px 60px rgba(15,23,42,.10);}
+    :root[data-theme=dark] .login-card{background:rgba(11,18,32,.9);box-shadow:0 20px 60px rgba(0,0,0,.32);}
+    .login-input{background:var(--card2);border:1px solid var(--border);color:var(--text);}
+    .muted{color:var(--muted)}
+    .theme-btn{border:1px solid var(--border);background:var(--card2);color:var(--text);}
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <button type="button" onclick="toggleTheme()" class="theme-btn fixed right-4 top-4 rounded-lg px-3 py-2 text-xs font-semibold" id="themeToggle">Light mode</button>
+  <form method="post" class="login-card p-8 rounded-2xl w-full max-w-sm">
+    {{ csrf_field()|safe }}
+    <h1 class="text-2xl font-bold mb-1" style="color:var(--accent2)">LQoSync</h1>
+    <p class="muted mb-6">Live QoS Subscriber Sync for LibreQoS</p>
+    {% with messages = get_flashed_messages() %}{% if messages %}<div class="p-2 rounded mb-4" style="background:#fee2e2;color:#991b1b;border:1px solid #fecaca">{{ messages[0] }}</div>{% endif %}{% endwith %}
+    <input class="login-input w-full mb-3 p-3 rounded" name="username" placeholder="Username">
+    <input class="login-input w-full mb-4 p-3 rounded" name="password" type="password" placeholder="Password">
+    <button class="w-full p-3 rounded font-semibold" style="background:var(--accent);color:#052219">Login</button>
+    <p class="text-xs muted mt-4">Default first-run: admin / adminpass. Change after install.</p>
+  </form>
+  <script>
+    function currentTheme(){ return document.documentElement.getAttribute('data-theme') || 'light'; }
+    function setTheme(theme){
+      if(theme !== 'dark' && theme !== 'light') theme = 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('lqosync_theme', theme);
+      var btn = document.getElementById('themeToggle');
+      if(btn) btn.textContent = theme === 'dark' ? 'Dark mode' : 'Light mode';
+    }
+    function toggleTheme(){ setTheme(currentTheme() === 'dark' ? 'light' : 'dark'); }
+    document.addEventListener('DOMContentLoaded', function(){ setTheme(currentTheme()); });
+  </script>
+</body>
+</html>

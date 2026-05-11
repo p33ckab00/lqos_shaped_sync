@@ -1,0 +1,7 @@
+services:
+  lqos_shaped_sync:
+    extends:
+      file: compose.yaml
+      service: lqos_shaped_sync
+    environment:
+      LQOSYNC_INIT_POLICY: "preserve_existing"

@@ -1,0 +1,104 @@
+{% extends "base.html" %}{% block content %}
+{% set total_routers = network|length %}
+{% set total_children = namespace(n=0) %}
+{% for rname, root in network.items() %}{% set total_children.n = total_children.n + (root.get('children', {})|length) %}{% endfor %}
+<div class="page-header">
+  <div><div class="page-title">Network layout</div><div class="page-subtitle">Router-as-root topology generated for LibreQoS network.json</div></div>
+  <div class="btn-row">
+    <a href="/download/network" class="btn"><i class="ti ti-download"></i> Export network.json</a>
+    <form method="post" action="/sync/dry-run">{{ csrf_field()|safe }}<button class="btn"><i class="ti ti-eye"></i> Dry run</button></form>
+    {% if user.role == 'admin' %}<form method="post" action="/sync/run">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-refresh"></i> Sync now</button></form>{% endif %}
+  </div>
+</div>
+
+<div class="card" style="padding:0;margin-bottom:14px;overflow:hidden">
+  <div style="display:grid;grid-template-columns:repeat(6,1fr)">
+    <div style="padding:12px;text-align:center;border-right:1px solid var(--br0)"><div class="stat-value">{{ total_routers }}</div><div class="stat-sub">Routers</div></div>
+    <div style="padding:12px;text-align:center;border-right:1px solid var(--br0)"><div class="stat-value text-ppp">{{ total_children.n }}</div><div class="stat-sub">Child nodes</div></div>
+    <div style="padding:12px;text-align:center;border-right:1px solid var(--br0)"><div class="stat-value text-accent">{{ node_math|length }}</div><div class="stat-sub">Math tracked</div></div>
+    <div style="padding:12px;text-align:center;border-right:1px solid var(--br0)"><div class="stat-value">{{ network.keys()|list|first if network else '—' }}</div><div class="stat-sub">Primary root</div></div>
+    <div style="padding:12px;text-align:center;border-right:1px solid var(--br0)"><div class="stat-value text-dhcp">DHCP</div><div class="stat-sub">site nodes</div></div>
+    <div style="padding:12px;text-align:center"><div class="stat-value text-ppp">PPP</div><div class="stat-sub">plan nodes</div></div>
+  </div>
+</div>
+
+<div class="filter-bar" style="margin-bottom:12px">
+  <span class="filter-pill active" data-filter="all" onclick="filterNodes('all')">All</span>
+  <span class="filter-pill" data-filter="ppp" onclick="filterNodes('ppp')">PPPoE plan</span>
+  <span class="filter-pill" data-filter="dhcp" onclick="filterNodes('dhcp')">DHCP site</span>
+  <span class="filter-pill" data-filter="hs" onclick="filterNodes('hs')">Hotspot</span>
+  <span class="filter-pill" onclick="toggleNetworkJsonView()"><i class="ti ti-code"></i> Advanced JSON View</span>
+</div>
+
+<div id="networkJsonPanel" class="json-view-panel card" style="padding:0;overflow:hidden">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--br0)">
+    <div><div class="card-title" style="margin:0"><i class="ti ti-code"></i> Advanced network.json view</div><div class="page-subtitle">Read-only view of the currently loaded/generated LibreQoS network tree.</div></div>
+    <button type="button" class="btn" onclick="copyNetworkJson()"><i class="ti ti-copy"></i> Copy JSON</button>
+  </div>
+  <pre id="networkJsonPre">{{ network | tojson(indent=2) }}</pre>
+</div>
+
+{% for router_name, root in network.items() %}
+{% set root_down = root.get('downloadBandwidthMbps', 0)|float %}
+{% set root_up = root.get('uploadBandwidthMbps', 0)|float %}
+<div class="router-card" style="margin-bottom:14px">
+  <div class="router-head">
+    <div class="router-icon"><i class="ti ti-router"></i></div>
+    <div><div class="router-name">{{ router_name }}</div><div class="router-meta">type={{ root.get('type','site') }} · virtual={{ root.get('virtual', false) }} · generated root</div></div>
+    <span class="badge b-ok">site root</span>
+    <div class="router-stats">
+      <div class="router-stat"><div class="router-stat-val">{{ root_down|round(3) }}</div><div class="router-stat-label">↓ Mbps</div></div>
+      <div class="router-stat"><div class="router-stat-val">{{ root_up|round(3) }}</div><div class="router-stat-label">↑ Mbps</div></div>
+      <div class="router-stat"><div class="router-stat-val" style="color:var(--txt)">{{ root.get('children', {})|length }}</div><div class="router-stat-label">child nodes</div></div>
+    </div>
+  </div>
+
+  <div class="nodes-grid">
+    {% for node_name, node in root.get('children', {}).items() %}
+      {% set ntype = 'hs' if node_name.startswith('HS-') else ('dhcp' if node_name.startswith('DHCP-') or node_name.startswith('PLAN-DHCP-') else 'ppp') %}
+      {% set down = node.get('downloadBandwidthMbps', 0)|float %}
+      {% set up = node.get('uploadBandwidthMbps', 0)|float %}
+      {% set pctd = ((down / root_down * 100) if root_down else 0) %}
+      {% set pctu = ((up / root_up * 100) if root_up else 0) %}
+      {% set math = node_math.get(node_name) if node_math else None %}
+      <div class="node-tile node-filter" data-kind="{{ ntype }}">
+        <div class="node-head">
+          <div class="node-icon icon-{{ ntype }}"><i class="ti {{ 'ti-wifi' if ntype == 'hs' else ('ti-network' if ntype == 'dhcp' else 'ti-users') }}"></i></div>
+          <div style="min-width:0;flex:1"><div class="node-name">{{ node_name }}</div><div class="node-tags"><span class="badge b-{{ 'hs' if ntype == 'hs' else ('dhcp' if ntype == 'dhcp' else 'ppp') }}">{{ 'Hotspot' if ntype == 'hs' else ('DHCP' if ntype == 'dhcp' else 'PPPoE') }}</span><span class="badge b-ok">{{ node.get('type','plan') }}</span><span class="badge">auto</span></div></div>
+        </div>
+        <div class="bw-row"><span class="bw-label">↓</span><div class="bw-track"><div class="bw-fill fill-{{ ntype }}" style="width:{{ pctd if pctd < 100 else 100 }}%"></div></div><span class="bw-val">{{ down|round(3) }}</span></div>
+        <div class="bw-row"><span class="bw-label">↑</span><div class="bw-track"><div class="bw-fill fill-{{ ntype }}" style="width:{{ pctu if pctu < 100 else 100 }}%"></div></div><span class="bw-val">{{ up|round(3) }}</span></div>
+        {% if math %}
+          <div class="math-line"><b>{{ math.get('active_count', '—') }}</b> active · {{ math.get('formula','') }}</div>
+        {% else %}
+          <div class="math-line">No latest math metadata yet. Run sync or dry-run.</div>
+        {% endif %}
+        {% if math %}<div class="mono text-xs" style="color:var(--muted)">Raw: {{ math.get('raw_download_mbps','—') }}/{{ math.get('raw_upload_mbps','—') }} · Factor: {{ math.get('download_factor','—') }}/{{ math.get('upload_factor','—') }}</div>{% endif %}
+      </div>
+    {% else %}
+      <div class="node-tile"><div class="mono" style="color:var(--muted)">No child nodes generated yet.</div></div>
+    {% endfor %}
+  </div>
+</div>
+{% else %}
+<div class="card"><div class="card-title"><i class="ti ti-info-circle"></i> Empty network.json</div><p class="mono" style="color:var(--muted)">No routers/nodes found. Run a sync or dry-run.</p></div>
+{% endfor %}
+
+<script>
+function filterNodes(kind){
+  document.querySelectorAll('.filter-pill[data-filter]').forEach(x=>x.classList.toggle('active', x.dataset.filter===kind));
+  document.querySelectorAll('.node-filter').forEach(el=>{el.style.display=(kind==='all'||el.dataset.kind===kind)?'block':'none'});
+}
+function toggleNetworkJsonView(){
+  const panel = document.getElementById('networkJsonPanel');
+  if(panel) panel.classList.toggle('open');
+}
+async function copyNetworkJson(){
+  const pre = document.getElementById('networkJsonPre');
+  if(!pre) return;
+  try { await navigator.clipboard.writeText(pre.innerText); } catch(e) {
+    const r=document.createRange(); r.selectNodeContents(pre); const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r); document.execCommand('copy'); sel.removeAllRanges();
+  }
+}
+</script>
+{% endblock %}

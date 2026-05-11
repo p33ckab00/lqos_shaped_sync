@@ -1,0 +1,533 @@
+{% extends "base.html" %}
+{% block content %}
+{% set paths = cfg.get('paths', {}) if cfg else {} %}
+{% set sched = cfg.get('scheduler', {}) if cfg else {} %}
+{% set libreqos = cfg.get('libreqos', {}) if cfg else {} %}
+{% set routers = cfg.get('routers', []) if cfg else [] %}
+{% set services_cfg = cfg.get('services', {}) if cfg else {} %}
+{% set network_mode = cfg.get('network_mode', 'router_children') if cfg else 'router_children' %}
+<style>
+  .about-hero{display:grid;grid-template-columns:1.3fr .7fr;gap:14px;margin-bottom:14px}
+  .about-title{font-size:30px;line-height:1.05;font-weight:750;letter-spacing:-.045em;margin:0 0 8px}
+  .about-lead{font-size:14px;line-height:1.7;color:var(--muted);max-width:960px}
+  .about-grid{display:grid;grid-template-columns:260px 1fr;gap:14px;align-items:start}
+  .about-toc{position:sticky;top:68px;display:grid;gap:7px;max-height:calc(100vh - 88px);overflow:auto}
+  .toc-link{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--muted);font-size:12px;border:1px solid var(--br0);background:var(--bg1);border-radius:10px;padding:9px 10px;transition:.12s}
+  .toc-link:hover{border-color:var(--c-accent);color:var(--txt);transform:translateX(2px)}
+  .about-section{scroll-margin-top:80px;margin-bottom:14px}
+  .about-section h2{font-size:17px;margin:0 0 10px;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+  .about-section h3{font-size:14px;margin:15px 0 8px;color:var(--txt);display:flex;align-items:center;gap:7px}
+  .about-section p,.about-section li{font-size:13px;line-height:1.72;color:var(--muted)}
+  .about-section ul,.about-section ol{padding-left:18px;display:grid;gap:5px}
+  .about-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+  .about-mini{border:1px solid var(--br0);border-radius:12px;background:var(--bg1);padding:12px;min-width:0}
+  .about-mini .label{font:11px var(--font-mono);color:var(--hint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  .about-mini .value{font:600 14px var(--font-mono);word-break:break-word}
+  .flow{display:grid;gap:8px;margin:10px 0}
+  .flow-step{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:start;border:1px solid var(--br0);background:var(--bg2);border-radius:12px;padding:10px}
+  .flow-num{width:26px;height:26px;border-radius:8px;background:var(--c-accent);color:#062219;display:flex;align-items:center;justify-content:center;font:700 12px var(--font-mono)}
+  .flow-title{font-size:13px;font-weight:700;margin-bottom:2px;color:var(--txt)}
+  .flow-body{font-size:12px;color:var(--muted);line-height:1.58}
+  .codebox{font:12px var(--font-mono);white-space:pre-wrap;background:var(--bg2);border:1px solid var(--br0);border-radius:12px;padding:12px;color:var(--txt);overflow:auto;line-height:1.55}
+  .codebox.small{font-size:11px;line-height:1.5}
+  .mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .mode-card{border:1px solid var(--br0);background:var(--bg1);border-radius:12px;padding:12px}
+  .mode-card.active{border-color:var(--c-accent);box-shadow:0 0 0 1px color-mix(in srgb,var(--c-accent) 25%,transparent)}
+  .mode-card .mode-name{font:700 13px var(--font-mono);margin-bottom:6px;color:var(--txt)}
+  .install-tabs,.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .note{border:1px solid color-mix(in srgb,var(--c-accent) 35%,var(--br0));background:color-mix(in srgb,var(--c-accent) 8%,var(--bg1));border-radius:12px;padding:12px;color:var(--muted);font-size:13px;line-height:1.65}
+  .warn-note{border-color:color-mix(in srgb,var(--c-warn) 45%,var(--br0));background:color-mix(in srgb,var(--c-warn) 10%,var(--bg1))}
+  .danger-note{border-color:color-mix(in srgb,var(--c-err) 40%,var(--br0));background:color-mix(in srgb,var(--c-err) 8%,var(--bg1))}
+  .feature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .feature{border:1px solid var(--br0);background:var(--bg1);border-radius:12px;padding:12px;display:grid;grid-template-columns:28px 1fr;gap:10px}
+  .feature i{color:var(--c-accent);font-size:18px;margin-top:1px}
+  .feature b{display:block;margin-bottom:3px;font-size:13px;color:var(--txt)}
+  .feature span{font-size:12px;color:var(--muted);line-height:1.55}
+  .path-table{width:100%;border-collapse:collapse;font-size:12px}
+  .path-table th,.path-table td{padding:8px 10px;border-bottom:1px solid var(--br0);text-align:left;vertical-align:top}
+  .path-table th{color:var(--hint);font:11px var(--font-mono);text-transform:uppercase;letter-spacing:.04em}
+  .path-table td:first-child{font-family:var(--font-mono);color:var(--txt);word-break:break-word}
+  .pillline{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+  .small-pill{border:1px solid var(--br0);background:var(--bg2);border-radius:999px;padding:4px 8px;font:11px var(--font-mono);color:var(--muted)}
+  details.about-details{border:1px solid var(--br0);background:var(--bg1);border-radius:12px;padding:10px 12px;margin:8px 0}
+  details.about-details summary{cursor:pointer;font-weight:700;font-size:13px;color:var(--txt)}
+  details.about-details div{margin-top:8px}
+  .mini-title{font:700 12px var(--font-mono);text-transform:uppercase;letter-spacing:.04em;color:var(--hint);margin-bottom:8px}
+  @media(max-width:1100px){.about-hero,.about-grid,.install-tabs,.two-col{grid-template-columns:1fr}.about-toc{position:static;grid-template-columns:repeat(2,1fr);max-height:none}.about-kpi,.mode-grid,.feature-grid,.three-col{grid-template-columns:1fr 1fr}}
+  @media(max-width:720px){.about-toc,.about-kpi,.mode-grid,.feature-grid,.three-col{grid-template-columns:1fr}.about-title{font-size:24px}.flow-step{grid-template-columns:1fr}.flow-num{margin-bottom:4px}}
+</style>
+
+<div class="page-header">
+  <div>
+    <div class="page-title">About LQoSync</div>
+    <div class="page-subtitle">Complete operator guide: purpose, install, update, uninstall, troubleshooting, and safety model.</div>
+  </div>
+  <div class="btn-row">
+    <a class="btn" href="/config"><i class="ti ti-adjustments-horizontal"></i> Config Center</a>
+    <a class="btn" href="/services"><i class="ti ti-server"></i> Services</a>
+    <a class="btn" href="/logs"><i class="ti ti-clipboard-list"></i> Logs & Backups</a>
+  </div>
+</div>
+
+<section class="about-hero">
+  <div class="card">
+    <h1 class="about-title">LQoSync</h1>
+    <p class="about-lead">
+      LQoSync is a standalone, database-free LibreQoS companion dashboard for syncing live MikroTik PPPoE, DHCP, and Hotspot data into <code>ShapedDevices.csv</code> and <code>network.json</code>. It gives the original <code>updatecsv.py</code> workflow a production operator interface: dry-run preview, scheduler control, automatic LibreQoS apply, timing metrics, audit events, user management, services and journals, backups, and smart lifecycle install/update/uninstall handling.
+    </p>
+    <div class="about-kpi">
+      <div class="about-mini"><div class="label">State model</div><div class="value">No database</div></div>
+      <div class="about-mini"><div class="label">Source of truth</div><div class="value">MikroTik + config.json</div></div>
+      <div class="about-mini"><div class="label">Network mode</div><div class="value">{{ network_mode }}</div></div>
+      <div class="about-mini"><div class="label">Routers</div><div class="value">{{ routers|length }}</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-info-circle"></i> Current Runtime</div>
+    <div class="mono text-sm" style="display:grid;gap:7px;color:var(--muted)">
+      <div style="display:flex;justify-content:space-between;gap:8px"><span>Scheduler</span><b>{{ 'enabled' if sched.get('enabled') else 'disabled' }}</b></div>
+      <div style="display:flex;justify-content:space-between;gap:8px"><span>Active interval</span><b>{{ sched.get('active_interval_seconds', 30) }}s</b></div>
+      <div style="display:flex;justify-content:space-between;gap:8px"><span>Idle interval</span><b>{{ sched.get('idle_interval_seconds', 120) }}s</b></div>
+      <div style="display:flex;justify-content:space-between;gap:8px"><span>LibreQoS apply</span><b>{{ libreqos.get('cmd', '/opt/libreqos/src/LibreQoS.py') }}</b></div>
+      <div style="display:flex;justify-content:space-between;gap:8px"><span>Working dir</span><b>{{ libreqos.get('working_dir', '/opt/libreqos/src') }}</b></div>
+      <div style="display:flex;justify-content:space-between;gap:8px"><span>Run mode</span><b>{{ libreqos.get('run_mode', 'direct') }}</b></div>
+      <div style="display:flex;justify-content:space-between;gap:8px"><span>Retry failed apply</span><b>{{ libreqos.get('retry_if_last_apply_failed', true) }}</b></div>
+    </div>
+  </div>
+</section>
+
+<div class="about-grid">
+  <nav class="about-toc card">
+    <a class="toc-link" href="#purpose"><i class="ti ti-target-arrow"></i> Purpose</a>
+    <a class="toc-link" href="#workflow"><i class="ti ti-route"></i> Workflow</a>
+    <a class="toc-link" href="#apply-policy"><i class="ti ti-refresh-dot"></i> Apply policy</a>
+    <a class="toc-link" href="#selective-collection"><i class="ti ti-database-search"></i> Selective collection</a>
+    <a class="toc-link" href="#features"><i class="ti ti-sparkles"></i> Features</a>
+    <a class="toc-link" href="#network-modes"><i class="ti ti-topology-star-3"></i> Network modes</a>
+    <a class="toc-link" href="#fresh-install"><i class="ti ti-download"></i> Fresh install</a>
+    <a class="toc-link" href="#existing-install"><i class="ti ti-replace"></i> Existing install</a>
+    <a class="toc-link" href="#github-update"><i class="ti ti-brand-github"></i> GitHub update</a>
+    <a class="toc-link" href="#uninstall"><i class="ti ti-trash"></i> Uninstall</a>
+    <a class="toc-link" href="#mikrotik-setup"><i class="ti ti-router"></i> MikroTik setup</a>
+    <a class="toc-link" href="#paths"><i class="ti ti-folders"></i> Paths</a>
+    <a class="toc-link" href="#commands"><i class="ti ti-terminal-2"></i> Commands</a>
+    <a class="toc-link" href="#troubleshooting"><i class="ti ti-tool"></i> Troubleshooting</a>
+    <a class="toc-link" href="#documentation-rule"><i class="ti ti-notes"></i> Documentation rule</a>
+  </nav>
+
+  <div>
+    <section id="purpose" class="card about-section">
+      <h2><i class="ti ti-target-arrow text-accent"></i> Project Description</h2>
+      <p>LQoSync is a focused LibreQoS companion tool. It is not a billing system, CRM, ISP Manager, or subscriber database. Its job is to read live MikroTik data, generate LibreQoS-compatible <code>ShapedDevices.csv</code> and <code>network.json</code>, then call <code>LibreQoS.py --updateonly</code> only when generated files changed or when a previous apply failed and must be retried.</p>
+      <div class="note" style="margin-top:10px"><b>Core rule:</b> MikroTik and <code>/opt/libreqos/src/config.json</code> are the source of truth. LQoSync never writes to MikroTik and never stores subscribers in a database.</div>
+      <div class="pillline">
+        <span class="small-pill">MikroTik read-only</span><span class="small-pill">No DB</span><span class="small-pill">Atomic file writes</span><span class="small-pill">Bare-metal priority</span><span class="small-pill">LibreQoS-safe lifecycle</span>
+      </div>
+    </section>
+
+    <section id="workflow" class="card about-section">
+      <h2><i class="ti ti-route text-accent"></i> Process Workflow</h2>
+      <div class="flow">
+        <div class="flow-step"><div class="flow-num">1</div><div><div class="flow-title">Read live configuration and current LibreQoS files</div><div class="flow-body">Loads <code>/opt/libreqos/src/config.json</code>, <code>ShapedDevices.csv</code>, and <code>network.json</code>. Existing Circuit ID and Device ID are preserved when the same Circuit Name appears again.</div></div></div>
+        <div class="flow-step"><div class="flow-num">2</div><div><div class="flow-title">Read MikroTik through read-only RouterOS API</div><div class="flow-body">Collectors read PPPoE secrets/active/profile, DHCP leases, and optionally Hotspot active sessions. LQoSync does not add, set, disable, delete, reboot, or modify anything on MikroTik.</div></div></div>
+        <div class="flow-step"><div class="flow-num">3</div><div><div class="flow-title">Build proposed ShapedDevices and network layout</div><div class="flow-body">The engine resolves client names, MAC/IP, min/max speeds, speed source, parent nodes, network mode, node aggregation factors, and inactive cleanup rules.</div></div></div>
+        <div class="flow-step"><div class="flow-num">4</div><div><div class="flow-title">Preflight and diff</div><div class="flow-body">Checks duplicate IPs, invalid bandwidth, missing parent nodes, JSON/CSV render validity, and computes added/updated/removed clients for preview, audit, and dashboard timeline.</div></div></div>
+        <div class="flow-step"><div class="flow-num">5</div><div><div class="flow-title">Dry-run or apply</div><div class="flow-body">Dry-run only shows proposed output. Non-dry-run writes files atomically when changed, then triggers LibreQoS apply based on the apply policy.</div></div></div>
+        <div class="flow-step"><div class="flow-num">6</div><div><div class="flow-title">Record result</div><div class="flow-body">Runtime state, audit events, apply stdout/stderr, elapsed timings, client-change info bits, and scheduler status are saved for the UI.</div></div></div>
+      </div>
+    </section>
+
+    <section id="apply-policy" class="card about-section">
+      <h2><i class="ti ti-refresh-dot text-accent"></i> LibreQoS Apply Policy</h2>
+      <p>The production default is automatic apply when files change. If dry-run is used, LQoSync must never write or apply. If LibreQoS apply fails after files were written, LQoSync marks a pending apply and retries on the next non-dry-run cycle.</p>
+      <div class="codebox">"libreqos": {
+  "cmd": "/opt/libreqos/src/LibreQoS.py",
+  "args": ["--updateonly"],
+  "working_dir": "/opt/libreqos/src",
+  "run_mode": "direct",
+  "sudo": true,
+  "run_only_when_files_changed": true,
+  "retry_if_last_apply_failed": true,
+  "timeout_seconds": 300
+}</div>
+      <div class="two-col" style="margin-top:12px">
+        <div class="note"><b>Why working_dir matters:</b> LibreQoS loads files like <code>ShapedDevices.csv</code> and <code>ShapedDevices.lastLoaded.csv</code> by relative name. Running from <code>/opt/libreqos/src</code> prevents <code>FileNotFoundError</code>.</div>
+        <div class="note"><b>Bare-metal priority:</b> Bare-metal installs must use <code>run_mode=direct</code>. Docker-only <code>host_nsenter</code> must not survive on systemd installs.</div>
+      </div>
+    </section>
+
+
+
+    <section id="selective-collection" class="card about-section">
+      <h2><i class="ti ti-database-search text-accent"></i> Selective MikroTik Collection and Speed Resolver</h2>
+      <p>LQoSync v2.38 adds a future-proof collector model for hundreds to thousands of clients. The goal is not to make many per-client API calls. The goal is to bulk-read each RouterOS source, request only the properties needed for LibreQoS output, index locally in memory, and resolve speed from a universal priority chain.</p>
+      <div class="three-col" style="margin-top:10px">
+        <div class="mode-card"><div class="mode-name">PPPoE</div><p>Reads <code>/ppp/active</code>, <code>/ppp/secret</code>, and <code>/ppp/profile</code> with selected fields.</p><div class="codebox small">Speed priority:
+1 secret comment
+2 active comment
+3 profile comment
+4 profile name
+5 profile rate-limit
+6 default_pppoe_rate</div></div>
+        <div class="mode-card"><div class="mode-name">DHCP</div><p>Reads <code>/ip/dhcp-server/lease</code> and DHCP server name/comment metadata. Dynamic lease comments are not used as the first priority because they are unreliable unless the lease is static.</p><div class="codebox small">Speed priority:
+1 DHCP server comment / speed_comment
+2 DHCP server name
+3 DHCP server config speed
+4 global default DHCP speed</div></div>
+        <div class="mode-card"><div class="mode-name">Hotspot</div><p>Reads <code>/ip/hotspot/active</code>. When enhanced metadata is enabled, also reads <code>/ip/hotspot/user</code> and <code>/ip/hotspot/user/profile</code>.</p><div class="codebox small">Speed priority:
+1 user comment
+2 profile comment
+3 profile name
+4 profile rate-limit
+5 hotspot config speed
+6 global default</div></div>
+      </div>
+      <h3><i class="ti ti-settings"></i> Collector config</h3>
+      <div class="codebox">"collector": {
+  "selective_fields": true,
+  "pppoe": {
+    "read_active": true,
+    "read_secrets": true,
+    "read_profiles": true
+  },
+  "dhcp": {
+    "lease_mode": "permissive",
+    "read_server_metadata": true
+  },
+  "hotspot": {
+    "enhanced_metadata": true
+  }
+}</div>
+      <div class="two-col" style="margin-top:12px">
+        <div class="note"><b>Selective fields:</b> LQoSync asks RouterOS for only fields needed by <code>ShapedDevices.csv</code> and <code>network.json</code>. If a RouterOS/API combination rejects selective property reads, LQoSync falls back to full reads to preserve compatibility.</div>
+        <div class="note"><b>Metadata cache:</b> Source hashes and metadata-cache status are saved in <code>/opt/lqosync/state/collector_cache.json</code>. It is a lightweight state file, not a database. Dashboard cards show cache hits, misses, and source changes.</div>
+      </div>
+      <h3><i class="ti ti-dashboard"></i> Dashboard monitoring added</h3>
+      <p>The Dashboard now exposes Collector Health, Source Counts, Speed Source Breakdown, Cache Efficiency, and richer Last Sync Timeline entries. This helps detect whether PPPoE, DHCP, Hotspot, speed resolution, cache, or LibreQoS apply is the current bottleneck.</p>
+      <div class="note warn-note"><b>Excluded for now:</b> separate scan intervals and multi-router concurrency are intentionally not included in this phase. v2.38 focuses on safer selective collection, universal speed resolution, metadata cache visibility, and source-aware cleanup.</div>
+    </section>
+
+    <section id="features" class="card about-section">
+      <h2><i class="ti ti-sparkles text-accent"></i> Features and Modules</h2>
+      <div class="feature-grid">
+        <div class="feature"><i class="ti ti-player-play"></i><div><b>Dashboard</b><span>Sync controls, scheduler status, service health, counters, timings, last sync timeline, and latest client-change info bits.</span></div></div>
+        <div class="feature"><i class="ti ti-eye-check"></i><div><b>Dry-run Preview</b><span>Builds proposed CSV/network without writing files or calling LibreQoS.</span></div></div>
+        <div class="feature"><i class="ti ti-topology-star-3"></i><div><b>Network Layout</b><span>Router roots, PPP plan nodes, DHCP site nodes, Hotspot nodes, bandwidth math, and JSON view.</span></div></div>
+        <div class="feature"><i class="ti ti-device-desktop-analytics"></i><div><b>Shaped Devices</b><span>Searchable/filterable bounded table with row limits, per-column filters, duplicate IP hints, and detail panel.</span></div></div>
+        <div class="feature"><i class="ti ti-adjustments-horizontal"></i><div><b>Config Center</b><span>Professional UI-backed config editor with Apply Policy, Service Monitor Settings, raw JSON mirror, and normalization.</span></div></div>
+        <div class="feature"><i class="ti ti-server"></i><div><b>Services & Journals</b><span>lqosd, lqos_scheduler, LQoSync, optional legacy service labels, journal viewer, grouped restart, and Force Apply.</span></div></div>
+        <div class="feature"><i class="ti ti-clipboard-list"></i><div><b>Logs & Backups</b><span>Audit Events table, bounded rows, backups, apply logs, stdout/stderr, and operator-visible history.</span></div></div>
+        <div class="feature"><i class="ti ti-users"></i><div><b>User Settings</b><span>Add/edit/remove local users and roles. Passwords are stored only as bcrypt hashes in <code>users.json</code>.</span></div></div>
+        <div class="feature"><i class="ti ti-device-mobile"></i><div><b>Mobile-responsive UI</b><span>Drawer navigation, stacked cards, touch-friendly buttons, and scrollable tables on mobile/tablet.</span></div></div>
+        <div class="feature"><i class="ti ti-brand-github"></i><div><b>Smart Git lifecycle</b><span>GitHub install, existing install adoption, safe upgrades, config migration, and uninstall permission restore.</span></div></div>
+      </div>
+    </section>
+
+    <section id="network-modes" class="card about-section">
+      <h2><i class="ti ti-topology-star-3 text-accent"></i> Network Layout Modes</h2>
+      <p>The Config Center can normalize <code>config.json</code> based on the selected layout mode while keeping old node settings available for reuse.</p>
+      <div class="mode-grid" style="margin-top:10px">
+        <div class="mode-card {{ 'active' if network_mode == 'router_children' else '' }}"><div class="mode-name">router_children</div><p>Router root with child PPPoE plan, DHCP site, and Hotspot nodes. This is the detailed hierarchy and default production mode.</p><div class="codebox small">RB5k9-Distro
+ ├─ Tier-15M-RB5k9-Distro
+ ├─ DHCP-LAN-RB5k9-Distro
+ └─ HS-RB5k9-Distro</div></div>
+        <div class="mode-card {{ 'active' if network_mode == 'flat_router_root' else '' }}"><div class="mode-name">flat_router_root</div><p>Creates only the router root in <code>network.json</code>. All generated devices point directly to the router name as Parent Node.</p><div class="codebox small">Parent Node = RB5k9-Distro
+network.json = router root only</div></div>
+        <div class="mode-card {{ 'active' if network_mode == 'flat_no_parent' else '' }}"><div class="mode-name">flat_no_parent</div><p>Pure flat output. Parent Node is blank for all circuits. <code>network.json</code> is empty unless preserve mode is enabled.</p><div class="codebox small">Parent Node = blank
+network.json = {}</div></div>
+      </div>
+    </section>
+
+    <section id="fresh-install" class="card about-section">
+      <h2><i class="ti ti-download text-accent"></i> Fresh Installation</h2>
+      <p>Fresh install means LibreQoS exists but some managed files may be missing. LQoSync should dynamically create missing files from templates while protecting existing LibreQoS files.</p>
+      <div class="install-tabs">
+        <div>
+          <h3><i class="ti ti-brand-github"></i> GitHub source install</h3>
+          <div class="codebox">sudo apt update
+sudo apt install -y git
+cd /opt
+sudo git clone https://github.com/p33ckab00/lqos_shaped_sync.git lqosync
+cd /opt/lqosync
+sudo bash install.sh</div>
+        </div>
+        <div>
+          <h3><i class="ti ti-terminal"></i> One-command bootstrap</h3>
+          <div class="codebox">curl -fsSL https://raw.githubusercontent.com/p33ckab00/lqos_shaped_sync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+sudo bash /tmp/install-lqosync.sh</div>
+        </div>
+      </div>
+      <h3>Smart init behavior</h3>
+      <div class="codebox small">Fresh LibreQoS install:
+  missing config.json / ShapedDevices.csv / network.json -> create from templates
+
+Existing/live LibreQoS install:
+  files exist -> preserve by default or ask operator
+
+Non-interactive install:
+  files exist -> preserve existing by default</div>
+      <div class="note warn-note" style="margin-top:12px"><b>Before enabling scheduler:</b> stop old writers such as <code>updatecsv.service</code> so two systems do not write the same LibreQoS files.</div>
+    </section>
+
+    <section id="existing-install" class="card about-section">
+      <h2><i class="ti ti-replace text-accent"></i> Existing Install Adoption</h2>
+      <p>If <code>/opt/lqosync</code> already exists, the GitHub installer should not delete it blindly. It should detect how the system was installed and ask how to proceed.</p>
+      <div class="codebox">Existing LQoSync installation detected.
+
+Choose action:
+[1] Adopt and update existing install  (recommended)
+[2] Update code only, preserve all data
+[3] Repair install, preserve all data
+[4] Backup and replace app files
+[5] Remove existing LQoSync then fresh install
+[6] Abort</div>
+      <h3>Recommended existing-install command</h3>
+      <div class="codebox">cd /opt
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/lqos_shaped_sync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+sudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh</div>
+      <h3>Default preserved files</h3>
+      <div class="codebox small">/opt/libreqos/src/config.json
+/opt/libreqos/src/ShapedDevices.csv
+/opt/libreqos/src/network.json
+/opt/lqosync/users.json
+/opt/lqosync/.env
+/opt/lqosync/state/
+/opt/lqosync/logs/
+/opt/lqosync/backups/</div>
+    </section>
+
+    <section id="github-update" class="card about-section">
+      <h2><i class="ti ti-brand-github text-accent"></i> GitHub Updates and Preservation Policies</h2>
+      <p>Git updates the application source. Migration updates only missing safe config keys. Operator-owned config and runtime files are preserved by default.</p>
+      <div class="two-col">
+        <div>
+          <h3>Default production update</h3>
+          <div class="codebox">cd /opt/lqosync
+sudo bash upgrade.sh</div>
+          <p>Default policy is <code>preserve_and_migrate</code>: pull code, preserve live files, add missing safe defaults, reapply permissions, restart, and health check.</p>
+        </div>
+        <div>
+          <h3>Explicit policy examples</h3>
+          <div class="codebox">sudo UPDATE_POLICY=pull_only bash upgrade.sh
+sudo UPDATE_POLICY=code_only bash upgrade.sh
+sudo UPDATE_POLICY=preserve_and_migrate bash upgrade.sh
+sudo UPDATE_POLICY=refresh_with_backup bash upgrade.sh
+sudo UPDATE_POLICY=factory_reset CONFIRM_FACTORY_RESET=yes bash upgrade.sh</div>
+        </div>
+      </div>
+      <h3>Policy meanings</h3>
+      <table class="path-table">
+        <thead><tr><th>Policy</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>pull_only</td><td>Only fetch/pull code. No migration, dependency update, or restart. Use when reviewing changes first.</td></tr>
+          <tr><td>code_only</td><td>Update app source but avoid touching config/users/generated files. Good for UI-only fixes.</td></tr>
+          <tr><td>preserve_and_migrate</td><td>Production default. Preserve local data and add missing safe defaults.</td></tr>
+          <tr><td>refresh_with_backup</td><td>Backup then refresh service files, dependencies, permissions, and migrations. Good for major updates or repair.</td></tr>
+          <tr><td>factory_reset</td><td>Danger mode. Requires explicit confirmation. Intended for lab rebuilds or broken config recovery.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="uninstall" class="card about-section">
+      <h2><i class="ti ti-trash text-accent"></i> Uninstallation and Permission Restore</h2>
+      <p>Uninstall should remove LQoSync while preserving LibreQoS integrity. It should stop the service, remove LQoSync service/sudoers, optionally remove <code>/opt/lqosync</code>, and restore permissions under <code>/opt/libreqos/src</code>.</p>
+      <div class="two-col">
+        <div>
+          <h3>Standard uninstall</h3>
+          <div class="codebox">cd /opt/lqosync
+sudo bash uninstall.sh</div>
+          <p>Restores LQoSync-managed LibreQoS files to root ownership and removes stale ACLs.</p>
+        </div>
+        <div>
+          <h3>Remove runtime too</h3>
+          <div class="codebox">cd /opt/lqosync
+sudo REMOVE_RUNTIME=true bash uninstall.sh</div>
+          <p>Backs up and removes <code>/opt/lqosync</code> after service cleanup.</p>
+        </div>
+      </div>
+      <details class="about-details"><summary>Full permission restore</summary><div class="codebox">cd /opt/lqosync
+sudo RESTORE_MODE=full bash uninstall.sh
+
+# or directly
+sudo bash /opt/lqosync/scripts/restore_libreqos_permissions.sh --full</div></details>
+      <div class="note warn-note"><b>Do not delete by default:</b> <code>config.json</code>, <code>ShapedDevices.csv</code>, <code>network.json</code>, <code>ShapedDevices.lastLoaded.csv</code>, <code>lastGoodConfig.csv</code>, <code>lastGoodConfig.json</code>, and <code>planner_state.json</code> are LibreQoS operational files.</div>
+    </section>
+
+    <section id="mikrotik-setup" class="card about-section">
+      <h2><i class="ti ti-router text-accent"></i> MikroTik Setup Requirement</h2>
+      <div class="note"><b>Important Notice:</b> For fresh installations, create a dedicated read-only RouterOS API user before enabling live sync. LQoSync reads MikroTik only; it should not use an admin/write-capable account.</div>
+      <div class="two-col" style="margin-top:12px">
+        <div>
+          <h3>RouterOS terminal commands</h3>
+          <div class="codebox">/user group add name=API_READ policy="read,sensitive,api,!policy,!local,!telnet,!ssh,!ftp,!reboot,!write,!test,!winbox,!password,!web,!sniff,!romon"
+/user add name="libreqosyncAPI" group=API_READ password="&lt;Strong Password&gt;" address="&lt;LibreQoS IP Address&gt;" disabled=no</div>
+        </div>
+        <div>
+          <h3>What this protects</h3>
+          <ul>
+            <li>Allows the required RouterOS API reads for PPPoE, DHCP, Hotspot, and profile discovery.</li>
+            <li>Blocks write, reboot, policy, web, Winbox, sniffing, and RoMON access.</li>
+            <li>Restricts login source using <code>address=&lt;LibreQoS IP Address&gt;</code>.</li>
+            <li>Use this user in <code>/opt/libreqos/src/config.json</code>.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="paths" class="card about-section">
+      <h2><i class="ti ti-folders text-accent"></i> Important Paths</h2>
+      <table class="path-table">
+        <thead><tr><th>Path</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>/opt/lqosync</td><td>LQoSync application, Git source, venv, templates, scripts, logs, and runtime files.</td></tr>
+          <tr><td>/opt/libreqos/src/config.json</td><td>Main LQoSync configuration source used by the engine and Config Center.</td></tr>
+          <tr><td>{{ paths.get('shaped_devices_csv','/opt/libreqos/src/ShapedDevices.csv') }}</td><td>Generated LibreQoS shaped devices CSV.</td></tr>
+          <tr><td>{{ paths.get('network_json','/opt/libreqos/src/network.json') }}</td><td>Generated LibreQoS network topology JSON.</td></tr>
+          <tr><td>{{ paths.get('backup_dir','/opt/lqosync/backups') }}</td><td>Backups before risky install/update/apply/restore actions.</td></tr>
+          <tr><td>{{ paths.get('runtime_state','/opt/lqosync/state/runtime_state.json') }}</td><td>Scheduler state, last result, counts, timings, pending apply status, and UI summary.</td></tr>
+          <tr><td>/opt/lqosync/users.json</td><td>Local UI users with bcrypt password hashes.</td></tr>
+          <tr><td>/opt/lqosync/logs/lqos_shaped_sync.log</td><td>Application sync log. This may be the active log instead of <code>/var/log/lqos_shaped_sync.log</code>.</td></tr>
+          <tr><td>/opt/lqosync/logs/libreqos_apply/</td><td>Per-run LibreQoS.py stdout, stderr, metadata, exit code, and elapsed time.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="commands" class="card about-section">
+      <h2><i class="ti ti-terminal-2 text-accent"></i> Operator Commands</h2>
+      <details class="about-details" open><summary>Bare-metal service operations</summary><div class="codebox">sudo systemctl status lqos_shaped_sync
+sudo systemctl restart lqos_shaped_sync
+sudo journalctl -u lqos_shaped_sync -f</div></details>
+      <details class="about-details"><summary>LibreQoS service checks</summary><div class="codebox">sudo systemctl status lqosd lqos_scheduler
+sudo systemctl restart lqosd lqos_scheduler</div></details>
+      <details class="about-details"><summary>Manual LibreQoS apply</summary><div class="codebox">cd /opt/libreqos/src
+sudo python3 LibreQoS.py --updateonly</div></details>
+      <details class="about-details"><summary>Check latest apply metadata</summary><div class="codebox">latest_json=$(sudo find /opt/lqosync/logs/libreqos_apply -name "*.json" -printf '%T@ %p\n' | sort -n | tail -1 | cut -d' ' -f2-)
+sudo cat "$latest_json"</div></details>
+      <details class="about-details"><summary>Logs</summary><div class="codebox">tail -f /opt/lqosync/logs/lqos_shaped_sync.log
+journalctl -u lqos_shaped_sync -f
+sudo find /opt/lqosync/logs/libreqos_apply -maxdepth 1 -type f -print</div></details>
+      <details class="about-details"><summary>Password reset</summary><div class="codebox">sudo USERS_PATH=/opt/lqosync/users.json /opt/lqosync/venv/bin/python /opt/lqosync/scripts/set_password.py admin 'new-strong-password' admin</div></details>
+    </section>
+
+    <section id="troubleshooting" class="card about-section">
+      <h2><i class="ti ti-tool text-accent"></i> Troubleshooting Guide with Expected Results</h2>
+      <p>This section explains what each troubleshooting step does, why it is safe, and what to expect.</p>
+
+      <details class="about-details" open>
+        <summary>LibreQoS failed: FileNotFoundError: ShapedDevices.csv</summary>
+        <div>
+          <p><b>Meaning:</b> LibreQoS.py was executed from the wrong working directory and searched for <code>ShapedDevices.csv</code> relative to that directory.</p>
+          <div class="codebox">grep -A12 '"libreqos"' /opt/libreqos/src/config.json
+# Expected: working_dir=/opt/libreqos/src and run_mode=direct</div>
+          <div class="codebox">latest_json=$(sudo find /opt/lqosync/logs/libreqos_apply -name "*.json" -printf '%T@ %p\n' | sort -n | tail -1 | cut -d' ' -f2-)
+sudo cat "$latest_json"
+# Expected: "working_dir": "/opt/libreqos/src"</div>
+          <p><b>Fix expectation:</b> after updating config or reinstalling, the journal should show <code>PWD=/opt/libreqos/src</code> for LibreQoS apply commands.</p>
+        </div>
+      </details>
+
+      <details class="about-details">
+        <summary>nsenter: cannot open /proc/1/ns/ipc: Permission denied</summary>
+        <div>
+          <p><b>Meaning:</b> Docker host namespace mode leaked into a bare-metal install. Bare-metal must use direct execution.</p>
+          <div class="codebox">grep -E 'LQOSYNC_RUN_MODE|HOST_CONTROL_MODE|LQOSYNC_INSTALL_MODE|LQOSYNC_FORCE_DIRECT' /opt/lqosync/.env
+# Expected:
+# LQOSYNC_INSTALL_MODE=baremetal
+# LQOSYNC_RUN_MODE=direct
+# HOST_CONTROL_MODE=direct
+# LQOSYNC_FORCE_DIRECT=true</div>
+          <div class="codebox">sudo systemctl restart lqos_shaped_sync</div>
+          <p><b>Expected result:</b> future apply metadata shows <code>mode=direct</code>, not <code>host_nsenter</code>.</p>
+        </div>
+      </details>
+
+      <details class="about-details">
+        <summary>Permission denied: /opt/libreqos/src/config.json.tmp</summary>
+        <div>
+          <p><b>Meaning:</b> LQoSync can read the config but cannot create atomic temporary files in <code>/opt/libreqos/src</code>.</p>
+          <div class="codebox">sudo apt update
+sudo apt install -y acl
+sudo setfacl -m u:lqosync:rwx /opt/libreqos/src
+sudo setfacl -m u:lqosync:rw /opt/libreqos/src/config.json
+sudo setfacl -m u:lqosync:rw /opt/libreqos/src/ShapedDevices.csv
+sudo setfacl -m u:lqosync:rw /opt/libreqos/src/network.json
+sudo setfacl -d -m u:lqosync:rwX /opt/libreqos/src</div>
+          <div class="codebox">sudo -u lqosync touch /opt/libreqos/src/config.json.tmp
+sudo -u lqosync rm -f /opt/libreqos/src/config.json.tmp
+# Expected: no error</div>
+          <p><b>What happens:</b> ACL grants the lqosync service user permission to create temporary files and atomically rename them without changing the entire LibreQoS directory ownership.</p>
+        </div>
+      </details>
+
+      <details class="about-details">
+        <summary>files_changed=False but LibreQoS was not applied after a previous failure</summary>
+        <div>
+          <p><b>Meaning:</b> files were already written, so the next diff is clean. The missing behavior is retrying a pending failed apply.</p>
+          <div class="codebox">grep -A12 '"libreqos"' /opt/libreqos/src/config.json
+# Expected: "retry_if_last_apply_failed": true</div>
+          <p><b>Expected result:</b> after the fix, non-dry-run cycles retry LibreQoS apply even if file content did not change, until apply succeeds.</p>
+        </div>
+      </details>
+
+      <details class="about-details">
+        <summary>LibreQoS status shows false in UI but apply logs are OK</summary>
+        <div>
+          <p><b>Meaning:</b> apply engine may be healthy while the service monitor/UI parsing is wrong or one optional service is missing.</p>
+          <div class="codebox">systemctl is-active lqosd
+systemctl is-active lqos_scheduler
+systemctl status lqosd lqos_scheduler --no-pager</div>
+          <p><b>Expected:</b> <code>lqosd</code> and <code>lqos_scheduler</code> should be active. <code>lqos_node_manager</code> is legacy/optional and should not make current LibreQoS look failed if missing.</p>
+        </div>
+      </details>
+
+      <details class="about-details">
+        <summary>Blank /var/log/lqos_shaped_sync.log</summary>
+        <div>
+          <p><b>Meaning:</b> current config may write logs under <code>/opt/lqosync/logs</code> and systemd journal instead.</p>
+          <div class="codebox">tail -n 100 /opt/lqosync/logs/lqos_shaped_sync.log
+journalctl -u lqos_shaped_sync -n 100 --no-pager</div>
+          <p><b>Expected:</b> application sync logs are in <code>/opt/lqosync/logs/lqos_shaped_sync.log</code>; service lifecycle logs are in journalctl.</p>
+        </div>
+      </details>
+
+      <details class="about-details">
+        <summary>git pull does not work: not a git repository</summary>
+        <div>
+          <p><b>Meaning:</b> the installation came from ZIP/manual copy. Use the adoption installer to make it Git-managed without losing live data.</p>
+          <div class="codebox">cd /opt
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/lqos_shaped_sync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+sudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh</div>
+          <p><b>Expected:</b> the installer backs up current <code>/opt/lqosync</code>, preserves users/logs/state/config, and installs repo code into a Git-managed <code>/opt/lqosync</code>.</p>
+        </div>
+      </details>
+
+      <details class="about-details">
+        <summary>Port 9202 is already in use</summary>
+        <div>
+          <div class="codebox">sudo ss -tulpn | grep :9202
+sudo systemctl status lqos_shaped_sync</div>
+          <p><b>Meaning:</b> another process is listening on the UI port. Stop the duplicate process or change the port in the systemd/env config.</p>
+        </div>
+      </details>
+
+      <details class="about-details">
+        <summary>ShapedDevices/network validation fails</summary>
+        <div>
+          <div class="codebox">cd /opt/libreqos/src
+head -1 ShapedDevices.csv
+awk -F',' 'NR&gt;1 &amp;&amp; $5=="" {print NR ":" $0}' ShapedDevices.csv
+python3 -m json.tool network.json</div>
+          <p><b>Expected:</b> header is valid, parent nodes are present unless using flat no-parent mode, and network.json parses cleanly.</p>
+        </div>
+      </details>
+    </section>
+
+    <section id="documentation-rule" class="card about-section">
+      <h2><i class="ti ti-notes text-accent"></i> Documentation Rule</h2>
+      <p>Every project change should update both repository documentation and this in-app About module. The About module is the operator's built-in manual, so it should stay aligned with the latest README, installation guide, GitHub update flow, uninstall guide, troubleshooting guide, release notes, and command reference.</p>
+      <div class="note"><b>Update expectation:</b> when features change, update <code>README.md</code>, <code>FULL_DOCUMENTATION.md</code>, relevant files under <code>docs/</code>, <code>RELEASE_NOTES.md</code>, and <code>templates/about.html</code>.</div>
+    </section>
+  </div>
+</div>
+{% endblock %}

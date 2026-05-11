@@ -1,0 +1,70 @@
+{% extends "base.html" %}{% block content %}
+{% set csv = result.diff.csv if result and result.diff and result.diff.csv else None %}
+{% set net = result.diff.network if result and result.diff and result.diff.network else None %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Dry Run Preview</div>
+    <div class="page-subtitle">Same engine as live sync, but no file write and no LibreQoS call.</div>
+  </div>
+  <div class="btn-row">
+    {% if user.role == 'admin' %}
+    <form method="post" action="/sync/dry-run">{{ csrf_field()|safe }}<button class="btn"><i class="ti ti-eye"></i> Run dry run</button></form>
+    <form method="post" action="/sync/run" onsubmit="return confirm('Apply requires a fresh live sync. Continue?')">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-refresh"></i> Run fresh apply</button></form>
+    {% endif %}
+    <a class="btn" href="/devices"><i class="ti ti-device-desktop-analytics"></i> Devices</a>
+    <a class="btn" href="/network"><i class="ti ti-topology-star"></i> Network</a>
+  </div>
+</div>
+
+{% if result %}
+<section class="grid-stats">
+  <div class="stat"><div class="stat-label"><i class="ti ti-activity"></i> Status</div><div class="stat-value {{ 'text-accent' if result.status == 'dry_run_complete' else 'text-warn' }}">{{ result.status }}</div><div class="stat-sub">duration {{ result.duration_seconds }}s</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-file-spreadsheet"></i> CSV Changed</div><div class="stat-value {{ 'text-accent' if result.csv_changed else '' }}">{{ result.csv_changed }}</div><div class="stat-sub">ShapedDevices.csv</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-topology-star"></i> Network Changed</div><div class="stat-value {{ 'text-accent' if result.network_changed else '' }}">{{ result.network_changed }}</div><div class="stat-sub">network.json</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-bolt"></i> Would Apply</div><div class="stat-value {{ 'text-warn' if result.files_changed else '' }}">{{ result.files_changed }}</div><div class="stat-sub">LibreQoS only on fresh apply</div></div>
+</section>
+
+<section class="two-grid" style="margin-top:10px">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-device-desktop-analytics"></i> Circuit Diff</div>
+    <div class="grid-stats" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat"><div class="stat-label">Added</div><div class="stat-value text-accent">{{ csv.counts.added if csv else 0 }}</div></div>
+      <div class="stat"><div class="stat-label">Updated</div><div class="stat-value text-warn">{{ csv.counts.updated if csv else 0 }}</div></div>
+      <div class="stat"><div class="stat-label">Removed</div><div class="stat-value text-err">{{ csv.counts.removed if csv else 0 }}</div></div>
+    </div>
+    <details style="margin-top:12px"><summary class="mono text-sm text-dhcp" style="cursor:pointer">Show full CSV diff JSON</summary><pre class="mono text-xs scroll-panel" style="margin-top:10px;background:var(--bg0);border:1px solid var(--br0);border-radius:10px;padding:12px;white-space:pre-wrap">{{ csv | tojson(indent=2) }}</pre></details>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-topology-star-3"></i> Node Diff</div>
+    <div class="grid-stats" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat"><div class="stat-label">Added</div><div class="stat-value text-accent">{{ net.counts.added if net else 0 }}</div></div>
+      <div class="stat"><div class="stat-label">Updated</div><div class="stat-value text-warn">{{ net.counts.updated if net else 0 }}</div></div>
+      <div class="stat"><div class="stat-label">Removed</div><div class="stat-value text-err">{{ net.counts.removed if net else 0 }}</div></div>
+    </div>
+    <details style="margin-top:12px"><summary class="mono text-sm text-dhcp" style="cursor:pointer">Show full network diff JSON</summary><pre class="mono text-xs scroll-panel" style="margin-top:10px;background:var(--bg0);border:1px solid var(--br0);border-radius:10px;padding:12px;white-space:pre-wrap">{{ net | tojson(indent=2) }}</pre></details>
+  </div>
+</section>
+
+{% if result.node_math %}
+<section class="card" style="margin-top:10px">
+  <div class="card-title"><i class="ti ti-calculator"></i> Bandwidth Math</div>
+  <div style="display:grid;gap:8px">
+    {% for node, math in result.node_math.items() %}
+    <div class="math-line"><b>{{ node }}</b><br>{{ math.formula }}</div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if result.warnings or result.errors %}
+<section class="two-grid" style="margin-top:10px">
+  <div class="card" style="border-color:rgba(245,158,11,.45)"><div class="card-title text-warn"><i class="ti ti-alert-triangle"></i> Warnings</div>{% if result.warnings %}<div class="mono text-sm text-warn">{% for w in result.warnings %}⚠ {{ w }}<br>{% endfor %}</div>{% else %}<div class="mono text-sm" style="color:var(--muted)">None</div>{% endif %}</div>
+  <div class="card" style="border-color:rgba(239,68,68,.45)"><div class="card-title text-err"><i class="ti ti-alert-circle"></i> Errors</div>{% if result.errors %}<div class="mono text-sm text-err">{% for e in result.errors %}✖ {{ e }}<br>{% endfor %}</div>{% else %}<div class="mono text-sm" style="color:var(--muted)">None</div>{% endif %}</div>
+</section>
+{% endif %}
+
+<details class="card" style="margin-top:10px"><summary class="mono text-sm text-dhcp" style="cursor:pointer">Full Dry Run Result JSON</summary><pre class="mono text-xs scroll-panel" style="margin-top:10px;background:var(--bg0);border:1px solid var(--br0);border-radius:10px;padding:12px;white-space:pre-wrap">{{ result | tojson(indent=2) }}</pre></details>
+{% else %}
+<div class="card"><div class="card-title"><i class="ti ti-eye"></i> No preview yet</div><p class="text-sm" style="color:var(--muted)">Run a dry-run to generate a full proposed CSV/network diff without writing files.</p></div>
+{% endif %}
+{% endblock %}

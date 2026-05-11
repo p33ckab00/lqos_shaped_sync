@@ -1,0 +1,133 @@
+{% extends "base.html" %}{% block content %}
+{% set timings = last.get('timings', {}) if last else {} %}
+{% set timeline = last.get('timeline', []) if last else [] %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Services & Journals</div>
+    <div class="page-subtitle">LibreQoS services, LQoSync service, LibreQoS.py apply history, and elapsed-time timeline</div>
+  </div>
+  <div class="btn-row">
+    {% if user.role == 'admin' %}
+    <form method="post" action="/libreqos/force-apply" onsubmit="return confirm('Force LibreQoS.py --updateonly now?')">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-bolt"></i> Force LibreQoS Apply</button></form>
+    {% endif %}
+    <a class="btn" href="/logs"><i class="ti ti-file-text"></i> Logs & backups</a>
+    <a class="btn" href="/"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+  </div>
+</div>
+
+<section class="grid-stats">
+  <div class="stat"><div class="stat-label"><i class="ti ti-gauge"></i> Last Cycle</div><div class="stat-value text-accent">{{ (timings.get('cycle_total',0) / 1000)|round(3) if timings else 0 }}s</div><div class="stat-sub">full sync elapsed</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-router"></i> MikroTik</div><div class="stat-value">{{ (timings.get('routers_total',0) / 1000)|round(3) if timings else 0 }}s</div><div class="stat-sub">read RouterOS resources</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-files"></i> File Build</div><div class="stat-value">{{ ((timings.get('csv_render',0) + timings.get('network_render',0) + timings.get('diff',0)) / 1000)|round(3) if timings else 0 }}s</div><div class="stat-sub">render + compare</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-bolt"></i> LibreQoS Apply</div><div class="stat-value">{{ (timings.get('libreqos_apply',0) / 1000)|round(3) if timings.get('libreqos_apply') else '—' }}</div><div class="stat-sub">LibreQoS.py --updateonly</div></div>
+</section>
+
+<div class="card" style="margin-top:12px;border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.08)">
+  <div class="card-title"><i class="ti ti-info-circle text-dhcp"></i> LibreQoS apply policy</div>
+  <div class="text-sm" style="color:var(--muted)">Non-dry-run syncs automatically run <code>LibreQoS.py --updateonly</code> after successful file writes when changes are detected. Dry-run never applies. If an apply fails after files were written, LQoSync keeps a pending apply marker and retries on the next non-dry-run cycle. Use <b>Force LibreQoS Apply</b> only when you need to apply current files immediately without waiting for a file diff.</div>
+</div>
+
+<section class="two-grid" style="margin-top:12px">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-server"></i> Service Status</div>
+    <div style="display:grid;gap:8px">
+      {% for unit,info in services.items() %}
+      <div class="mono text-sm" style="display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--br0);border-radius:10px;padding:9px 10px">
+        <div>
+          <div style="font-weight:600">{{ unit }}</div>
+          <div style="color:var(--hint);font-size:10px">{{ info.description or info.load ~ ' / ' ~ info.sub }}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="badge {{ 'b-ok' if info.active == 'active' else ('b-warn' if info.load == 'not-found' else 'b-err') }}">{{ info.active }}</span>
+          <a class="action-btn" title="View journal" href="/services?unit={{ unit }}"><i class="ti ti-terminal-2"></i></a>
+          {% if user.role == 'admin' %}
+          <form method="post" action="/services/{{ unit }}/restart" onsubmit="return confirm('Restart {{ unit }}?')">{{ csrf_field()|safe }}<button class="action-btn" title="Restart {{ unit }}"><i class="ti ti-refresh"></i></button></form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="ti ti-refresh-dot"></i> Restart Groups</div>
+    <div class="mono text-sm" style="color:var(--muted);margin-bottom:10px">Group restart is for known LibreQoS command sets, for example: <code>sudo systemctl restart lqosd lqos_scheduler</code>. Legacy optional units such as <code>lqos_node_manager</code> should only be restarted if they actually exist on the host.</div>
+    <div style="display:grid;gap:8px">
+      {% for group,units in groups.items() %}
+      <div style="border:1px solid var(--br0);border-radius:10px;padding:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div>
+            <div class="mono" style="font-weight:600">{{ group }}</div>
+            <div class="mono text-sm" style="color:var(--hint)">{{ units|join(' + ') }}</div>
+          </div>
+          {% if user.role == 'admin' %}
+          <form method="post" action="/services/group/{{ group }}/restart" onsubmit="return confirm('Restart group {{ group }}: {{ units|join(' + ') }}?')">{{ csrf_field()|safe }}<button class="btn"><i class="ti ti-refresh"></i> Restart group</button></form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="two-grid" style="margin-top:12px">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-terminal-2"></i> Journal Viewer</div>
+    <form method="get" action="/services" class="btn-row" style="margin-bottom:10px">
+      <select class="input" name="unit" style="max-width:260px">
+        {% for unit in services.keys() %}<option value="{{ unit }}" {{ 'selected' if unit == selected_unit else '' }}>{{ unit }}</option>{% endfor %}
+      </select>
+      <select class="input" name="lines" style="max-width:120px">
+        {% for n in [50,100,300,500,1000] %}<option value="{{ n }}" {{ 'selected' if request.args.get('lines', '100')|int == n else '' }}>last {{ n }}</option>{% endfor %}
+      </select>
+      <button class="btn"><i class="ti ti-refresh"></i> Load</button>
+    </form>
+    <pre class="mono" style="white-space:pre-wrap;max-height:420px;overflow:auto;background:var(--bg2);border:1px solid var(--br0);border-radius:10px;padding:12px;color:var(--txt);font-size:11px">{{ journal.stdout or journal.stderr or 'No journal output available.' }}</pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="ti ti-bolt"></i> LibreQoS Apply Logs</div>
+    <div class="mono text-sm" style="color:var(--muted);margin-bottom:10px">LibreQoS.py is an apply command, not a long-running service. LQoSync captures stdout/stderr and elapsed time per apply run.</div>
+    {% if apply_runs %}
+    <div style="display:grid;gap:8px">
+      {% for run in apply_runs %}
+      <div style="border:1px solid var(--br0);border-radius:10px;padding:10px">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
+          <div class="mono text-sm">
+            <div><b>{{ run.run_id }}</b></div>
+            <div style="color:var(--hint)">{{ run.started_at }} · {{ run.duration_seconds }}s · exit={{ run.exit_code }}</div>
+          </div>
+          <span class="badge {{ 'b-ok' if run.ok else 'b-err' }}">{{ 'OK' if run.ok else 'FAILED' }}</span>
+        </div>
+        <div class="btn-row" style="margin-top:8px">
+          <a class="btn" href="/api/libreqos/apply/{{ run.run_id }}/stdout" target="_blank">stdout</a>
+          <a class="btn" href="/api/libreqos/apply/{{ run.run_id }}/stderr" target="_blank">stderr</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}<div class="mono text-sm" style="color:var(--muted)">No LibreQoS apply logs yet.</div>{% endif %}
+  </div>
+</section>
+
+<div class="card" style="margin-top:12px">
+  <div class="card-title"><i class="ti ti-timeline"></i> Last Cycle Process Timeline</div>
+  {% if timeline %}
+  <div class="tbl-wrap">
+    <table class="table">
+      <thead><tr><th>Step</th><th>Duration</th><th>Status</th><th>Details</th></tr></thead>
+      <tbody>
+        {% for item in timeline %}
+        <tr>
+          <td class="mono">{{ item.step }}</td>
+          <td class="mono">{{ item.duration_ms }} ms</td>
+          <td><span class="badge {{ 'b-ok' if item.status == 'ok' else ('b-warn' if item.status == 'failed' else 'b-dhcp') }}">{{ item.status }}</span></td>
+          <td class="mono" style="color:var(--muted)">{{ item.details }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}<div class="mono text-sm" style="color:var(--muted)">No process timeline yet. Run sync or dry-run first.</div>{% endif %}
+</div>
+{% endblock %}

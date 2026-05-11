@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Settings · Users</div>
+    <div class="page-subtitle">Local JSON-backed user management. Passwords are stored as bcrypt hashes in users.json.</div>
+  </div>
+  <div class="btn-row">
+    <a class="btn" href="/config"><i class="ti ti-adjustments-horizontal"></i> Config center</a>
+    <a class="btn" href="/logs"><i class="ti ti-history"></i> Audit logs</a>
+  </div>
+</div>
+
+<div class="two-grid" style="align-items:start">
+  <section class="card">
+    <div class="card-title"><i class="ti ti-user-plus"></i> Add user</div>
+    <form method="post" action="/settings/users/add" class="space-y-3">
+      {{ csrf_field()|safe }}
+      <label class="block">
+        <span class="page-subtitle">Username</span>
+        <input class="input w-full mt-1" name="username" placeholder="viewer or noc-admin" required autocomplete="off">
+      </label>
+      <label class="block">
+        <span class="page-subtitle">Role</span>
+        <select class="input w-full mt-1" name="role">
+          <option value="viewer">viewer · read-only dashboard</option>
+          <option value="admin">admin · full control</option>
+        </select>
+      </label>
+      <label class="block">
+        <span class="page-subtitle">Temporary password</span>
+        <input class="input w-full mt-1" name="password" type="password" placeholder="enter strong password" required autocomplete="new-password">
+      </label>
+      <button class="btn btn-primary" type="submit"><i class="ti ti-plus"></i> Create user</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <div class="card-title"><i class="ti ti-shield-lock"></i> Security notes</div>
+    <div class="space-y-3 text-sm" style="color:var(--muted)">
+      <p><b style="color:var(--txt)">No database:</b> users are saved in <code>users.json</code>, matching the LQoSync file-based design.</p>
+      <p><b style="color:var(--txt)">Passwords:</b> never saved in plain text. New or changed passwords are saved as bcrypt hashes.</p>
+      <p><b style="color:var(--txt)">Safety:</b> the UI prevents deleting yourself, deleting the last admin, or demoting the last admin.</p>
+      <p><b style="color:var(--txt)">Roles:</b> <code>admin</code> can edit config/run actions. <code>viewer</code> can view dashboard, layouts, devices, logs, and status.</p>
+    </div>
+  </section>
+</div>
+
+<section class="card mt-4">
+  <div class="card-title"><i class="ti ti-users"></i> Existing users</div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Password</th>
+          <th style="width:360px">Edit user</th>
+          <th style="width:360px">Change password</th>
+          <th style="width:120px">Remove</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td class="mono">{{ u.username }}</td>
+          <td>
+            {% if u.role == 'admin' %}
+              <span class="badge b-ok"><i class="ti ti-shield-check"></i> admin</span>
+            {% else %}
+              <span class="badge b-static"><i class="ti ti-eye"></i> viewer</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.has_password %}<span class="badge b-ok">bcrypt hash saved</span>{% else %}<span class="badge b-warn">missing</span>{% endif %}
+          </td>
+          <td>
+            <form method="post" action="{{ url_for('settings_users_update', username=u.username) }}" class="btn-row" style="gap:6px;align-items:center">
+              {{ csrf_field()|safe }}
+              <input class="input" style="width:130px" name="username" value="{{ u.username }}" required>
+              <select class="input" style="width:95px" name="role">
+                <option value="viewer" {% if u.role == 'viewer' %}selected{% endif %}>viewer</option>
+                <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>admin</option>
+              </select>
+              <button class="btn" type="submit"><i class="ti ti-device-floppy"></i> Save</button>
+            </form>
+          </td>
+          <td>
+            <form method="post" action="{{ url_for('settings_users_password', username=u.username) }}" class="btn-row" style="gap:6px;align-items:center">
+              {{ csrf_field()|safe }}
+              <input class="input" style="width:120px" name="password" type="password" placeholder="new password" required autocomplete="new-password">
+              <input class="input" style="width:120px" name="password_confirm" type="password" placeholder="confirm" required autocomplete="new-password">
+              <button class="btn" type="submit"><i class="ti ti-key"></i> Change</button>
+            </form>
+          </td>
+          <td>
+            <form method="post" action="{{ url_for('settings_users_delete', username=u.username) }}" onsubmit="return confirm('Delete user {{ u.username }}?');">
+              {{ csrf_field()|safe }}
+              <button class="btn btn-danger" type="submit" {% if user and user.username == u.username %}disabled title="Cannot delete current user"{% endif %}>
+                <i class="ti ti-trash"></i> Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

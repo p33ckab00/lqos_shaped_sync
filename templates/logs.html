@@ -1,0 +1,169 @@
+{% extends "base.html" %}{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Logs & Backups</div>
+    <div class="page-subtitle">Live operational logs, searchable audit trail, backup restore, and downloadable log file.</div>
+  </div>
+  <div class="btn-row">
+    <a class="btn" href="/download/log"><i class="ti ti-download"></i> Download log</a>
+    <a class="btn" href="/api/audit?limit=500" target="_blank"><i class="ti ti-list-details"></i> Audit JSON</a>
+  </div>
+</div>
+
+<div class="layout-grid" style="grid-template-columns:2fr 1fr">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-terminal-2"></i> Last log lines</div>
+    <pre class="mono text-xs scroll-panel" style="height:420px;background:var(--bg0);border:1px solid var(--br0);border-radius:10px;padding:12px;white-space:pre-wrap">{{ '\n'.join(lines) }}</pre>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-archive"></i> Backups</div>
+    <div style="display:grid;gap:8px">
+    {% for b in backups %}
+      <div style="border:1px solid var(--br0);border-radius:10px;padding:10px">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
+          <span class="mono text-xs">{{ b.id }}</span>
+          {% if user.role == 'admin' %}<form method="post" action="/backups/{{ b.id }}/restore" onsubmit="return confirm('Restore backup {{ b.id }}? Current files will be backed up first.')">{{ csrf_field()|safe }}<button class="btn btn-warn" style="padding:5px 8px;font-size:11px"><i class="ti ti-rotate-clockwise"></i> Restore</button></form>{% endif %}
+        </div>
+        {% if b.metadata.reason %}<div class="mono text-xs" style="color:var(--hint);margin-top:5px">{{ b.metadata.reason }}</div>{% endif %}
+      </div>
+    {% else %}<p class="mono text-sm" style="color:var(--muted)">No backups yet.</p>{% endfor %}
+    </div>
+  </div>
+</div>
+
+<style>
+  .audit-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .table-limit-control{display:flex;align-items:center;gap:7px;color:var(--muted);font-family:var(--font-mono);font-size:11px}
+  .table-limit-control select{border:1px solid var(--br1);border-radius:8px;background:rgba(2,6,23,.64);color:var(--txt);font-family:var(--font-mono);font-size:11px;padding:7px 9px;outline:none}
+  .audit-filter-row th{padding:6px 8px;background:var(--bg2);border-bottom:1px solid var(--br0)}
+  .audit-filter{width:100%;min-width:0;border:1px solid var(--br1);border-radius:6px;background:rgba(2,6,23,.64);color:var(--txt);font-family:var(--font-mono);font-size:10px;padding:5px 7px;outline:none}
+  .audit-filter:focus{border-color:var(--c-accent);box-shadow:0 0 0 2px rgba(0,200,150,.10)}
+  .audit-summary{max-width:280px;white-space:normal!important;line-height:1.35}
+  .audit-details{max-width:360px;white-space:normal!important;line-height:1.35;color:var(--muted)}
+  :root[data-theme=light] .audit-filter-row th{background:#f8fafc}
+  :root[data-theme=light] .audit-filter{background:#fff;color:#0f172a;border-color:#cbd5e1}
+  :root[data-theme=light] .table-limit-control select{background:#fff;color:#0f172a;border-color:#cbd5e1}
+</style>
+
+<div class="card" style="margin-top:10px;padding:0;overflow:hidden" x-data="auditTable()" x-init="init()">
+  <div style="padding:14px 16px;border-bottom:1px solid var(--br0)">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div>
+        <div class="card-title" style="margin-bottom:4px"><i class="ti ti-history"></i> Audit Events</div>
+        <div class="mono text-xs" style="color:var(--muted)">Searchable event table. Client changes include affected clients, speed, parent nodes, and elapsed timings when available.</div>
+      </div>
+      <div class="mono text-xs" style="color:var(--hint)" x-text="`Showing ${visible.length} of ${filtered.length} filtered · ${events.length} total`"></div>
+    </div>
+    <div class="audit-toolbar" style="margin-top:12px">
+      <div class="input" style="display:flex;align-items:center;gap:7px;min-width:260px;max-width:420px;flex:1"><i class="ti ti-search" style="color:var(--hint)"></i><input x-model="global" @input="apply()" placeholder="Search audit, client, node, speed…" style="background:transparent;border:0;outline:0;color:var(--txt);width:100%;font-family:var(--font-mono);font-size:12px"></div>
+      <div class="filter-bar">
+        <span class="filter-pill" :class="quick==='all' ? 'active' : ''" @click="quick='all';apply()">All</span>
+        <span class="filter-pill" :class="quick==='client' ? 'active' : ''" @click="quick='client';apply()">Client changes</span>
+        <span class="filter-pill" :class="quick==='sync' ? 'active' : ''" @click="quick='sync';apply()">Sync</span>
+        <span class="filter-pill" :class="quick==='error' ? 'active' : ''" @click="quick='error';apply()">Errors</span>
+        <span class="filter-pill" :class="quick==='user' ? 'active' : ''" @click="quick='user';apply()">Users</span>
+      </div>
+      <label class="table-limit-control">View
+        <select x-model.number="rowLimit" @change="apply()">
+          <option :value="25">25 lines</option>
+          <option :value="50">50 lines</option>
+          <option :value="100">100 lines</option>
+          <option :value="200">200 lines</option>
+          <option :value="300">300 lines</option>
+          <option :value="400">400 lines</option>
+          <option :value="500">500 lines</option>
+        </select>
+      </label>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="table" style="table-layout:fixed;min-width:1080px">
+      <thead>
+        <tr>
+          <th style="width:170px;cursor:pointer" @click="sortBy('time')">Time <i class="ti ti-selector"></i></th>
+          <th style="width:110px;cursor:pointer" @click="sortBy('actor')">Actor <i class="ti ti-selector"></i></th>
+          <th style="width:155px;cursor:pointer" @click="sortBy('action')">Action <i class="ti ti-selector"></i></th>
+          <th style="width:230px;cursor:pointer" @click="sortBy('summary')">Summary <i class="ti ti-selector"></i></th>
+          <th style="width:190px;cursor:pointer" @click="sortBy('clients')">Clients <i class="ti ti-selector"></i></th>
+          <th style="width:220px;cursor:pointer" @click="sortBy('node_speed')">Node / speed <i class="ti ti-selector"></i></th>
+          <th style="width:95px;cursor:pointer" @click="sortBy('duration')">Elapsed <i class="ti ti-selector"></i></th>
+          <th style="width:280px">Details</th>
+        </tr>
+        <tr class="audit-filter-row">
+          <th><input class="audit-filter" x-model="filters.time" @input="apply()" placeholder="Filter time"></th>
+          <th><input class="audit-filter" x-model="filters.actor" @input="apply()" placeholder="Actor"></th>
+          <th><input class="audit-filter" x-model="filters.action" @input="apply()" placeholder="Action"></th>
+          <th><input class="audit-filter" x-model="filters.summary" @input="apply()" placeholder="Summary"></th>
+          <th><input class="audit-filter" x-model="filters.clients" @input="apply()" placeholder="Client"></th>
+          <th><input class="audit-filter" x-model="filters.node_speed" @input="apply()" placeholder="Node/speed"></th>
+          <th><input class="audit-filter" x-model="filters.duration" @input="apply()" placeholder="ms/s"></th>
+          <th><input class="audit-filter" x-model="filters.details" @input="apply()" placeholder="Details"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <template x-for="ev in visible" :key="ev._idx">
+          <tr>
+            <td class="mono text-xs" x-text="ev.time"></td>
+            <td x-text="ev.actor"></td>
+            <td><span class="badge" :class="badgeFor(ev.action)" x-text="ev.action"></span></td>
+            <td class="audit-summary" x-text="ev.summary"></td>
+            <td class="audit-summary" x-text="ev.clients"></td>
+            <td class="audit-summary" x-text="ev.node_speed"></td>
+            <td class="mono text-xs" x-text="ev.duration"></td>
+            <td class="audit-details"><details><summary class="mono text-xs" style="cursor:pointer;color:var(--c-accent)">View JSON</summary><pre class="mono text-xs" style="white-space:pre-wrap;margin-top:8px" x-text="ev.details_json"></pre></details></td>
+          </tr>
+        </template>
+        <template x-if="visible.length===0"><tr><td colspan="8" style="color:var(--muted)">No audit events match the current filters.</td></tr></template>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function auditTable(){
+  const raw={{ audit_events|tojson }};
+  function ms(ms){ if(ms===undefined||ms===null||ms==='') return ''; const n=Number(ms); if(isNaN(n)) return String(ms); return n>=1000 ? (n/1000).toFixed(3)+'s' : n.toFixed(1)+'ms'; }
+  function summaryFromDetails(d){
+    const s=d?.client_change_summary || d?.summary || d?.summary?.summary || null;
+    if(typeof s==='string') return s;
+    if(s?.summary_text) return s.summary_text;
+    if(d?.status) return `status=${d.status}`;
+    if(d?.ok!==undefined) return `ok=${d.ok}${d.exit_code!==undefined?' exit='+d.exit_code:''}`;
+    if(d?.mode) return `mode=${d.mode}`;
+    return '';
+  }
+  function changesFromDetails(d){
+    const summary=d?.client_change_summary || d?.summary || {};
+    return d?.client_changes || d?.changes || summary?.changes || [];
+  }
+  function clients(changes, d){
+    if(d?.client_change_summary?.clients_preview) return d.client_change_summary.clients_preview;
+    if(d?.summary?.clients_preview) return d.summary.clients_preview;
+    const names=(changes||[]).slice(0,6).map(c=>c.client).filter(Boolean);
+    let text=names.join(', ');
+    const total=(changes||[]).length;
+    if(total>6) text += `, +${total-6} more`;
+    return text;
+  }
+  function nodeSpeed(changes){
+    const bits=(changes||[]).slice(0,4).map(c=>{
+      const n=c.parent_node||c.before_parent_node||'no parent';
+      const sp=c.speed||c.before_speed||'';
+      return `${n} · ${sp}`;
+    }).filter(Boolean);
+    let text=bits.join(' | ');
+    if((changes||[]).length>4) text += ` | +${changes.length-4} more`;
+    return text;
+  }
+  function durationFromDetails(d){
+    const t=d?.timings||{};
+    return ms(t.cycle_total || t.libreqos_apply || d?.duration_ms);
+  }
+  function norm(ev, idx){
+    const d=ev.details||{}; const changes=changesFromDetails(d);
+    return {_idx:idx,time:ev.ts||'',actor:ev.actor||'',action:ev.action||'',summary:summaryFromDetails(d),clients:clients(changes,d),node_speed:nodeSpeed(changes),duration:durationFromDetails(d),details_json:JSON.stringify(d,null,2),_hay:''};
+  }
+  return {events:[],filtered:[],visible:[],rowLimit:50,global:'',quick:'all',sortKey:'time',sortAsc:false,filters:{time:'',actor:'',action:'',summary:'',clients:'',node_speed:'',duration:'',details:''},init(){this.events=raw.map(norm).map(e=>{e._hay=Object.values(e).join(' ').toLowerCase();return e;});this.apply();},badgeFor(a){ if(a.includes('failed')||a.includes('error')) return 'b-err'; if(a.includes('client')||a.includes('files')) return 'b-dhcp'; if(a.includes('sync')) return 'b-ok'; if(a.includes('user')) return 'b-ppp'; return 'b-static';},sortBy(k){if(this.sortKey===k)this.sortAsc=!this.sortAsc;else{this.sortKey=k;this.sortAsc=true;}this.apply();},apply(){const q=this.global.trim().toLowerCase(); this.filtered=this.events.filter(e=>{if(this.quick==='client'&&!['client_changes','files_written'].includes(e.action)) return false; if(this.quick==='sync'&&!e.action.includes('sync')) return false; if(this.quick==='error'&&!e.action.includes('failed')&&!e.action.includes('error')&&!e.details_json.toLowerCase().includes('error')) return false; if(this.quick==='user'&&!e.action.includes('user')) return false; if(q&&!e._hay.includes(q)) return false; for(const [k,v] of Object.entries(this.filters)){const val=(v||'').trim().toLowerCase(); if(val&&!String(e[k]||'').toLowerCase().includes(val)) return false;} return true;}); this.filtered.sort((a,b)=>{let av=a[this.sortKey]||'',bv=b[this.sortKey]||''; av=String(av).toLowerCase(); bv=String(bv).toLowerCase(); return (av>bv?1:av<bv?-1:0)*(this.sortAsc?1:-1);}); this.visible=this.filtered.slice(0, Number(this.rowLimit)||50);}}
+}
+</script>
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends "base.html" %}{% block content %}
+<div class="page-header">
+  <div><div class="page-title">Shaped devices</div><div class="page-subtitle">Live view of LibreQoS ShapedDevices.csv · speed-source metadata from last sync when available</div></div>
+  <div class="btn-row">
+    <a href="/download/csv" class="btn"><i class="ti ti-download"></i> Export CSV</a>
+    <a href="/network" class="btn"><i class="ti ti-topology-star"></i> Network</a>
+    {% if user.role == 'admin' %}<form method="post" action="/sync/run">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-refresh"></i> Sync now</button></form>{% endif %}
+  </div>
+</div>
+
+<div class="card" style="padding:12px;margin-bottom:12px">
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <div class="input" style="display:flex;align-items:center;gap:7px;min-width:250px;max-width:350px;flex:1"><i class="ti ti-search" style="color:var(--hint)"></i><input id="searchInput" oninput="applyFilters()" placeholder="Search circuit, IP, MAC…" style="background:transparent;border:0;outline:0;color:var(--txt);width:100%;font-family:var(--font-mono);font-size:12px"></div>
+    <div class="filter-bar">
+      <span class="filter-pill active" data-f="all" onclick="setFilter('all')">All <b id="cnt-all">0</b></span>
+      <span class="filter-pill" data-f="ppp" onclick="setFilter('ppp')">PPP <b id="cnt-ppp">0</b></span>
+      <span class="filter-pill" data-f="dhcp" onclick="setFilter('dhcp')">DHCP <b id="cnt-dhcp">0</b></span>
+      <span class="filter-pill" data-f="hs" onclick="setFilter('hs')">Hotspot <b id="cnt-hs">0</b></span>
+      <span class="filter-pill" data-f="static" onclick="setFilter('static')">Static <b id="cnt-static">0</b></span>
+      <span class="filter-pill" data-f="dup" onclick="setFilter('dup')"><i class="ti ti-alert-triangle"></i> Dup IP <b id="cnt-dup">0</b></span>
+    </div>
+    <label class="table-limit-control" style="margin-left:auto">View
+      <select id="rowLimit" onchange="applyFilters()">
+        <option value="25">25 lines</option>
+        <option value="50" selected>50 lines</option>
+        <option value="100">100 lines</option>
+        <option value="200">200 lines</option>
+        <option value="300">300 lines</option>
+        <option value="400">400 lines</option>
+        <option value="500">500 lines</option>
+      </select>
+    </label>
+    <span class="mono" id="rowCount" style="color:var(--hint);font-size:11px">Showing 0</span>
+  </div>
+</div>
+
+
+<style>
+  .column-filter-row th{padding:6px 8px;background:var(--bg2);border-bottom:1px solid var(--br0);}
+  .table-limit-control{display:flex;align-items:center;gap:7px;color:var(--muted);font-family:var(--font-mono);font-size:11px}
+  .table-limit-control select{border:1px solid var(--br1);border-radius:8px;background:rgba(2,6,23,.64);color:var(--txt);font-family:var(--font-mono);font-size:11px;padding:7px 9px;outline:none}
+  .column-filter{width:100%;min-width:0;border:1px solid var(--br1);border-radius:6px;background:rgba(2,6,23,.64);color:var(--txt);font-family:var(--font-mono);font-size:10px;padding:5px 7px;outline:none;}
+  .column-filter:focus{border-color:var(--c-accent);box-shadow:0 0 0 2px rgba(0,200,150,.10);}
+  .column-filter::placeholder{color:var(--hint);}
+  :root[data-theme=light] .column-filter-row th{background:#f8fafc;}
+  :root[data-theme=light] .column-filter{background:#ffffff;color:#0f172a;border-color:#cbd5e1;}
+  :root[data-theme=light] .table-limit-control select{background:#fff;color:#0f172a;border-color:#cbd5e1;}
+  :root[data-theme=light] .column-filter::placeholder{color:#94a3b8;}
+</style>
+
+<div class="card" style="padding:0;overflow:hidden">
+  <div class="table-wrap">
+    <table class="table" style="table-layout:fixed" id="devTable">
+      <thead>
+        <tr>
+          <th style="width:160px;cursor:pointer" onclick="sortBy('circuit')">Circuit name <i class="ti ti-selector"></i></th>
+          <th style="width:86px;cursor:pointer" onclick="sortBy('type')">Type <i class="ti ti-selector"></i></th>
+          <th style="width:210px;cursor:pointer" onclick="sortBy('parent')">Parent node <i class="ti ti-selector"></i></th>
+          <th style="width:120px;cursor:pointer" onclick="sortBy('ip')">IPv4 <i class="ti ti-selector"></i></th>
+          <th style="width:85px;cursor:pointer" onclick="sortBy('down')">↓ Max <i class="ti ti-selector"></i></th>
+          <th style="width:85px;cursor:pointer" onclick="sortBy('up')">↑ Max <i class="ti ti-selector"></i></th>
+          <th style="width:85px;cursor:pointer" onclick="sortBy('dmin')">↓ Min <i class="ti ti-selector"></i></th>
+          <th style="width:85px;cursor:pointer" onclick="sortBy('umin')">↑ Min <i class="ti ti-selector"></i></th>
+          <th style="width:145px;cursor:pointer" onclick="sortBy('mac')">MAC <i class="ti ti-selector"></i></th>
+          <th style="width:145px;cursor:pointer" onclick="sortBy('speed_source')">Speed source <i class="ti ti-selector"></i></th>
+          <th style="width:100px;cursor:pointer" onclick="sortBy('status')">Status <i class="ti ti-selector"></i></th>
+        </tr>
+        <tr class="column-filter-row">
+          <th><input class="column-filter" data-col="circuit" placeholder="Filter circuit" oninput="applyFilters()"></th>
+          <th>
+            <select class="column-filter" data-col="type" onchange="applyFilters()">
+              <option value="">All</option><option value="ppp">PPP</option><option value="dhcp">DHCP</option><option value="hs">HS</option><option value="static">Static</option>
+            </select>
+          </th>
+          <th><input class="column-filter" data-col="parent" placeholder="Filter parent" oninput="applyFilters()"></th>
+          <th><input class="column-filter" data-col="ip" placeholder="Filter IP" oninput="applyFilters()"></th>
+          <th><input class="column-filter" data-col="down" placeholder="e.g. 15" oninput="applyFilters()"></th>
+          <th><input class="column-filter" data-col="up" placeholder="e.g. 15" oninput="applyFilters()"></th>
+          <th><input class="column-filter" data-col="dmin" placeholder="e.g. 7.5" oninput="applyFilters()"></th>
+          <th><input class="column-filter" data-col="umin" placeholder="e.g. 7.5" oninput="applyFilters()"></th>
+          <th><input class="column-filter" data-col="mac" placeholder="Filter MAC" oninput="applyFilters()"></th>
+          <th><input class="column-filter" data-col="speed_source" placeholder="Filter source" oninput="applyFilters()"></th>
+          <th>
+            <select class="column-filter" data-col="status" onchange="applyFilters()">
+              <option value="">All</option><option value="active">Active</option><option value="dup">Dup IP</option>
+            </select>
+          </th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="detailPanel" class="card" style="display:none;margin-top:12px;padding:0;overflow:hidden"></div>
+
+<script>
+const ROW_MAP = {{ rows|tojson }};
+const META = {{ meta|tojson }};
+let currentFilter = 'all';
+let sortKey = 'circuit'; let sortAsc = true;
+function rowType(row, meta){
+  const c = String(row['Comment']||'').toLowerCase();
+  const parent = String(row['Parent Node']||'');
+  const name = String(row['Circuit Name']||'');
+  const mtype = String((meta||{}).source_type||'').toLowerCase();
+  if(c==='static') return 'static';
+  if(mtype==='ppp'||c==='ppp'||parent.startsWith('Tier-')||parent.startsWith('PPP-')) return 'ppp';
+  if(mtype==='dhcp'||c.includes('dhcp')||name.startsWith('DHCP-')||parent.startsWith('DHCP-')||parent.startsWith('PLAN-DHCP-')) return 'dhcp';
+  if(mtype==='hs'||c==='hs'||name.startsWith('HS-')||parent.startsWith('HS-')) return 'hs';
+  return 'static';
+}
+function badgeFor(t){ return t==='ppp'?'b-ppp':t==='dhcp'?'b-dhcp':t==='hs'?'b-hs':'b-static'; }
+function labelFor(t){ return t==='ppp'?'PPP':t==='dhcp'?'DHCP':t==='hs'?'HS':'Static'; }
+const ipCounts = {};
+Object.entries(ROW_MAP).forEach(([k,row])=>{const ip=(row['IPv4']||'').trim(); if(ip) ipCounts[ip]=(ipCounts[ip]||0)+1;});
+let ROWS = Object.entries(ROW_MAP).map(([key,row])=>{const meta=META[key]||{}; const type=rowType(row,meta); const ip=(row['IPv4']||'').trim(); return {key,row,meta,type,dup:ip && ipCounts[ip]>1};});
+function num(v){ const n=parseFloat(v); return isNaN(n)?0:n; }
+function setFilter(f){ currentFilter=f; document.querySelectorAll('.filter-pill').forEach(x=>x.classList.toggle('active',x.dataset.f===f)); applyFilters(); }
+function sortBy(k){ if(sortKey===k) sortAsc=!sortAsc; else {sortKey=k; sortAsc=true;} applyFilters(); }
+function getColumnValue(r, col){
+  const row=r.row, meta=r.meta||{};
+  const map={
+    circuit: row['Circuit Name']||'',
+    type: r.type||'',
+    parent: row['Parent Node']||'',
+    ip: row['IPv4']||'',
+    down: row['Download Max Mbps']||'',
+    up: row['Upload Max Mbps']||'',
+    dmin: row['Download Min Mbps']||'',
+    umin: row['Upload Min Mbps']||'',
+    mac: row['MAC']||'',
+    speed_source: meta.speed_source||'file/comment',
+    status: r.dup?'dup':'active'
+  };
+  return map[col] ?? '';
+}
+function getColumnFilters(){
+  const filters={};
+  document.querySelectorAll('.column-filter').forEach(el=>{
+    const col=el.dataset.col;
+    const val=(el.value||'').trim().toLowerCase();
+    if(col && val) filters[col]=val;
+  });
+  return filters;
+}
+function applyFilters(){
+  const q=(document.getElementById('searchInput').value||'').toLowerCase();
+  const colFilters=getColumnFilters();
+  let rows=ROWS.filter(r=>{
+    if(currentFilter!=='all'){
+      if(currentFilter==='dup' && !r.dup) return false;
+      if(currentFilter!=='dup' && r.type!==currentFilter) return false;
+    }
+    const hay=Object.values(r.row).join(' ').toLowerCase()+ ' ' + JSON.stringify(r.meta).toLowerCase();
+    if(q && !hay.includes(q)) return false;
+    for(const [col,val] of Object.entries(colFilters)){
+      const cell=String(getColumnValue(r,col)).toLowerCase();
+      if(!cell.includes(val)) return false;
+    }
+    return true;
+  });
+  rows.sort((a,b)=>{
+    let av=getColumnValue(a,sortKey), bv=getColumnValue(b,sortKey);
+    if(['down','up','dmin','umin'].includes(sortKey)){ av=num(av); bv=num(bv); }
+    else { av=String(av).toLowerCase(); bv=String(bv).toLowerCase(); }
+    return (av>bv?1:av<bv?-1:0)*(sortAsc?1:-1);
+  });
+  const limitEl=document.getElementById('rowLimit');
+  const limit=limitEl ? parseInt(limitEl.value || '50', 10) : 50;
+  const visible=rows.slice(0, limit);
+  render(visible);
+  document.getElementById('rowCount').textContent=`Showing ${visible.length} of ${rows.length} filtered · ${ROWS.length} total`;
+}
+function render(rows){
+  const body=document.getElementById('tableBody');
+  body.innerHTML=rows.map((r,i)=>{
+    const row=r.row, t=r.type, maxDown=num(row['Download Max Mbps']), maxUp=num(row['Upload Max Mbps']);
+    return `<tr onclick="showDetail('${r.key.replace(/'/g,"\\'")}')" style="cursor:pointer;border-left:${r.dup?'2px solid var(--c-err)':'0'}">
+      <td title="${row['Circuit Name']||''}">${row['Circuit Name']||''}</td>
+      <td><span class="badge ${badgeFor(t)}">${labelFor(t)}</span></td>
+      <td title="${row['Parent Node']||''}">${row['Parent Node']||''}</td>
+      <td>${row['IPv4']||''}</td>
+      <td><span class="text-accent">${maxDown}</span></td>
+      <td><span class="text-accent">${maxUp}</span></td>
+      <td>${row['Download Min Mbps']||''}</td>
+      <td>${row['Upload Min Mbps']||''}</td>
+      <td title="${row['MAC']||''}">${row['MAC']||''}</td>
+      <td><span class="mono" style="color:var(--muted);font-size:10px">${r.meta.speed_source||'file/comment'}</span></td>
+      <td>${r.dup?'<span class="badge b-err">dup ip</span>':'<span class="badge b-ok">active</span>'}</td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="11" style="color:var(--muted);padding:20px">No rows matched.</td></tr>`;
+}
+function showDetail(key){
+  const r=ROWS.find(x=>x.key===key); if(!r) return; const row=r.row, meta=r.meta, panel=document.getElementById('detailPanel');
+  panel.style.display='block';
+  panel.innerHTML=`<div style="padding:14px 16px;border-bottom:1px solid var(--br0);background:var(--bg2);color:var(--txt);display:flex;align-items:center;gap:10px"><span class="badge ${badgeFor(r.type)}">${labelFor(r.type)}</span><div><div class="mono" style="font-size:14px;font-weight:600">${row['Circuit Name']||''}</div><div class="mono" style="font-size:11px;color:var(--muted)">${row['Parent Node']||''}</div></div></div>
+  <div class="device-detail-grid">
+    ${cell('Circuit ID',row['Circuit ID'])}${cell('Device ID',row['Device ID'])}${cell('Device Name',row['Device Name'])}${cell('Status',r.dup?'Duplicate IP':'Active')}
+    ${cell('IPv4',row['IPv4'])}${cell('MAC',row['MAC'])}${cell('Download Max',row['Download Max Mbps']+' Mbps')}${cell('Upload Max',row['Upload Max Mbps']+' Mbps')}
+    ${cell('Download Min',row['Download Min Mbps']+' Mbps')}${cell('Upload Min',row['Upload Min Mbps']+' Mbps')}${cell('Speed Source',meta.speed_source||'file/comment')}${cell('Raw Speed Source',meta.speed_raw_value||'—')}
+    ${cell('Router',meta.router||'unknown')}${cell('Profile/Server',meta.profile||meta.server||'—')}${cell('Base Speed',((meta.base_rx||'—')+'/'+(meta.base_tx||'—')))}${cell('Source Type',meta.source_type||labelFor(r.type))}${cell('Comment',row['Comment'])}
+  </div>`;
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function cell(label,val){return `<div style="padding:13px 16px;border-right:1px solid var(--br0);border-bottom:1px solid var(--br0)"><div class="mono" style="font-size:10px;color:var(--hint);margin-bottom:4px">${label}</div><div class="mono" style="font-size:12px;word-break:break-all">${val||'—'}</div></div>`;}
+function updateCounts(){
+  const counts={all:ROWS.length,ppp:0,dhcp:0,hs:0,static:0,dup:0}; ROWS.forEach(r=>{counts[r.type]++; if(r.dup) counts.dup++;});
+  Object.entries(counts).forEach(([k,v])=>{const el=document.getElementById('cnt-'+k); if(el) el.textContent=v;});
+}
+updateCounts(); applyFilters();
+</script>
+{% endblock %}

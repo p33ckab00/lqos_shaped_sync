@@ -40,7 +40,8 @@ def process_pppoe_users(api, router: dict, context):
     router_name = router["name"]
     flat_parent = parent_for_flat_mode(cfg, router_name)
     hierarchy_mode = flat_parent is None
-    children = context.network_config.get(router_name, {}).get("children", {}) if hierarchy_mode else {}
+    router_node = context.router_nodes.get(router_name) or context.network_config.get(router_name, {})
+    children = router_node.get("children", {}) if hierarchy_mode else {}
     per_plan_node = router.get("pppoe", {}).get("per_plan_node", False)
     updated = False
     active_codes = set()

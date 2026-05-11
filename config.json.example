@@ -76,7 +76,8 @@
   "ui": {
     "refresh_seconds": 5,
     "show_raw_json_editor": true,
-    "default_theme": "light"
+    "default_theme": "light",
+    "privacy_mode_available": true
   },
   "services": {
     "units": [
@@ -211,7 +212,14 @@
             "upload_factor": 1.0
           }
         ]
-      }
+      },
+      "parent_node": ""
     }
-  ]
+  ],
+  "topology": {
+    "allow_deep_hierarchy": true,
+    "allow_custom_edit": true,
+    "show_virtual_nodes": true,
+    "validate_before_save": true
+  }
 }

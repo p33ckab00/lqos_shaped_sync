@@ -7,6 +7,7 @@ class SyncContext:
     existing_data: dict
     network_config: dict
     network_mode: str = "router_children"
+    router_nodes: dict[str, Any] = field(default_factory=dict)
     active_codes: set[str] = field(default_factory=set)
     active_codes_by_router: dict[str, set[str]] = field(default_factory=dict)
     active_codes_by_source: dict[str, set[str]] = field(default_factory=lambda: {"PPP": set(), "DHCP": set(), "HS": set()})

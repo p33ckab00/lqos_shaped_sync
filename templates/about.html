@@ -226,6 +226,18 @@
         <div class="note"><b>Mobile card mode:</b> Shaped Devices now has a phone-friendly card view so operators can inspect clients without scrolling a wide table on mobile.</div>
       </div>
 
+      
+      <h3><i class="ti ti-topology-star-3"></i> v2.41 Topology UX + Privacy Mode</h3>
+      <p>LQoSync v2.41 turns Network Layout into a safer topology-builder experience and adds WebUI Privacy / Redaction Mode for screenshots, demos, and support messages.</p>
+      <div class="two-col" style="margin-top:12px">
+        <div class="note"><b>Topology tree:</b> The Network Layout page now has a left-side tree, visual nested node cards, and a right-side Node Inspector for editing name, type, bandwidth, parent placement, and virtual state.</div>
+        <div class="note"><b>Promotion and movement:</b> Operators can promote a node one level up, move it under another parent, rename it, mark it virtual, or delete it from the in-browser preview before saving.</div>
+        <div class="note"><b>Deep hierarchy:</b> Routers can be nested using <code>router.parent_node</code>. If a distro router is placed under a core router, generated PPPoE/DHCP/Hotspot subnodes stay under the distro router.</div>
+        <div class="note"><b>Validation before save:</b> Save is blocked for duplicate node names, invalid bandwidth, or missing Parent Node references from <code>ShapedDevices.csv</code>. Warnings explain virtual-node risks.</div>
+        <div class="note"><b>Privacy Mode:</b> The mask icon in the top navigation redacts visible names, nodes, router names, IPs, MACs, and IDs in the browser UI only. Source files, logs, and config are not changed.</div>
+        <div class="note"><b>Screenshot-safe:</b> Privacy preference is stored in browser local storage, so public screenshots can be taken without exposing subscriber names or addresses.</div>
+      </div>
+
       <div class="note warn-note"><b>Excluded for now:</b> separate scan intervals and multi-router concurrency are intentionally not included in this phase. v2.38 focuses on safer selective collection, universal speed resolution, metadata cache visibility, and source-aware cleanup.</div>
     </section>
 
@@ -234,13 +246,14 @@
       <div class="feature-grid">
         <div class="feature"><i class="ti ti-player-play"></i><div><b>Dashboard</b><span>Operations cockpit with health, apply decision, source status, cleanup safety, timing breakdown, recent client feed, Git status, and last sync timeline.</span></div></div>
         <div class="feature"><i class="ti ti-eye-check"></i><div><b>Dry-run Preview</b><span>Builds proposed CSV/network without writing files or calling LibreQoS.</span></div></div>
-        <div class="feature"><i class="ti ti-topology-star-3"></i><div><b>Network Layout</b><span>Router roots, PPP plan nodes, DHCP site nodes, Hotspot nodes, bandwidth math, and JSON view.</span></div></div>
+        <div class="feature"><i class="ti ti-topology-star-3"></i><div><b>Network Layout</b><span>Topology tree, nested node cards, Node Inspector, promote/move editing, virtual nodes, deep hierarchy support, bandwidth math, and JSON view.</span></div></div>
         <div class="feature"><i class="ti ti-device-desktop-analytics"></i><div><b>Shaped Devices</b><span>Searchable/filterable bounded table with row limits, per-column filters, duplicate IP hints, and detail panel.</span></div></div>
         <div class="feature"><i class="ti ti-adjustments-horizontal"></i><div><b>Config Center</b><span>Professional UI-backed config editor with Apply Policy, Service Monitor Settings, raw JSON mirror, and normalization.</span></div></div>
         <div class="feature"><i class="ti ti-server"></i><div><b>Services & Journals</b><span>lqosd, lqos_scheduler, LQoSync, optional legacy service labels, journal viewer, grouped restart, and Force Apply.</span></div></div>
         <div class="feature"><i class="ti ti-clipboard-list"></i><div><b>Logs & Backups</b><span>Audit Events table, bounded rows, backups, apply logs, stdout/stderr, and operator-visible history.</span></div></div>
         <div class="feature"><i class="ti ti-users"></i><div><b>User Settings</b><span>Add/edit/remove local users and roles. Passwords are stored only as bcrypt hashes in <code>users.json</code>.</span></div></div>
         <div class="feature"><i class="ti ti-device-mobile"></i><div><b>Mobile-responsive UI</b><span>Drawer navigation, stacked cards, touch-friendly buttons, and scrollable tables on mobile/tablet.</span></div></div>
+        <div class="feature"><i class="ti ti-mask"></i><div><b>Privacy Mode</b><span>Client-side redaction for screenshots/demos. Masks visible identifiers in browser only and never modifies source files.</span></div></div>
         <div class="feature"><i class="ti ti-brand-github"></i><div><b>Smart Git lifecycle</b><span>GitHub install, existing install adoption, safe upgrades, config migration, and uninstall permission restore.</span></div></div>
       </div>
     </section>
@@ -257,6 +270,13 @@
 network.json = router root only</div></div>
         <div class="mode-card {{ 'active' if network_mode == 'flat_no_parent' else '' }}"><div class="mode-name">flat_no_parent</div><p>Pure flat output. Parent Node is blank for all circuits. <code>network.json</code> is empty unless preserve mode is enabled.</p><div class="codebox small">Parent Node = blank
 network.json = {}</div></div>
+        <div class="mode-card {{ 'active' if network_mode == 'deep_hierarchy' else '' }}"><div class="mode-name">deep_hierarchy</div><p>Routers can be nested under an upstream/core/site parent using <code>router.parent_node</code>. Generated subnodes remain under the owning router.</p><div class="codebox small">RB-Core
+ └─ RB5k9-Distro
+    ├─ Tier-15M
+    └─ DHCP-LAN</div></div>
+        <div class="mode-card {{ 'active' if network_mode == 'custom_hierarchy' else '' }}"><div class="mode-name">custom_hierarchy</div><p>Manual topology-editing mode for custom/virtual grouping nodes. Validate before save to prevent missing parents and duplicate node names.</p><div class="codebox small">Region virtual
+ └─ PoP virtual
+    └─ Router physical</div></div>
       </div>
     </section>
 

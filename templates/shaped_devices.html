@@ -116,6 +116,8 @@ function rowType(row, meta){
 }
 function badgeFor(t){ return t==='ppp'?'b-ppp':t==='dhcp'?'b-dhcp':t==='hs'?'b-hs':'b-static'; }
 function labelFor(t){ return t==='ppp'?'PPP':t==='dhcp'?'DHCP':t==='hs'?'HS':'Static'; }
+function esc(s){return String(s??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));}
+function red(v,type){ return `<span class=\"redact\" data-redact-type=\"${type||'name'}\">${esc(v||'')}</span>`; }
 const ipCounts = {};
 Object.entries(ROW_MAP).forEach(([k,row])=>{const ip=(row['IPv4']||'').trim(); if(ip) ipCounts[ip]=(ipCounts[ip]||0)+1;});
 let ROWS = Object.entries(ROW_MAP).map(([key,row])=>{const meta=META[key]||{}; const type=rowType(row,meta); const ip=(row['IPv4']||'').trim(); return {key,row,meta,type,dup:ip && ipCounts[ip]>1};});
@@ -175,6 +177,7 @@ function applyFilters(){
   const visible=rows.slice(0, limit);
   render(visible);
   renderMobileCards(visible);
+  if(window.refreshPrivacyMode) refreshPrivacyMode();
   document.getElementById('rowCount').textContent=`Showing ${visible.length} of ${rows.length} filtered · ${ROWS.length} total`;
 }
 function render(rows){
@@ -182,15 +185,15 @@ function render(rows){
   body.innerHTML=rows.map((r,i)=>{
     const row=r.row, t=r.type, maxDown=num(row['Download Max Mbps']), maxUp=num(row['Upload Max Mbps']);
     return `<tr onclick="showDetail('${r.key.replace(/'/g,"\\'")}')" style="cursor:pointer;border-left:${r.dup?'2px solid var(--c-err)':'0'}">
-      <td title="${row['Circuit Name']||''}">${row['Circuit Name']||''}</td>
+      <td title="${esc(row['Circuit Name']||'')}">${red(row['Circuit Name'],'name')}</td>
       <td><span class="badge ${badgeFor(t)}">${labelFor(t)}</span></td>
-      <td title="${row['Parent Node']||''}">${row['Parent Node']||''}</td>
-      <td>${row['IPv4']||''}</td>
+      <td title="${esc(row['Parent Node']||'')}">${red(row['Parent Node'],'node')}</td>
+      <td>${red(row['IPv4'],'ip')}</td>
       <td><span class="text-accent">${maxDown}</span></td>
       <td><span class="text-accent">${maxUp}</span></td>
       <td>${row['Download Min Mbps']||''}</td>
       <td>${row['Upload Min Mbps']||''}</td>
-      <td title="${row['MAC']||''}">${row['MAC']||''}</td>
+      <td title="${esc(row['MAC']||'')}">${red(row['MAC'],'mac')}</td>
       <td><span class="mono" style="color:var(--muted);font-size:10px">${r.meta.speed_source||'file/comment'}</span></td>
       <td>${r.dup?'<span class="badge b-err">dup ip</span>':'<span class="badge b-ok">active</span>'}</td>
     </tr>`;
@@ -199,14 +202,14 @@ function render(rows){
 function renderMobileCards(rows){
   const wrap=document.getElementById('mobileCardList'); if(!wrap) return;
   wrap.innerHTML=rows.map(r=>{const row=r.row,t=r.type;return `<div class="device-mobile-card" onclick="showDetail('${r.key.replace(/'/g,"\'")}')">
-    <div class="device-mobile-title"><div><div class="mono" style="font-weight:700;font-size:13px">${row['Circuit Name']||''}</div><div class="device-mobile-speed">${row['Download Max Mbps']||''}/${row['Upload Max Mbps']||''} Mbps</div></div><span class="badge ${badgeFor(t)}">${labelFor(t)}</span></div>
-    <div class="device-mobile-meta">Node: ${row['Parent Node']||'none'}<br>IP: ${row['IPv4']||'—'} · MAC: ${row['MAC']||'—'}<br>Speed source: ${(r.meta&&r.meta.speed_source)||'file/comment'}${r.dup?'<br><span class="text-err">Duplicate IP warning</span>':''}</div>
+    <div class="device-mobile-title"><div><div class="mono" style="font-weight:700;font-size:13px">${red(row['Circuit Name'],'name')}</div><div class="device-mobile-speed">${row['Download Max Mbps']||''}/${row['Upload Max Mbps']||''} Mbps</div></div><span class="badge ${badgeFor(t)}">${labelFor(t)}</span></div>
+    <div class="device-mobile-meta">Node: ${red(row['Parent Node']||'none','node')}<br>IP: ${red(row['IPv4']||'—','ip')} · MAC: ${red(row['MAC']||'—','mac')}<br>Speed source: ${(r.meta&&r.meta.speed_source)||'file/comment'}${r.dup?'<br><span class="text-err">Duplicate IP warning</span>':''}</div>
   </div>`;}).join('') || `<div class="device-mobile-card" style="color:var(--muted)">No rows matched.</div>`;
 }
 function showDetail(key){
   const r=ROWS.find(x=>x.key===key); if(!r) return; const row=r.row, meta=r.meta, panel=document.getElementById('detailPanel');
   panel.style.display='block';
-  panel.innerHTML=`<div style="padding:14px 16px;border-bottom:1px solid var(--br0);background:var(--bg2);color:var(--txt);display:flex;align-items:center;gap:10px"><span class="badge ${badgeFor(r.type)}">${labelFor(r.type)}</span><div><div class="mono" style="font-size:14px;font-weight:600">${row['Circuit Name']||''}</div><div class="mono" style="font-size:11px;color:var(--muted)">${row['Parent Node']||''}</div></div></div>
+  panel.innerHTML=`<div style="padding:14px 16px;border-bottom:1px solid var(--br0);background:var(--bg2);color:var(--txt);display:flex;align-items:center;gap:10px"><span class="badge ${badgeFor(r.type)}">${labelFor(r.type)}</span><div><div class="mono" style="font-size:14px;font-weight:600">${red(row['Circuit Name'],'name')}</div><div class="mono" style="font-size:11px;color:var(--muted)">${red(row['Parent Node'],'node')}</div></div></div>
   <div class="device-detail-grid">
     ${cell('Circuit ID',row['Circuit ID'])}${cell('Device ID',row['Device ID'])}${cell('Device Name',row['Device Name'])}${cell('Status',r.dup?'Duplicate IP':'Active')}
     ${cell('IPv4',row['IPv4'])}${cell('MAC',row['MAC'])}${cell('Download Max',row['Download Max Mbps']+' Mbps')}${cell('Upload Max',row['Upload Max Mbps']+' Mbps')}
@@ -215,7 +218,7 @@ function showDetail(key){
   </div>`;
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
-function cell(label,val){return `<div style="padding:13px 16px;border-right:1px solid var(--br0);border-bottom:1px solid var(--br0)"><div class="mono" style="font-size:10px;color:var(--hint);margin-bottom:4px">${label}</div><div class="mono" style="font-size:12px;word-break:break-all">${val||'—'}</div></div>`;}
+function cell(label,val){let type=''; if(['IPv4'].includes(label)) type='ip'; if(['MAC'].includes(label)) type='mac'; if(['Circuit ID','Device ID'].includes(label)) type='id'; if(['Device Name','Router','Profile/Server','Comment'].includes(label)) type='name'; const shown=type?red(val||'—',type):esc(val||'—'); return `<div style="padding:13px 16px;border-right:1px solid var(--br0);border-bottom:1px solid var(--br0)"><div class="mono" style="font-size:10px;color:var(--hint);margin-bottom:4px">${label}</div><div class="mono" style="font-size:12px;word-break:break-all">${shown}</div></div>`;}
 function updateCounts(){
   const counts={all:ROWS.length,ppp:0,dhcp:0,hs:0,static:0,dup:0}; ROWS.forEach(r=>{counts[r.type]++; if(r.dup) counts.dup++;});
   Object.entries(counts).forEach(([k,v])=>{const el=document.getElementById('cnt-'+k); if(el) el.textContent=v;});

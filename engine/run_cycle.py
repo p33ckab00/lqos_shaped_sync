@@ -16,8 +16,8 @@ from collectors.hotspot import process_hotspot_users
 from collectors.dhcp import process_dhcp_leases
 
 from builders.shaped_devices import read_shaped_devices_csv, render_shaped_devices_csv, count_by_comment
-from builders.network_json import read_network_json, render_network_json, ensure_router_root, count_nodes
-from rules.network_mode import get_network_mode
+from builders.network_json import read_network_json, render_network_json, ensure_router_root, ensure_router_node, count_nodes
+from rules.network_mode import get_network_mode, is_deep_hierarchy
 from rules.cleanup import remove_inactive_entries, remove_inactive_entries_by_source
 from validators.preflight import run_preflight
 from applier.backup import create_backup
@@ -201,9 +201,10 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
         for router in enabled_routers:
             router_t = time.perf_counter()
             if network_mode != "flat_no_parent":
-                ensure_router_root(ctx.network_config, router)
+                router_node = ensure_router_node(ctx.network_config, router, allow_parent=is_deep_hierarchy(config))
+                ctx.router_nodes[router["name"]] = router_node
                 if network_mode == "flat_router_root":
-                    ctx.network_config[router["name"]]["children"] = {}
+                    router_node["children"] = {}
             connect_t = time.perf_counter()
             pool, api, err = connect_to_router(router)
             timeline.record(f"router.{router.get('name','unknown')}.connect", connect_t, status="ok" if api else "failed")

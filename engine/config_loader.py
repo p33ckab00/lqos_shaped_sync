@@ -84,6 +84,13 @@ DEFAULT_CONFIG = {
         "refresh_seconds": 5,
         "show_raw_json_editor": True,
         "default_theme": "light",
+        "privacy_mode_available": True,
+    },
+    "topology": {
+        "allow_deep_hierarchy": True,
+        "allow_custom_edit": True,
+        "show_virtual_nodes": True,
+        "validate_before_save": True,
     },
     "services": {
         # Required/current LibreQoS + LQoSync units. lqos_node_manager is not
@@ -194,6 +201,7 @@ def normalize_config(cfg):
     cfg.setdefault("scheduler", {})
     cfg.setdefault("defaults", {})
     cfg.setdefault("collector", {})
+    cfg.setdefault("topology", {})
     cfg.setdefault("preflight", {})
     cfg.setdefault("routers", [])
 
@@ -271,6 +279,7 @@ def normalize_config(cfg):
         router.setdefault("root_upload_mbps", cfg.get("ROOT_UPLOAD_MBPS", 115))
         router.setdefault("root_type", "site")
         router.setdefault("root_virtual", False)
+        router.setdefault("parent_node", "")  # used by deep_hierarchy/custom_hierarchy modes
 
         router.setdefault("pppoe", {})
         pppoe = router["pppoe"]
@@ -344,6 +353,12 @@ def validate_config(cfg: dict):
     for key in ("shaped_devices_csv", "network_json"):
         if not paths.get(key):
             errors.append(f"paths.{key} is required")
+    topology = cfg.setdefault("topology", {})
+    topology.setdefault("allow_deep_hierarchy", True)
+    topology.setdefault("allow_custom_edit", True)
+    topology.setdefault("show_virtual_nodes", True)
+    topology.setdefault("validate_before_save", True)
+
     collector = cfg.get("collector", {})
     lease_mode = collector.get("dhcp", {}).get("lease_mode", "permissive")
     if lease_mode not in ("permissive", "strict"):

@@ -1,12 +1,15 @@
 """Network layout mode helpers for LQoSync.
 
 Supported modes:
-- router_children: current production hierarchy; router root with PPP/DHCP/HS child nodes.
-- flat_router_root: router root only; every generated circuit points directly to the router root.
-- flat_no_parent: pure flat CSV; generated circuits have blank Parent Node and network.json is empty unless preserved.
+- flat_no_parent: pure flat CSV; blank Parent Node and empty network.json.
+- flat_router_root: all generated circuits point directly to router root.
+- router_children: normal hierarchy; router root with generated PPP/DHCP/HS child nodes.
+- deep_hierarchy: router roots may be nested under router.parent_node, then generated child nodes remain under their owning router.
+- custom_hierarchy: UI/manual network.json editing mode; currently behaves like deep_hierarchy for generated router nodes.
 """
 
-VALID_NETWORK_MODES = {"router_children", "flat_router_root", "flat_no_parent"}
+VALID_NETWORK_MODES = {"router_children", "flat_router_root", "flat_no_parent", "deep_hierarchy", "custom_hierarchy"}
+HIERARCHY_MODES = {"router_children", "deep_hierarchy", "custom_hierarchy"}
 
 
 def mode_from_legacy_flags(flat_network: bool, no_parent: bool) -> str:
@@ -43,7 +46,11 @@ def normalize_network_mode(config: dict) -> str:
 
 
 def is_hierarchy(config: dict) -> bool:
-    return get_network_mode(config) == "router_children"
+    return get_network_mode(config) in HIERARCHY_MODES
+
+
+def is_deep_hierarchy(config: dict) -> bool:
+    return get_network_mode(config) in {"deep_hierarchy", "custom_hierarchy"}
 
 
 def is_flat_router_root(config: dict) -> bool:
@@ -66,7 +73,9 @@ def parent_for_flat_mode(config: dict, router_name: str) -> str | None:
 
 def describe_mode(mode: str) -> str:
     return {
-        "router_children": "Router root with PPPoE/DHCP/Hotspot child nodes",
-        "flat_router_root": "Flat network with all generated circuits under the router root",
-        "flat_no_parent": "Pure flat network with blank Parent Node and no generated network.json nodes",
+        "router_children": "Normal hierarchy: router root with PPPoE/DHCP/Hotspot child nodes",
+        "deep_hierarchy": "Deep hierarchy: routers can be nested under upstream/core/site parent nodes",
+        "custom_hierarchy": "Custom hierarchy: manual topology editing with deep-router placement support",
+        "flat_router_root": "Simple flat with router root: every generated circuit points directly to the router root",
+        "flat_no_parent": "Simple flat without parent: blank Parent Node and no generated network.json nodes",
     }.get(mode, "Unknown")

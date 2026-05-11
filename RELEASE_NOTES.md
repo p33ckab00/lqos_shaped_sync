@@ -1,3 +1,13 @@
+# Release Notes
+
+## v2.41.0 — Topology UX and Privacy Mode
+
+- Redesigned Network Layout into a topology-builder style UI with layout mode cards, topology tree, visual nested node cards, and Node Inspector.
+- Added promote, move, delete, edit, virtual-node toggle, impact preview, and validation before saving `network.json`.
+- Added deep/custom hierarchy support concepts, including `router.parent_node` so routers can be nested under upstream/core/site nodes while generated child nodes remain under their owning router.
+- Added WebUI Privacy / Redaction Mode in the top navigation for screenshots and demos. It masks visible identifiers in the browser only and does not modify source files.
+- Updated About module and repository documentation with topology modes, virtual nodes, deep hierarchy behavior, validation rules, and privacy-mode guidance.
+
 # v2.40.0 - Operator Experience Polish
 
 - Added a Dashboard health summary banner that explains healthy/warning/error/pending-apply states in operator-friendly language.

@@ -412,3 +412,51 @@ This release improves the operator-facing UI/UX without changing the core LibreQ
 ### Operator principle
 
 The UI should answer: what happened, why did LQoSync decide that, what changed, was cleanup safe, did LibreQoS apply successfully, where did time go, and what is the safest next action.
+
+## LQoSync v2.41 — Topology UX and Privacy Mode
+
+This release improves the Network Layout page into a safer topology builder and adds WebUI Privacy / Redaction Mode for screenshots and demos.
+
+### Network Layout / Topology UX
+
+The Network Layout page now behaves more like a production topology editor:
+
+- layout mode cards for Simple Flat — No Parent, Simple Flat — Router Root, Normal Hierarchy, Deep Hierarchy, and Custom Hierarchy
+- topology tree sidebar for quick node selection
+- visual topology canvas with nested node cards
+- right-side Node Inspector for editing name, type, bandwidth, virtual state, and parent placement
+- promote, move, delete, and save topology actions
+- impact preview showing affected clients, child count, virtual-node warnings, and selected path
+- advanced JSON preview that reflects the in-browser topology state before save
+- validation before save to block duplicate node names, invalid bandwidth, or missing Parent Node references
+
+### Deep Hierarchy Concept
+
+Normal hierarchy keeps each MikroTik router as a root with generated PPPoE/DHCP/Hotspot nodes under it. Deep hierarchy allows a router to be nested under another upstream/core/site node using `router.parent_node`.
+
+Example:
+
+```text
+RB-Core
+└─ RB5k9-Distro
+   ├─ Tier-15M-RB5k9-Distro
+   ├─ DHCP-LAN-RB5k9-Distro
+   └─ DHCP-Wifi5Soft-RB5k9-Distro
+```
+
+The important rule is that generated child nodes stay under their owning router. If `RB5k9-Distro` is nested under `RB-Core`, the child nodes generated from `RB5k9-Distro` remain inside `RB5k9-Distro`, not directly under `RB-Core`.
+
+### Virtual Nodes
+
+Virtual/logical nodes are supported for organization and display. They are useful for grouping by area, PoP, region, or logical site. Operators should avoid name collisions because LibreQoS may promote children to the nearest non-virtual ancestor during shaping.
+
+### WebUI Privacy / Redaction Mode
+
+A mask icon is available in the top navigation. Privacy Mode:
+
+- masks visible client names, node names, router names, IP addresses, MAC addresses, and IDs in the browser UI
+- stores preference in browser local storage
+- is intended for screenshots, demos, support requests, and documentation
+- does not modify `config.json`, `ShapedDevices.csv`, `network.json`, logs, audit files, or any source data
+
+This is a client-side display-only feature. Disable Privacy Mode before doing precise visual checks where real names/IPs must be visible.

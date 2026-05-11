@@ -11,7 +11,7 @@ function cfgEditor(initial) {
   });
   const blankRouter = () => ({
     name: 'New-Router', enabled: true, address: '', port: 8728, username: '', password: '',
-    root_download_mbps: 100, root_upload_mbps: 100, root_type: 'site', root_virtual: false,
+    root_download_mbps: 100, root_upload_mbps: 100, root_type: 'site', root_virtual: false, parent_node: '',
     pppoe: {enabled: false, per_plan_node: true, flat_aggregate_factor: 0.3, node_type: 'plan', flat_node_name: 'PPP-{router}', plan_node_name: '{profile}-{router}', factor_rules: [{max_plan_mbps: 15, download_factor: 0.31, upload_factor: 0.31}, {max_plan_mbps: 9999, download_factor: 1.0, upload_factor: 1.0}]},
     dhcp: {enabled: false, servers: []},
     hotspot: {enabled: false, include_mac: true, download_limit_mbps: 10, upload_limit_mbps: 10, download_factor: 1.0, upload_factor: 1.0, node_type: 'site', node_name: 'HS-{router}'}
@@ -41,7 +41,7 @@ function cfgEditor(initial) {
     cfg.services.units ??= ['lqosd','lqos_scheduler','lqos_shaped_sync']; cfg.services.legacy_optional_units ??= ['lqos_node_manager']; cfg.services.show_legacy_optional_not_installed ??= false; cfg.services.restart_groups ??= {libreqos_core: ['lqosd','lqos_scheduler']}; cfg.services.journal_lines_default ??= 100; cfg.services.unit_metadata ??= {lqos_node_manager:{label:'Legacy Web UI service',role:'legacy_optional',note:'Older LibreQoS installs only. Newer installs usually use lqosd for the Web UI.'}};
     cfg.routers.forEach((r) => {
       r.enabled ??= true; r.name ??= 'Router'; r.address ??= ''; r.port ??= 8728; r.username ??= ''; r.password ??= '';
-      r.root_download_mbps ??= 100; r.root_upload_mbps ??= 100; r.root_type ??= 'site'; r.root_virtual ??= false;
+      r.root_download_mbps ??= 100; r.root_upload_mbps ??= 100; r.root_type ??= 'site'; r.root_virtual ??= false; r.parent_node ??= ''; 
       r.pppoe ||= {}; r.pppoe.enabled ??= false; r.pppoe.per_plan_node ??= false; r.pppoe.flat_aggregate_factor ??= 0.3; r.pppoe.node_type ??= 'plan'; r.pppoe.flat_node_name ??= 'PPP-{router}'; r.pppoe.plan_node_name ??= '{profile}-{router}'; r.pppoe.factor_rules ??= [blankFactor()];
       r.dhcp ||= {}; r.dhcp.enabled ??= false; r.dhcp.servers ??= [];
       r.dhcp.servers.forEach((s) => { s.enabled ??= true; s.name ??= ''; s.mode ??= 'per_site'; s.plan_source ??= 'config_default'; s.default_plan_down_mbps ??= s.download_limit_mbps ?? cfg.defaults.default_dhcp_per_client_mbps; s.default_plan_up_mbps ??= s.upload_limit_mbps ?? cfg.defaults.default_dhcp_per_client_mbps; s.download_factor ??= 0.5; s.upload_factor ??= 0.5; s.node_type ??= 'site'; s.node_name ??= (s.mode === 'per_plan' ? 'PLAN-DHCP-{plan}-{router}' : 'DHCP-{server}-{router}'); s.speed_comment ??= ''; });
@@ -59,13 +59,13 @@ function cfgEditor(initial) {
     get applyPolicyLabel(){ return this.cfg.scheduler.enabled && this.cfg.app.auto_apply ? 'Scheduler auto-apply active' : (this.cfg.app.auto_apply ? 'Manual/scheduled applies enabled' : 'Auto apply disabled'); },
     selectRouter(i){ this.routerIndex = i; this.tab = 'router'; },
     normalizeNetworkMode(){
-      if(!['router_children','flat_router_root','flat_no_parent'].includes(this.cfg.network_mode)) this.cfg.network_mode = 'router_children';
-      if(this.cfg.network_mode === 'router_children'){ this.cfg.flat_network = false; this.cfg.no_parent = false; }
+      if(!['router_children','flat_router_root','flat_no_parent','deep_hierarchy','custom_hierarchy'].includes(this.cfg.network_mode)) this.cfg.network_mode = 'router_children';
+      if(['router_children','deep_hierarchy','custom_hierarchy'].includes(this.cfg.network_mode)){ this.cfg.flat_network = false; this.cfg.no_parent = false; }
       if(this.cfg.network_mode === 'flat_router_root'){ this.cfg.flat_network = true; this.cfg.no_parent = false; }
       if(this.cfg.network_mode === 'flat_no_parent'){ this.cfg.flat_network = true; this.cfg.no_parent = true; }
     },
     networkModeLabel(){
-      return {router_children: 'Hierarchy: router root + service/plan child nodes', flat_router_root: 'Flat: all generated circuits under router root', flat_no_parent: 'Flat: blank Parent Node, no generated node tree'}[this.cfg.network_mode] || 'Hierarchy';
+      return {router_children: 'Normal hierarchy: router root + service/plan child nodes', deep_hierarchy: 'Deep hierarchy: routers can be nested under parent nodes', custom_hierarchy: 'Custom hierarchy: topology editor / virtual grouping mode', flat_router_root: 'Flat: all generated circuits under router root', flat_no_parent: 'Flat: blank Parent Node, no generated node tree'}[this.cfg.network_mode] || 'Hierarchy';
     },
     syncHidden(){ this.normalizeNetworkMode(); this.cfg = ensure(this.cfg); this.$refs.configJson.value = this.jsonText; },
     openRaw(){ this.rawDraft = this.jsonText; this.rawError=''; this.showRawEditor = true; },
@@ -158,7 +158,7 @@ function cfgEditor(initial) {
                   <div class="cfg-subtle"><div class="cfg-kpi-label">preserve network</div><div class="cfg-kpi-value" x-text="String(cfg.preserve_network_config || false)"></div></div>
                 </div>
               </div>
-              <label class="cfg-field"><span class="cfg-label">Mode</span><select x-model="cfg.network_mode" @change="normalizeNetworkMode()" class="cfg-select"><option value="router_children">Hierarchy — router + child nodes</option><option value="flat_router_root">Flat — router root only</option><option value="flat_no_parent">Flat — no parent</option></select><span class="cfg-help">Hierarchy is the current production model: PPPoE Tier nodes, DHCP site nodes, and optional Hotspot node.</span></label>
+              <label class="cfg-field"><span class="cfg-label">Mode</span><select x-model="cfg.network_mode" @change="normalizeNetworkMode()" class="cfg-select"><option value="router_children">Normal hierarchy — router + child nodes</option><option value="deep_hierarchy">Deep hierarchy — nested routers</option><option value="custom_hierarchy">Custom hierarchy — topology editor</option><option value="flat_router_root">Flat — router root only</option><option value="flat_no_parent">Flat — no parent</option></select><span class="cfg-help">Normal hierarchy is the current production model. Deep/custom hierarchy supports router.parent_node and virtual/logical grouping nodes for more advanced topology layouts.</span></label>
             </div>
           </div>
 
@@ -308,6 +308,7 @@ function cfgEditor(initial) {
               <label class="cfg-field"><span class="cfg-label">Username</span><input x-model="currentRouter.username" class="cfg-input"></label>
               <label class="cfg-field"><span class="cfg-label">Password</span><input type="password" x-model="currentRouter.password" class="cfg-input"></label>
               <label class="cfg-field"><span class="cfg-label">Root type</span><input x-model="currentRouter.root_type" class="cfg-input"></label>
+              <label class="cfg-field"><span class="cfg-label">Parent node</span><input x-model="currentRouter.parent_node" class="cfg-input mono"><span class="cfg-help">Used by deep/custom hierarchy. Leave blank for root-level router.</span></label>
               <label class="cfg-field"><span class="cfg-label">Root download Mbps</span><input type="number" x-model.number="currentRouter.root_download_mbps" class="cfg-input"></label>
               <label class="cfg-field"><span class="cfg-label">Root upload Mbps</span><input type="number" x-model.number="currentRouter.root_upload_mbps" class="cfg-input"></label>
               <label class="cfg-toggle cfg-subtle"><span><b>Root virtual</b></span><input type="checkbox" x-model="currentRouter.root_virtual"></label>
@@ -315,7 +316,7 @@ function cfgEditor(initial) {
             <div class="btn-row mt-4"><button type="button" @click="submitTest()" class="btn"><i class="ti ti-plug-connected"></i>Test Current UI API</button></div>
           </div>
 
-          <div x-show="cfg.network_mode !== 'router_children'" x-cloak class="card" style="border-color:rgba(245,158,11,.45)"><div class="card-title text-warn"><i class="ti ti-alert-circle"></i> Flat mode active</div><p class="text-sm" style="color:var(--muted)">PPPoE/DHCP/Hotspot node templates are kept in config.json but ignored while flat mode is active. Switch back to hierarchy to use child nodes again.</p></div>
+          <div x-show="['flat_router_root','flat_no_parent'].includes(cfg.network_mode)" x-cloak class="card" style="border-color:rgba(245,158,11,.45)"><div class="card-title text-warn"><i class="ti ti-alert-circle"></i> Flat mode active</div><p class="text-sm" style="color:var(--muted)">PPPoE/DHCP/Hotspot node templates are kept in config.json but ignored while flat mode is active. Switch back to hierarchy to use child nodes again.</p></div>
 
           <div class="grid xl:grid-cols-2 gap-4">
             <div class="card">

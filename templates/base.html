@@ -144,7 +144,11 @@
     .json-view-panel.open{display:block;}
     .json-view-panel pre{max-height:520px;overflow:auto;font-family:var(--font-mono);font-size:11px;line-height:1.45;padding:14px;border:1px solid var(--br0);border-radius:var(--radius);background:rgba(2,6,23,.74);color:var(--txt);}
 
+
+    body.privacy-mode .privacy-banner{display:block}.privacy-banner{display:none;margin-bottom:12px;border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.10);color:var(--txt);border-radius:12px;padding:10px 12px;font-size:12px}.privacy-toggle.active{border-color:rgba(245,158,11,.55);background:rgba(245,158,11,.14);color:var(--txt)}
+    .redact{transition:opacity .12s ease}.redact.is-redacted{font-family:var(--font-mono);letter-spacing:.02em}
     .theme-toggle{gap:6px;min-width:92px;justify-content:center;}
+    .privacy-toggle{gap:6px;min-width:100px;justify-content:center;}
     .theme-toggle .theme-icon{font-size:15px;}
   </style>
 </head>
@@ -158,6 +162,10 @@
     <button type="button" class="btn theme-toggle" id="themeToggle" title="Switch light/dark mode" onclick="toggleTheme()">
       <i class="ti ti-sun theme-icon" id="themeIcon"></i>
       <span id="themeLabel">Light</span>
+    </button>
+    <button type="button" class="btn privacy-toggle" id="privacyToggle" title="Toggle WebUI privacy/redaction mode for screenshots" onclick="togglePrivacyMode()">
+      <i class="ti ti-mask" id="privacyIcon"></i>
+      <span id="privacyLabel">Privacy</span>
     </button>
     {% if user %}<span class="user-chip">{{ (user.username or 'ad')[:2] }}</span>{% endif %}
   </header>
@@ -188,6 +196,7 @@
   <div class="mobile-backdrop" id="mobileBackdrop" onclick="closeMobileMenu()"></div>
   <main class="main">
     {% with messages = get_flashed_messages() %}{% if messages %}<div class="flash">{{ messages[0] }}</div>{% endif %}{% endwith %}
+    <div class="privacy-banner" id="privacyBanner"><i class="ti ti-mask"></i> Privacy Mode enabled. Visible client/router identifiers are masked for screenshots only. Source files and logs are unchanged.</div>
     {% block content %}{% endblock %}
   </main>
 </div>
@@ -221,7 +230,29 @@
     if(icon) icon.className = 'ti theme-icon ' + (theme === 'dark' ? 'ti-moon' : 'ti-sun');
   }
   function toggleTheme(){ setTheme(currentTheme() === 'dark' ? 'light' : 'dark'); }
-  document.addEventListener('DOMContentLoaded', function(){ setTheme(currentTheme()); });
+  function hashString(s){ let h=0; s=String(s||''); for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i); h|=0;} return Math.abs(h); }
+  function privacyMask(value, type){
+    const v=String(value||''); if(!v) return ''; const h=hashString(v);
+    if(type==='ip') return v.includes('.') ? v.split('.').map((p,i)=> i===0 ? p : (i===3 ? 'x' : 'x')).join('.') : 'x.x.x.x';
+    if(type==='mac') return 'XX:XX:XX:XX:' + v.split(':').slice(-2).join(':').toUpperCase().padStart(5,'X');
+    if(type==='id') return 'ID-' + String(h).slice(0,6);
+    if(type==='router') return 'Router-' + String((h%999)+1).padStart(3,'0');
+    if(type==='node') return 'Node-' + String((h%999)+1).padStart(3,'0');
+    return 'Client-' + String((h%9999)+1).padStart(4,'0');
+  }
+  function setPrivacyMode(on){
+    document.body.classList.toggle('privacy-mode', !!on); localStorage.setItem('lqosync_privacy_mode', on?'true':'false');
+    const btn=document.getElementById('privacyToggle'); if(btn) btn.classList.toggle('active', !!on);
+    const label=document.getElementById('privacyLabel'); if(label) label.textContent=on?'Masked':'Privacy';
+    document.querySelectorAll('.redact').forEach(el=>{
+      if(!el.dataset.original) el.dataset.original = el.textContent;
+      if(on){ el.textContent = el.dataset.mask || privacyMask(el.dataset.original, el.dataset.redactType || 'name'); el.classList.add('is-redacted'); }
+      else { el.textContent = el.dataset.original; el.classList.remove('is-redacted'); }
+    });
+  }
+  function togglePrivacyMode(){ setPrivacyMode(localStorage.getItem('lqosync_privacy_mode') !== 'true'); }
+  function refreshPrivacyMode(){ setPrivacyMode(localStorage.getItem('lqosync_privacy_mode') === 'true'); }
+  document.addEventListener('DOMContentLoaded', function(){ setTheme(currentTheme()); refreshPrivacyMode(); });
 </script>
 </body>
 </html>

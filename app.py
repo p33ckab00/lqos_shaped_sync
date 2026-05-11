@@ -15,12 +15,13 @@ from engine.run_cycle import run_cycle
 from engine.state import load_state, update_state
 from scheduler.runner import LQoSyncScheduler
 from builders.shaped_devices import read_shaped_devices_csv, render_shaped_devices_csv
-from builders.network_json import read_network_json, render_network_json
+from builders.network_json import read_network_json, render_network_json, flatten_nodes
 from applier.backup import list_backups
 from applier.libreqos_runner import run_libreqos_update
 from applier.rollback import restore_backup
 from collectors.mikrotik_client import test_router_connection, connect_to_router, get_resource_data
 from engine.audit import write_audit, tail_audit
+from applier.atomic_writer import atomic_write_text
 from monitoring.service_monitor import (
     all_service_status, service_status, restart_service as monitor_restart_service,
     restart_group, journal_lines, allowed_units, allowed_groups, list_apply_runs, read_apply_file,
@@ -364,6 +365,35 @@ def scheduler_settings():
     return redirect(url_for("config_page"))
 
 
+def _network_validation(network: dict, cfg: dict) -> tuple[list[str], list[str]]:
+    errors, warnings = [], []
+    seen = set()
+    duplicates = set()
+    for item in flatten_nodes(network):
+        name = item.get("name")
+        if name in seen:
+            duplicates.add(name)
+        seen.add(name)
+        try:
+            if float(item.get("downloadBandwidthMbps") or 0) < 0 or float(item.get("uploadBandwidthMbps") or 0) < 0:
+                errors.append(f"Node {name} has negative bandwidth")
+        except Exception:
+            errors.append(f"Node {name} has invalid bandwidth")
+    if duplicates:
+        errors.append("Duplicate node names: " + ", ".join(sorted(duplicates)))
+    rows = read_shaped_devices_csv(cfg["paths"]["shaped_devices_csv"])
+    missing = []
+    for row in rows.values():
+        parent = str(row.get("Parent Node") or "").strip()
+        if parent and parent not in seen:
+            missing.append(parent)
+    if missing:
+        errors.append("Missing parent nodes referenced by ShapedDevices.csv: " + ", ".join(sorted(set(missing))[:10]))
+    if any(item.get("virtual") for item in flatten_nodes(network)):
+        warnings.append("Virtual/logical nodes are present. LibreQoS may promote children to the nearest non-virtual ancestor during shaping; avoid name collisions.")
+    return errors, warnings
+
+
 @app.route("/network")
 @login_required
 def network_layout():
@@ -371,7 +401,25 @@ def network_layout():
     network = read_network_json(cfg["paths"]["network_json"])
     last_run = state.get("last_run") or state.get("last_dry_run") or {}
     node_math = last_run.get("node_math", {}) if isinstance(last_run, dict) else {}
-    return render_template("network_layout.html", network=network, node_math=node_math, user=current_user())
+    rows = read_shaped_devices_csv(cfg["paths"]["shaped_devices_csv"])
+    return render_template("network_layout.html", network=network, node_math=node_math, config=cfg, nodes_flat=flatten_nodes(network), shaped_rows=rows, user=current_user())
+
+
+@app.route("/api/network_layout/save", methods=["POST"])
+@admin_required
+def api_network_layout_save():
+    cfg = load_config(CONFIG_PATH)
+    data = request.get_json(force=True) or {}
+    network = data.get("network")
+    if not isinstance(network, dict):
+        return jsonify({"ok": False, "error": "network must be a JSON object"}), 400
+    errors, warnings = _network_validation(network, cfg)
+    if errors:
+        return jsonify({"ok": False, "errors": errors, "warnings": warnings}), 400
+    text = render_network_json(network)
+    atomic_write_text(cfg["paths"]["network_json"], text)
+    write_audit(cfg, "network_layout_saved", actor=(current_user() or {}).get("username"), details={"nodes": len(flatten_nodes(network)), "warnings": warnings})
+    return jsonify({"ok": True, "warnings": warnings, "nodes": len(flatten_nodes(network))})
 
 
 @app.route("/devices")

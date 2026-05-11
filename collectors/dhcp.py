@@ -56,7 +56,8 @@ def process_dhcp_leases(api, router: dict, context):
     router_name = router["name"]
     flat_parent = parent_for_flat_mode(cfg, router_name)
     hierarchy_mode = flat_parent is None
-    children = context.network_config.get(router_name, {}).get("children", {}) if hierarchy_mode else {}
+    router_node = context.router_nodes.get(router_name) or context.network_config.get(router_name, {})
+    children = router_node.get("children", {}) if hierarchy_mode else {}
     servers = dhcp_cfg.get("servers", [])
     updated = False
     active_codes = set()

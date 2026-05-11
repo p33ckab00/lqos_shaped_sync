@@ -1,104 +1,147 @@
 {% extends "base.html" %}{% block content %}
 {% set total_routers = network|length %}
-{% set total_children = namespace(n=0) %}
-{% for rname, root in network.items() %}{% set total_children.n = total_children.n + (root.get('children', {})|length) %}{% endfor %}
+{% set total_nodes = nodes_flat|length if nodes_flat else 0 %}
+{% set current_mode = config.get('network_mode','router_children') %}
 <div class="page-header">
-  <div><div class="page-title">Network layout</div><div class="page-subtitle">Router-as-root topology generated for LibreQoS network.json</div></div>
+  <div>
+    <div class="page-title">Network layout</div>
+    <div class="page-subtitle">Topology builder for LibreQoS network.json · supports flat, normal, deep/custom hierarchy, virtual nodes, and privacy-safe screenshots.</div>
+  </div>
   <div class="btn-row">
     <a href="/download/network" class="btn"><i class="ti ti-download"></i> Export network.json</a>
     <form method="post" action="/sync/dry-run">{{ csrf_field()|safe }}<button class="btn"><i class="ti ti-eye"></i> Dry run</button></form>
-    {% if user.role == 'admin' %}<form method="post" action="/sync/run">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-refresh"></i> Sync now</button></form>{% endif %}
+    {% if user.role == 'admin' %}<button class="btn btn-primary" onclick="saveTopology()"><i class="ti ti-device-floppy"></i> Save topology</button>{% endif %}
   </div>
 </div>
 
-<div class="card" style="padding:0;margin-bottom:14px;overflow:hidden">
-  <div style="display:grid;grid-template-columns:repeat(6,1fr)">
-    <div style="padding:12px;text-align:center;border-right:1px solid var(--br0)"><div class="stat-value">{{ total_routers }}</div><div class="stat-sub">Routers</div></div>
-    <div style="padding:12px;text-align:center;border-right:1px solid var(--br0)"><div class="stat-value text-ppp">{{ total_children.n }}</div><div class="stat-sub">Child nodes</div></div>
-    <div style="padding:12px;text-align:center;border-right:1px solid var(--br0)"><div class="stat-value text-accent">{{ node_math|length }}</div><div class="stat-sub">Math tracked</div></div>
-    <div style="padding:12px;text-align:center;border-right:1px solid var(--br0)"><div class="stat-value">{{ network.keys()|list|first if network else '—' }}</div><div class="stat-sub">Primary root</div></div>
-    <div style="padding:12px;text-align:center;border-right:1px solid var(--br0)"><div class="stat-value text-dhcp">DHCP</div><div class="stat-sub">site nodes</div></div>
-    <div style="padding:12px;text-align:center"><div class="stat-value text-ppp">PPP</div><div class="stat-sub">plan nodes</div></div>
+<style>
+  .topology-shell{display:grid;grid-template-columns:280px minmax(0,1fr) 330px;gap:12px;align-items:start}.topology-panel{border:1px solid var(--br0);border-radius:16px;background:var(--bg1);overflow:hidden}.topology-panel-head{padding:13px 14px;border-bottom:1px solid var(--br0);display:flex;align-items:center;justify-content:space-between;gap:10px}.topology-panel-body{padding:12px}.tree-list{display:grid;gap:5px}.tree-node{display:flex;align-items:center;gap:8px;padding:8px 9px;border:1px solid transparent;border-radius:10px;cursor:pointer;color:var(--muted);font-size:12px}.tree-node:hover{background:var(--bg2);border-color:var(--br0)}.tree-node.active{background:rgba(0,200,150,.10);border-color:rgba(0,200,150,.35);color:var(--txt)}.tree-indent{width:calc(var(--depth) * 14px);flex:0 0 calc(var(--depth) * 14px)}.topology-canvas{display:grid;gap:10px}.topology-node-card{border:1px solid var(--br0);border-radius:14px;background:var(--bg1);padding:12px;box-shadow:0 8px 22px rgba(2,6,23,.08)}.topology-node-card.selected{border-color:rgba(0,200,150,.60);box-shadow:0 0 0 3px rgba(0,200,150,.10)}.topology-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.topology-node-title{font-weight:700;color:var(--txt);font-size:13px;word-break:break-word}.topology-node-meta{font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:4px}.node-children{border-left:1px dashed var(--br1);margin-left:17px;padding-left:14px;margin-top:10px;display:grid;gap:10px}.layout-mode-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:12px}.mode-card{border:1px solid var(--br0);border-radius:13px;padding:10px;background:var(--bg1);cursor:pointer;min-height:86px}.mode-card.active{border-color:rgba(0,200,150,.55);background:rgba(0,200,150,.08)}.mode-card-title{font-weight:700;font-size:12px;color:var(--txt);margin-bottom:4px}.mode-card-desc{font-size:10px;color:var(--muted);line-height:1.35}.inspector-row{display:grid;gap:5px;margin-bottom:10px}.inspector-row label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--hint);font-weight:700}.inspector-row input,.inspector-row select{width:100%;border:1px solid var(--br1);border-radius:9px;background:rgba(2,6,23,.48);color:var(--txt);font-family:var(--font-mono);font-size:12px;padding:8px 9px}.topology-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.topology-note{border:1px solid var(--br0);border-radius:12px;padding:10px;background:rgba(15,23,42,.20);color:var(--muted);font-size:11px;line-height:1.45}.topology-note b{color:var(--txt)}.impact-list{display:grid;gap:7px}.impact-item{border:1px solid var(--br0);border-radius:10px;padding:8px 9px;font-family:var(--font-mono);font-size:10px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}.json-view-panel{display:none}.json-view-panel.open{display:block}@media(max-width:1100px){.topology-shell{grid-template-columns:1fr}.layout-mode-grid{grid-template-columns:1fr 1fr}.topology-panel{min-width:0}}@media(max-width:760px){.layout-mode-grid{grid-template-columns:1fr}.topology-actions{grid-template-columns:1fr}.node-children{margin-left:8px;padding-left:10px}.topology-panel-body{padding:10px}}
+  :root[data-theme=light] .inspector-row input,:root[data-theme=light] .inspector-row select{background:#fff;color:#0f172a;border-color:#cbd5e1}:root[data-theme=light] .topology-note{background:#f8fafc}
+</style>
+
+<div class="layout-mode-grid">
+  <div class="mode-card {{ 'active' if current_mode == 'flat_no_parent' else '' }}" data-mode="flat_no_parent" onclick="selectModeCard('flat_no_parent')"><div class="mode-card-title">Simple flat · no parent</div><div class="mode-card-desc">Blank Parent Node and empty network.json. Lowest topology complexity.</div></div>
+  <div class="mode-card {{ 'active' if current_mode == 'flat_router_root' else '' }}" data-mode="flat_router_root" onclick="selectModeCard('flat_router_root')"><div class="mode-card-title">Simple flat · router root</div><div class="mode-card-desc">One visible router/root group; generated clients attach to router root.</div></div>
+  <div class="mode-card {{ 'active' if current_mode == 'router_children' else '' }}" data-mode="router_children" onclick="selectModeCard('router_children')"><div class="mode-card-title">Normal hierarchy</div><div class="mode-card-desc">Router root with generated PPPoE/DHCP/Hotspot child nodes. Recommended default.</div></div>
+  <div class="mode-card {{ 'active' if current_mode == 'deep_hierarchy' else '' }}" data-mode="deep_hierarchy" onclick="selectModeCard('deep_hierarchy')"><div class="mode-card-title">Deep hierarchy</div><div class="mode-card-desc">Routers can be nested under upstream/core/site nodes. Router-owned subnodes stay under that router.</div></div>
+  <div class="mode-card {{ 'active' if current_mode == 'custom_hierarchy' else '' }}" data-mode="custom_hierarchy" onclick="selectModeCard('custom_hierarchy')"><div class="mode-card-title">Custom hierarchy</div><div class="mode-card-desc">Manual topology editing with virtual/logical grouping nodes and validation before save.</div></div>
+</div>
+
+<div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
+  <div style="display:grid;grid-template-columns:repeat(5,1fr)">
+    <div style="padding:12px;text-align:center;border-right:1px solid var(--br0)"><div class="stat-value">{{ total_routers }}</div><div class="stat-sub">Root nodes</div></div>
+    <div style="padding:12px;text-align:center;border-right:1px solid var(--br0)"><div class="stat-value text-accent">{{ total_nodes }}</div><div class="stat-sub">Total nodes</div></div>
+    <div style="padding:12px;text-align:center;border-right:1px solid var(--br0)"><div class="stat-value text-dhcp">{{ shaped_rows|length }}</div><div class="stat-sub">CSV rows</div></div>
+    <div style="padding:12px;text-align:center;border-right:1px solid var(--br0)"><div class="stat-value text-ppp">{{ current_mode }}</div><div class="stat-sub">Layout mode</div></div>
+    <div style="padding:12px;text-align:center"><div class="stat-value">{{ node_math|length }}</div><div class="stat-sub">Math tracked</div></div>
   </div>
 </div>
 
 <div class="filter-bar" style="margin-bottom:12px">
-  <span class="filter-pill active" data-filter="all" onclick="filterNodes('all')">All</span>
-  <span class="filter-pill" data-filter="ppp" onclick="filterNodes('ppp')">PPPoE plan</span>
-  <span class="filter-pill" data-filter="dhcp" onclick="filterNodes('dhcp')">DHCP site</span>
-  <span class="filter-pill" data-filter="hs" onclick="filterNodes('hs')">Hotspot</span>
+  <span class="filter-pill active" data-filter="all" onclick="filterNodeCards('all')">All</span>
+  <span class="filter-pill" data-filter="router" onclick="filterNodeCards('router')">Routers</span>
+  <span class="filter-pill" data-filter="ppp" onclick="filterNodeCards('ppp')">PPPoE plan</span>
+  <span class="filter-pill" data-filter="dhcp" onclick="filterNodeCards('dhcp')">DHCP site</span>
+  <span class="filter-pill" data-filter="hs" onclick="filterNodeCards('hs')">Hotspot</span>
+  <span class="filter-pill" data-filter="virtual" onclick="filterNodeCards('virtual')">Virtual</span>
   <span class="filter-pill" onclick="toggleNetworkJsonView()"><i class="ti ti-code"></i> Advanced JSON View</span>
 </div>
 
-<div id="networkJsonPanel" class="json-view-panel card" style="padding:0;overflow:hidden">
+<div id="networkJsonPanel" class="json-view-panel card" style="padding:0;overflow:hidden;margin-bottom:12px">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--br0)">
-    <div><div class="card-title" style="margin:0"><i class="ti ti-code"></i> Advanced network.json view</div><div class="page-subtitle">Read-only view of the currently loaded/generated LibreQoS network tree.</div></div>
+    <div><div class="card-title" style="margin:0"><i class="ti ti-code"></i> Advanced network.json view</div><div class="page-subtitle">Read-only view of the currently loaded LibreQoS network tree. The topology editor below updates the preview before save.</div></div>
     <button type="button" class="btn" onclick="copyNetworkJson()"><i class="ti ti-copy"></i> Copy JSON</button>
   </div>
   <pre id="networkJsonPre">{{ network | tojson(indent=2) }}</pre>
 </div>
 
-{% for router_name, root in network.items() %}
-{% set root_down = root.get('downloadBandwidthMbps', 0)|float %}
-{% set root_up = root.get('uploadBandwidthMbps', 0)|float %}
-<div class="router-card" style="margin-bottom:14px">
-  <div class="router-head">
-    <div class="router-icon"><i class="ti ti-router"></i></div>
-    <div><div class="router-name">{{ router_name }}</div><div class="router-meta">type={{ root.get('type','site') }} · virtual={{ root.get('virtual', false) }} · generated root</div></div>
-    <span class="badge b-ok">site root</span>
-    <div class="router-stats">
-      <div class="router-stat"><div class="router-stat-val">{{ root_down|round(3) }}</div><div class="router-stat-label">↓ Mbps</div></div>
-      <div class="router-stat"><div class="router-stat-val">{{ root_up|round(3) }}</div><div class="router-stat-label">↑ Mbps</div></div>
-      <div class="router-stat"><div class="router-stat-val" style="color:var(--txt)">{{ root.get('children', {})|length }}</div><div class="router-stat-label">child nodes</div></div>
+<div class="topology-shell">
+  <section class="topology-panel">
+    <div class="topology-panel-head"><div><div class="card-title" style="margin:0"><i class="ti ti-list-tree"></i> Topology tree</div><div class="page-subtitle">Click a node to inspect or move it.</div></div></div>
+    <div class="topology-panel-body">
+      <div class="input" style="margin-bottom:10px"><input id="treeSearch" oninput="renderTopology()" placeholder="Search node…" style="background:transparent;border:0;outline:0;color:var(--txt);width:100%;font-family:var(--font-mono);font-size:12px"></div>
+      <div id="topologyTree" class="tree-list"></div>
     </div>
-  </div>
+  </section>
 
-  <div class="nodes-grid">
-    {% for node_name, node in root.get('children', {}).items() %}
-      {% set ntype = 'hs' if node_name.startswith('HS-') else ('dhcp' if node_name.startswith('DHCP-') or node_name.startswith('PLAN-DHCP-') else 'ppp') %}
-      {% set down = node.get('downloadBandwidthMbps', 0)|float %}
-      {% set up = node.get('uploadBandwidthMbps', 0)|float %}
-      {% set pctd = ((down / root_down * 100) if root_down else 0) %}
-      {% set pctu = ((up / root_up * 100) if root_up else 0) %}
-      {% set math = node_math.get(node_name) if node_math else None %}
-      <div class="node-tile node-filter" data-kind="{{ ntype }}">
-        <div class="node-head">
-          <div class="node-icon icon-{{ ntype }}"><i class="ti {{ 'ti-wifi' if ntype == 'hs' else ('ti-network' if ntype == 'dhcp' else 'ti-users') }}"></i></div>
-          <div style="min-width:0;flex:1"><div class="node-name">{{ node_name }}</div><div class="node-tags"><span class="badge b-{{ 'hs' if ntype == 'hs' else ('dhcp' if ntype == 'dhcp' else 'ppp') }}">{{ 'Hotspot' if ntype == 'hs' else ('DHCP' if ntype == 'dhcp' else 'PPPoE') }}</span><span class="badge b-ok">{{ node.get('type','plan') }}</span><span class="badge">auto</span></div></div>
+  <section class="topology-panel">
+    <div class="topology-panel-head"><div><div class="card-title" style="margin:0"><i class="ti ti-topology-star-3"></i> Visual topology</div><div class="page-subtitle">Generated and custom nodes. Use Inspector to promote, demote, move, rename, or mark virtual.</div></div></div>
+    <div class="topology-panel-body"><div id="topologyCanvas" class="topology-canvas"></div></div>
+  </section>
+
+  <section class="topology-panel">
+    <div class="topology-panel-head"><div><div class="card-title" style="margin:0"><i class="ti ti-adjustments"></i> Node inspector</div><div class="page-subtitle">Safe topology edits with impact preview.</div></div></div>
+    <div class="topology-panel-body">
+      <div id="emptyInspector" class="topology-note">Select a node from the tree or visual topology. Changes are kept in-browser until you click <b>Save topology</b>.</div>
+      <div id="nodeInspector" style="display:none">
+        <div class="inspector-row"><label>Name</label><input id="nodeNameInput"></div>
+        <div class="inspector-row"><label>Type</label><select id="nodeTypeInput"><option value="site">site</option><option value="Site">Site</option><option value="AP">AP</option><option value="plan">plan</option><option value="router">router</option></select></div>
+        <div class="inspector-row"><label>Download Mbps</label><input id="nodeDownInput" type="number" step="0.001"></div>
+        <div class="inspector-row"><label>Upload Mbps</label><input id="nodeUpInput" type="number" step="0.001"></div>
+        <div class="inspector-row"><label>Move under parent</label><select id="nodeParentSelect"></select></div>
+        <label class="small-pill" style="margin-bottom:10px"><input id="nodeVirtualInput" type="checkbox" style="margin-right:7px"> Virtual/logical grouping node</label>
+        <div class="topology-note" style="margin-bottom:10px"><b>Virtual nodes:</b> used for grouping/display. They do not change source files until saved. Avoid node-name collisions because LibreQoS can promote children to nearest non-virtual ancestor during shaping.</div>
+        <div class="topology-actions">
+          <button class="btn" onclick="applyInspector()"><i class="ti ti-check"></i> Apply edit</button>
+          <button class="btn" onclick="promoteSelected()"><i class="ti ti-arrow-up"></i> Promote</button>
+          <button class="btn" onclick="moveSelected()"><i class="ti ti-arrows-move"></i> Move</button>
+          <button class="btn" onclick="deleteSelected()"><i class="ti ti-trash"></i> Delete</button>
         </div>
-        <div class="bw-row"><span class="bw-label">↓</span><div class="bw-track"><div class="bw-fill fill-{{ ntype }}" style="width:{{ pctd if pctd < 100 else 100 }}%"></div></div><span class="bw-val">{{ down|round(3) }}</span></div>
-        <div class="bw-row"><span class="bw-label">↑</span><div class="bw-track"><div class="bw-fill fill-{{ ntype }}" style="width:{{ pctu if pctu < 100 else 100 }}%"></div></div><span class="bw-val">{{ up|round(3) }}</span></div>
-        {% if math %}
-          <div class="math-line"><b>{{ math.get('active_count', '—') }}</b> active · {{ math.get('formula','') }}</div>
-        {% else %}
-          <div class="math-line">No latest math metadata yet. Run sync or dry-run.</div>
-        {% endif %}
-        {% if math %}<div class="mono text-xs" style="color:var(--muted)">Raw: {{ math.get('raw_download_mbps','—') }}/{{ math.get('raw_upload_mbps','—') }} · Factor: {{ math.get('download_factor','—') }}/{{ math.get('upload_factor','—') }}</div>{% endif %}
+        <div style="margin-top:12px"><div class="card-title"><i class="ti ti-radar"></i> Impact preview</div><div id="impactPreview" class="impact-list"></div></div>
       </div>
-    {% else %}
-      <div class="node-tile"><div class="mono" style="color:var(--muted)">No child nodes generated yet.</div></div>
-    {% endfor %}
-  </div>
+    </div>
+  </section>
 </div>
-{% else %}
-<div class="card"><div class="card-title"><i class="ti ti-info-circle"></i> Empty network.json</div><p class="mono" style="color:var(--muted)">No routers/nodes found. Run a sync or dry-run.</p></div>
-{% endfor %}
 
 <script>
-function filterNodes(kind){
-  document.querySelectorAll('.filter-pill[data-filter]').forEach(x=>x.classList.toggle('active', x.dataset.filter===kind));
-  document.querySelectorAll('.node-filter').forEach(el=>{el.style.display=(kind==='all'||el.dataset.kind===kind)?'block':'none'});
+const ORIGINAL_NETWORK = {{ network|tojson }};
+const NODE_MATH = {{ node_math|tojson }};
+const SHAPED_ROWS = {{ shaped_rows|tojson }};
+let NETWORK = JSON.parse(JSON.stringify(ORIGINAL_NETWORK || {}));
+let selectedPath = null;
+let currentFilter = 'all';
+
+function nodeKind(name,node,depth){
+  if((node&&node.virtual) || name.toLowerCase().includes('virtual')) return 'virtual';
+  if(depth===0 || (node&&String(node.type||'').toLowerCase()==='router')) return 'router';
+  if(name.startsWith('HS-')) return 'hs';
+  if(name.startsWith('DHCP-') || name.startsWith('PLAN-DHCP-')) return 'dhcp';
+  if(name.startsWith('Tier-') || name.startsWith('PPP-')) return 'ppp';
+  return 'site';
 }
-function toggleNetworkJsonView(){
-  const panel = document.getElementById('networkJsonPanel');
-  if(panel) panel.classList.toggle('open');
+function badge(kind){return kind==='ppp'?'b-ppp':kind==='dhcp'?'b-dhcp':kind==='hs'?'b-hs':kind==='virtual'?'b-warn':'b-ok'}
+function clone(obj){return JSON.parse(JSON.stringify(obj||{}));}
+function getNode(path){let node=null, children=NETWORK; for(const name of path){node=children[name]; if(!node) return null; children=node.children||{};} return node;}
+function getParentChildren(path){if(path.length===1) return NETWORK; let parent=getNode(path.slice(0,-1)); if(!parent.children) parent.children={}; return parent.children;}
+function removeNode(path){const children=getParentChildren(path); const name=path[path.length-1]; const node=children[name]; delete children[name]; return node;}
+function insertNode(parentPath,name,node){if(!parentPath || !parentPath.length){NETWORK[name]=node; return;} const parent=getNode(parentPath); if(!parent.children) parent.children={}; parent.children[name]=node;}
+function pathKey(path){return path.join(' / ')}
+function samePath(a,b){return JSON.stringify(a||[])===JSON.stringify(b||[])}
+function flatten(){const out=[];function walk(children,path,depth){Object.entries(children||{}).forEach(([name,node])=>{out.push({name,node,path:path.concat([name]),depth,kind:nodeKind(name,node,depth)}); walk(node.children||{},path.concat([name]),depth+1);});} walk(NETWORK,[],0); return out;}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function redactSpan(text,type){return `<span class="redact" data-redact-type="${type||'name'}">${esc(text)}</span>`}
+function renderTree(items){const q=(document.getElementById('treeSearch')?.value||'').toLowerCase(); return items.filter(i=>!q || i.name.toLowerCase().includes(q) || pathKey(i.path).toLowerCase().includes(q)).map(i=>`<div class="tree-node ${samePath(i.path,selectedPath)?'active':''}" onclick='selectNode(${JSON.stringify(i.path)})'><span class="tree-indent" style="--depth:${i.depth}"></span><i class="ti ${i.kind==='router'?'ti-router':i.kind==='virtual'?'ti-layers-subtract':'ti-circle-dot'}"></i><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${redactSpan(i.name, i.kind==='router'?'router':'node')}</span><span class="badge ${badge(i.kind)}" style="margin-left:auto">${i.kind}</span></div>`).join('') || '<div class="topology-note">No nodes matched.</div>';}
+function renderNodeCard(name,node,path,depth){const kind=nodeKind(name,node,depth); if(currentFilter!=='all' && currentFilter!==kind) return ''; const down=parseFloat(node.downloadBandwidthMbps||0), up=parseFloat(node.uploadBandwidthMbps||0); const math=NODE_MATH[name]||null; const children=node.children||{}; return `<div class="topology-node-card ${samePath(path,selectedPath)?'selected':''}" onclick='selectNode(${JSON.stringify(path)})' data-kind="${kind}"><div class="topology-card-head"><div><div class="topology-node-title">${redactSpan(name, kind==='router'?'router':'node')}</div><div class="topology-node-meta">${esc(pathKey(path))}</div><div class="pillline" style="margin-top:7px"><span class="badge ${badge(kind)}">${kind}</span><span class="badge">${esc(node.type||'site')}</span>${node.virtual?'<span class="badge b-warn">virtual</span>':''}<span class="badge b-ok">${Object.keys(children).length} child</span></div></div><div class="mono" style="text-align:right;color:var(--muted);font-size:11px">↓ ${down}<br>↑ ${up}</div></div>${math?`<div class="math-line" style="margin-top:8px"><b>${math.active_count||'—'}</b> active · ${esc(math.formula||'')}</div>`:''}${Object.keys(children).length?`<div class="node-children">${Object.entries(children).map(([cn,cnode])=>renderNodeCard(cn,cnode,path.concat([cn]),depth+1)).join('')}</div>`:''}</div>`;}
+function renderTopology(){const items=flatten(); document.getElementById('topologyTree').innerHTML=renderTree(items); document.getElementById('topologyCanvas').innerHTML=Object.entries(NETWORK).map(([n,node])=>renderNodeCard(n,node,[n],0)).join('') || '<div class="topology-note">No network nodes. In flat_no_parent mode, network.json may be empty.</div>'; updateJsonPre(); renderInspector(); refreshPrivacyMode();}
+function selectNode(path){selectedPath=path; renderTopology();}
+function renderInspector(){const empty=document.getElementById('emptyInspector'), panel=document.getElementById('nodeInspector'); if(!selectedPath){empty.style.display='block'; panel.style.display='none'; return;} empty.style.display='none'; panel.style.display='block'; const node=getNode(selectedPath), name=selectedPath[selectedPath.length-1]; document.getElementById('nodeNameInput').value=name; document.getElementById('nodeTypeInput').value=node.type||'site'; document.getElementById('nodeDownInput').value=node.downloadBandwidthMbps||0; document.getElementById('nodeUpInput').value=node.uploadBandwidthMbps||0; document.getElementById('nodeVirtualInput').checked=!!node.virtual; const parentSelect=document.getElementById('nodeParentSelect'); const items=flatten().filter(i=>!samePath(i.path,selectedPath) && !JSON.stringify(i.path).startsWith(JSON.stringify(selectedPath).slice(0,-1))); parentSelect.innerHTML='<option value="">Root level</option>'+items.map(i=>`<option value="${esc(JSON.stringify(i.path))}">${esc(pathKey(i.path))}</option>`).join(''); const parentPath=selectedPath.slice(0,-1); parentSelect.value=parentPath.length?JSON.stringify(parentPath):''; renderImpact();}
+function renderImpact(){const rows=Object.values(SHAPED_ROWS||{}); const name=selectedPath?selectedPath[selectedPath.length-1]:''; const affected=rows.filter(r=>String(r['Parent Node']||'')===name); const node=getNode(selectedPath)||{}; const warnings=[]; if(node.virtual) warnings.push('Virtual node: children may be promoted by LibreQoS during shaping; avoid name collisions.'); if(affected.length) warnings.push(`${affected.length} ShapedDevices rows currently point to this node.`); const items=[['Selected path', selectedPath?pathKey(selectedPath):'—'],['Affected clients', affected.length],['Children', Object.keys(node.children||{}).length],['Virtual', node.virtual?'yes':'no']].concat(warnings.map((w,i)=>['Warning '+(i+1),w])); document.getElementById('impactPreview').innerHTML=items.map(([k,v])=>`<div class="impact-item"><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('');}
+function applyInspector(){if(!selectedPath) return; const oldName=selectedPath[selectedPath.length-1], node=getNode(selectedPath); node.type=document.getElementById('nodeTypeInput').value||'site'; node.downloadBandwidthMbps=parseFloat(document.getElementById('nodeDownInput').value||0); node.uploadBandwidthMbps=parseFloat(document.getElementById('nodeUpInput').value||0); node.virtual=document.getElementById('nodeVirtualInput').checked; const newName=(document.getElementById('nodeNameInput').value||oldName).trim(); if(newName && newName!==oldName){const children=getParentChildren(selectedPath); if(children[newName]){alert('Node name already exists at this level.'); return;} children[newName]=node; delete children[oldName]; selectedPath=selectedPath.slice(0,-1).concat([newName]);} renderTopology();}
+function moveSelected(){if(!selectedPath) return; const target=document.getElementById('nodeParentSelect').value; const parentPath=target?JSON.parse(target):[]; const name=selectedPath[selectedPath.length-1]; const node=removeNode(selectedPath); insertNode(parentPath,name,node); selectedPath=parentPath.concat([name]); renderTopology();}
+function promoteSelected(){if(!selectedPath || selectedPath.length<2) return; const grand=selectedPath.slice(0,-2); const name=selectedPath[selectedPath.length-1]; const node=removeNode(selectedPath); insertNode(grand,name,node); selectedPath=grand.concat([name]); renderTopology();}
+function deleteSelected(){if(!selectedPath) return; if(!confirm('Delete selected node from network.json preview? This does not remove clients until saved and synced.')) return; removeNode(selectedPath); selectedPath=null; renderTopology();}
+function selectModeCard(mode){document.querySelectorAll('.mode-card').forEach(c=>c.classList.toggle('active',c.dataset.mode===mode)); alert('Layout mode selection preview: '+mode+'\nChange the actual mode in Config Center, then run Dry Run to regenerate safely.');}
+function filterNodeCards(kind){currentFilter=kind; document.querySelectorAll('.filter-pill[data-filter]').forEach(x=>x.classList.toggle('active', x.dataset.filter===kind)); renderTopology();}
+function toggleNetworkJsonView(){document.getElementById('networkJsonPanel')?.classList.toggle('open')}
+function updateJsonPre(){const pre=document.getElementById('networkJsonPre'); if(pre) pre.textContent=JSON.stringify(NETWORK,null,2)}
+async function copyNetworkJson(){try{await navigator.clipboard.writeText(JSON.stringify(NETWORK,null,2));}catch(e){}}
+async function saveTopology(){
+  if(!confirm('Save edited topology to network.json? A backup/dry-run is recommended before production changes.')) return;
+  const res=await fetch('/api/network_layout/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({network:NETWORK})});
+  const data=await res.json().catch(()=>({ok:false,error:'invalid response'}));
+  if(!data.ok){alert('Topology save blocked:\n'+((data.errors||[data.error||'Unknown error']).join('\n'))); return;}
+  alert('Topology saved. Nodes: '+data.nodes+(data.warnings&&data.warnings.length?'\nWarnings:\n'+data.warnings.join('\n'):'')); location.reload();
 }
-async function copyNetworkJson(){
-  const pre = document.getElementById('networkJsonPre');
-  if(!pre) return;
-  try { await navigator.clipboard.writeText(pre.innerText); } catch(e) {
-    const r=document.createRange(); r.selectNodeContents(pre); const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r); document.execCommand('copy'); sel.removeAllRanges();
-  }
-}
+renderTopology();
 </script>
 {% endblock %}

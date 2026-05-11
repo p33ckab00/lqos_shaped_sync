@@ -40,7 +40,8 @@ def process_hotspot_users(api, router: dict, context):
     router_name = router["name"]
     flat_parent = parent_for_flat_mode(cfg, router_name)
     hierarchy_mode = flat_parent is None
-    children = context.network_config.get(router_name, {}).get("children", {}) if hierarchy_mode else {}
+    router_node = context.router_nodes.get(router_name) or context.network_config.get(router_name, {})
+    children = router_node.get("children", {}) if hierarchy_mode else {}
     include_mac = bool(hs_cfg.get("include_mac", True))
     dl_factor = float(hs_cfg.get("download_factor", 1.0))
     ul_factor = float(hs_cfg.get("upload_factor", 1.0))

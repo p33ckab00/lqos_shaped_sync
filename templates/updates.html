@@ -6,6 +6,7 @@
     <div class="page-subtitle">Read-only GitHub source status, preservation policy, and production-safe update commands.</div>
   </div>
   <div class="btn-row">
+    <a class="btn" href="/updates"><i class="ti ti-refresh"></i> Refresh GitHub status</a>
     <a class="btn" href="/about#github-update"><i class="ti ti-book"></i> Update docs</a>
     <a class="btn" href="/services"><i class="ti ti-server"></i> Services</a>
   </div>
@@ -15,19 +16,31 @@
 <div class="card" style="border-color:{{ 'rgba(239,68,68,.45)' if relation == 'diverged' else ('rgba(245,158,11,.45)' if relation in ['ahead','behind','dirty'] or git.get('dirty') else 'rgba(34,197,94,.35)') }};background:{{ 'rgba(239,68,68,.08)' if relation == 'diverged' else ('rgba(245,158,11,.08)' if relation in ['ahead','behind','dirty'] or git.get('dirty') else 'rgba(34,197,94,.08)') }};margin-bottom:12px">
   <div class="card-title"><i class="ti {{ 'ti-alert-triangle text-err' if relation == 'diverged' else ('ti-alert-circle text-warn' if relation in ['ahead','behind','dirty'] or git.get('dirty') else 'ti-circle-check text-accent') }}"></i> Git update status</div>
   <div class="text-sm" style="color:var(--muted)">
-    {% if relation == 'up_to_date' %}This install is Git-managed and appears up to date with its upstream branch.{% endif %}
+    {% if relation == 'up_to_date' %}This install is Git-managed and matches the latest fetched upstream commit. If you expected an update, click Refresh GitHub status to fetch origin/main again.{% endif %}
     {% if relation == 'behind' %}This install is behind the GitHub branch. A safe update can pull newer app code while preserving config, users, logs, state, and LibreQoS files.{% endif %}
     {% if relation == 'ahead' %}This install has local commits not present on GitHub. Review before updating or use backup-and-reset policy if GitHub is the app-code source of truth.{% endif %}
     {% if relation == 'diverged' %}Local and remote Git histories diverged. Recommended production action: backup local branch, reset app code to GitHub main, then run preserve-and-migrate install.{% endif %}
     {% if relation == 'not_git_managed' %}This install is not Git-managed. Use the adoption command to safely convert it to a GitHub-managed install without losing operator data.{% endif %}
   </div>
+  {% if git.get('fetch_attempted') %}
+  <div class="note" style="margin-top:10px">
+    {% if git.get('fetch_ok') %}<b>GitHub check:</b> origin/main was fetched before comparison, so relation/version status uses the latest reachable GitHub reference.
+    {% else %}<b>GitHub check warning:</b> fetch did not complete. Showing cached local Git refs. Error: <code>{{ git.get('fetch_error') or 'unknown' }}</code>{% endif %}
+  </div>
+  {% endif %}
 </div>
 
 <section class="grid-stats">
-  <div class="stat"><div class="stat-label"><i class="ti ti-code"></i> Version</div><div class="stat-value">{{ version }}</div><div class="stat-sub">installed app version</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-code"></i> Installed Version</div><div class="stat-value">{{ git.get('local_version', version) }}</div><div class="stat-sub">local VERSION file</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-cloud-download"></i> GitHub Version</div><div class="stat-value {{ 'text-warn' if git.get('version_relation') == 'different' else 'text-accent' }}">{{ git.get('remote_version','unknown') }}</div><div class="stat-sub">remote origin/main VERSION</div></div>
   <div class="stat"><div class="stat-label"><i class="ti ti-git-branch"></i> Branch</div><div class="stat-value">{{ git.get('branch','unknown') }}</div><div class="stat-sub">{{ git.get('upstream','no upstream') }}</div></div>
-  <div class="stat"><div class="stat-label"><i class="ti ti-hash"></i> Commit</div><div class="stat-value">{{ git.get('short_commit','unknown') }}</div><div class="stat-sub">dirty={{ git.get('dirty', false) }}</div></div>
-  <div class="stat"><div class="stat-label"><i class="ti ti-arrows-split"></i> Relation</div><div class="stat-value {{ 'text-err' if relation == 'diverged' else ('text-warn' if relation in ['ahead','behind'] else 'text-accent') }}">{{ relation }}</div><div class="stat-sub">ahead={{ git.get('ahead','?') }} · behind={{ git.get('behind','?') }}</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-hash"></i> Local Commit</div><div class="stat-value">{{ git.get('short_commit','unknown') }}</div><div class="stat-sub">dirty={{ git.get('dirty', false) }}</div></div>
+</section>
+<section class="grid-stats" style="margin-top:10px">
+  <div class="stat"><div class="stat-label"><i class="ti ti-cloud"></i> GitHub Commit</div><div class="stat-value">{{ git.get('remote_short_commit','unknown') }}</div><div class="stat-sub">latest fetched origin/main</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-arrows-split"></i> Relation</div><div class="stat-value {{ 'text-err' if relation == 'diverged' else ('text-warn' if relation in ['ahead','behind'] or git.get('version_relation') == 'different' else 'text-accent') }}">{{ relation }}</div><div class="stat-sub">ahead={{ git.get('ahead','?') }} · behind={{ git.get('behind','?') }}</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-refresh-dot"></i> Fetch</div><div class="stat-value {{ 'text-accent' if git.get('fetch_ok') else 'text-warn' }}">{{ 'ok' if git.get('fetch_ok') else ('skipped' if not git.get('fetch_attempted') else 'warn') }}</div><div class="stat-sub">remote check state</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-info-circle"></i> Update Needed</div><div class="stat-value {{ 'text-warn' if relation in ['behind','diverged'] or git.get('version_relation') == 'different' else 'text-accent' }}">{{ 'yes' if relation in ['behind','diverged'] or git.get('version_relation') == 'different' else 'no' }}</div><div class="stat-sub">based on commit/version compare</div></div>
 </section>
 
 <section class="two-grid" style="margin-top:12px">

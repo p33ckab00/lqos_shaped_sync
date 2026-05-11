@@ -465,3 +465,22 @@ This is a client-side display-only feature. Disable Privacy Mode before doing pr
 ## v2.42 Privacy UX + Topology Save Fix
 
 The About module documents the improved privacy and topology-save behavior. Privacy Mode is intended for demos, public screenshots, and support screenshots. It masks visible UI values only and does not protect data from browser developer tools. Topology save now includes the CSRF token in JSON/AJAX requests; if saving is blocked with a security-token message, refresh the page and retry.
+
+
+## v2.43 UI Polish and Git Update Detection
+
+This release is a UI/UX polish update. It does not change the core sync engine.
+
+### Privacy toggle
+
+The topbar Privacy Mode control now uses an incognito-style icon. When privacy mode is disabled, the same icon is shown with a slash indicator. When privacy mode is enabled, the slash disappears and visible subscriber, node, IP, MAC, and ID values are replaced with stable redaction labels such as `Client-001`, `IP-001`, and `MAC-001`. This is browser-only redaction for screenshots and demos; source files are not modified.
+
+### Services & Journals layout
+
+The Services & Journals page now uses equal-height desktop panels for Journal Viewer and LibreQoS Apply Logs. The Journal Viewer output pane is larger, scrolls cleanly inside the card, and keeps controls aligned at the top. The apply log list uses a matching scroll area so the two panels feel balanced. On smaller screens, the panels stack vertically.
+
+### Update Center detection
+
+Update Center now performs a fresh `git fetch origin main` before comparing local and remote state. It compares local `HEAD` against the latest fetched `origin/main`, displays local and remote commits, reads the remote `VERSION` file using `git show origin/main:VERSION`, and shows whether an update is needed based on commit or version difference.
+
+Update Center remains read-only. It displays safe SSH commands for updating, but it does not execute Git or upgrade actions from the browser.

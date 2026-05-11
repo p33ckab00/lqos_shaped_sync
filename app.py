@@ -173,32 +173,44 @@ def _manual_sync_blocked(cfg):
 
 
 
-def _git_status():
+def _git_status(fetch_remote: bool = False):
     """Return lightweight Git/update status for the installed app code.
 
-    This is read-only and safe for dashboard display. It helps operators see
-    whether /opt/lqosync is Git-managed, which branch/commit is installed, and
-    whether the local repo is ahead/behind/diverged.
+    This is read-only and safe for dashboard display. The Update Center can ask
+    for ``fetch_remote=True`` so origin/main is refreshed before comparing local
+    and remote commits. Dashboard/status polling uses the local cached refs to
+    avoid network waits on every refresh.
     """
     root = Path(__file__).resolve().parent
+    version_path = root / "VERSION"
     data = {
         "path": str(root),
         "git_managed": (root / ".git").exists(),
         "branch": "unknown",
         "commit": "unknown",
         "short_commit": "unknown",
+        "remote_commit": "unknown",
+        "remote_short_commit": "unknown",
         "remote": "unknown",
         "upstream": "unknown",
         "relation": "unknown",
+        "ahead": "?",
+        "behind": "?",
         "dirty": False,
+        "fetch_attempted": bool(fetch_remote),
+        "fetch_ok": False,
+        "fetch_error": None,
+        "local_version": version_path.read_text(encoding="utf-8", errors="ignore").strip() if version_path.exists() else "unknown",
+        "remote_version": "unknown",
+        "version_relation": "unknown",
         "error": None,
     }
     if not data["git_managed"]:
         data["relation"] = "not_git_managed"
         return data
 
-    def run_git(args):
-        return subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, timeout=8)
+    def run_git(args, timeout=10):
+        return subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, timeout=timeout)
 
     try:
         res = run_git(["rev-parse", "--abbrev-ref", "HEAD"])
@@ -211,24 +223,50 @@ def _git_status():
         res = run_git(["remote", "get-url", "origin"])
         if res.returncode == 0:
             data["remote"] = res.stdout.strip() or "unknown"
+
+        if fetch_remote and data["remote"] != "unknown":
+            fetch = run_git(["fetch", "origin", "main", "--prune"], timeout=20)
+            if fetch.returncode == 0:
+                data["fetch_ok"] = True
+            else:
+                data["fetch_error"] = (fetch.stderr or fetch.stdout or "git fetch failed").strip()
+
         res = run_git(["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"])
         if res.returncode == 0:
             data["upstream"] = res.stdout.strip() or "unknown"
-            cnt = run_git(["rev-list", "--left-right", "--count", f"HEAD...{data['upstream']}"])
-            if cnt.returncode == 0:
-                parts = cnt.stdout.strip().split()
-                if len(parts) >= 2:
-                    ahead, behind = int(parts[0]), int(parts[1])
-                    data["ahead"] = ahead
-                    data["behind"] = behind
-                    if ahead and behind:
-                        data["relation"] = "diverged"
-                    elif ahead:
-                        data["relation"] = "ahead"
-                    elif behind:
-                        data["relation"] = "behind"
-                    else:
-                        data["relation"] = "up_to_date"
+        elif data["remote"] != "unknown":
+            data["upstream"] = "origin/main"
+
+        upstream = data["upstream"] if data["upstream"] != "unknown" else "origin/main"
+        remote = run_git(["rev-parse", upstream])
+        if remote.returncode == 0:
+            data["remote_commit"] = remote.stdout.strip()
+            data["remote_short_commit"] = data["remote_commit"][:7]
+
+        cnt = run_git(["rev-list", "--left-right", "--count", f"HEAD...{upstream}"])
+        if cnt.returncode == 0:
+            parts = cnt.stdout.strip().split()
+            if len(parts) >= 2:
+                ahead, behind = int(parts[0]), int(parts[1])
+                data["ahead"] = ahead
+                data["behind"] = behind
+                if ahead and behind:
+                    data["relation"] = "diverged"
+                elif ahead:
+                    data["relation"] = "ahead"
+                elif behind:
+                    data["relation"] = "behind"
+                else:
+                    data["relation"] = "up_to_date"
+
+        show_ver = run_git(["show", f"{upstream}:VERSION"])
+        if show_ver.returncode == 0:
+            data["remote_version"] = show_ver.stdout.strip() or "unknown"
+            if data["remote_version"] == data["local_version"]:
+                data["version_relation"] = "same"
+            elif data["remote_version"] != "unknown" and data["local_version"] != "unknown":
+                data["version_relation"] = "different"
+
         res = run_git(["status", "--porcelain"])
         if res.returncode == 0:
             data["dirty"] = bool(res.stdout.strip())
@@ -705,7 +743,7 @@ def update_center():
         "updates.html",
         cfg=cfg,
         state=state,
-        git_status=_git_status(),
+        git_status=_git_status(fetch_remote=True),
         user=current_user(),
     )
 

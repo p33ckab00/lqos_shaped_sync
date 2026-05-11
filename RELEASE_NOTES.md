@@ -1,5 +1,19 @@
 # LQoSync Release Notes
 
+## v2.43.0 - UI Polish and Git Update Detection
+
+### Improved
+
+- Replaced the Privacy Mode topbar icon with an incognito-style operator icon and kept the slash indicator for privacy-off state.
+- Polished the Services & Journals page with equal-height desktop panels, a larger Journal Viewer scroll area, sticky controls, cleaner LibreQoS apply-log cards, and responsive stacked layout on smaller screens.
+- Improved Update Center accuracy by fetching `origin/main` before comparison when the page is opened, then comparing local HEAD against the latest fetched remote commit.
+- Added remote VERSION detection using `origin/main:VERSION`, so the UI can show Installed Version vs GitHub Version and flag updates even when the local cached status previously appeared up to date.
+- Added clearer fetch status, local/remote commit cards, update-needed indication, and refresh guidance.
+
+### Notes
+
+Update Center remains read-only. It checks GitHub status and shows safe SSH commands, but it does not execute `git pull`, reset, or upgrade actions from the browser.
+
 ## v2.42.0 - Privacy UX + Topology Save Fix
 
 ### Improved

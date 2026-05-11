@@ -367,3 +367,29 @@ templates/about.html
 ```
 
 The in-app About module should stay aligned with the latest repository documentation.
+
+
+## v2.39 Operations Dashboard UX
+
+The About module and Dashboard should now describe LQoSync as an operator cockpit, not only a counter page. The dashboard is designed to answer:
+
+```text
+Is the system healthy?
+Why did LibreQoS run or skip?
+Which MikroTik source changed?
+Where did the last cycle spend time?
+Was cleanup safe?
+Who changed, what speed, and which node?
+Is the Git-managed install up to date, behind, ahead, or diverged?
+```
+
+### Dashboard modules
+
+- **System Health**: combines errors, warnings, and pending apply status.
+- **Apply Decision**: explains `files_changed`, `retry_pending_failed_apply`, `force_apply`, `dry_run`, `auto_apply_disabled`, and `no_changes`.
+- **Performance Breakdown**: splits elapsed time into MikroTik API, build/diff, file write, and LibreQoS apply.
+- **Data Source Status**: shows PPPoE/DHCP/Hotspot counts, metadata reads, generated rows, and timing.
+- **Cleanup Safety**: shows allowed cleanup sources and removed rows.
+- **Recent Client Change Feed**: shows client, speed, parent node, and changed fields.
+- **Generated Files and Drift Policy**: shows whether `ShapedDevices.csv` or `network.json` changed and which drift/backup policy applies.
+- **Version / Git Status**: shows Git branch, commit, relation to upstream, and dirty worktree.

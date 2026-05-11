@@ -159,31 +159,42 @@ This gives LQoSync the required read/API access while denying write, reboot, pol
 
 ### Dashboard
 
+The dashboard is the operator cockpit for answering these production questions quickly:
+
+```text
+Is the system healthy?
+Did MikroTik collection succeed?
+Did generated files change?
+Did LibreQoS.py run or skip, and why?
+Who changed, what speed was applied, and which node was affected?
+Where did the last cycle spend time?
+Is cleanup safe?
+Are Git/update and service states healthy?
+```
+
 The dashboard shows:
 
-- scheduler state
-- last sync time
-- next sync time
-- last sync duration
-- router count
-- active PPPoE users
-- DHCP lease count
-- Hotspot active count
-- generated CSV row count
-- generated node count
-- LibreQoS apply result
-- timing cards for major processing stages
-- warnings/errors
-- service status indicators
+- System Health card with errors, warnings, and pending apply state.
+- LibreQoS Apply card with trigger state, exit code, duration, and pending retry status.
+- Scheduler card with enabled/disabled state and next run information.
+- Source counters for PPPoE, DHCP, Hotspot, generated CSV rows, and network nodes.
+- Apply Decision panel explaining why LibreQoS ran, skipped, retried, or was blocked by dry-run/auto-apply policy.
+- Performance Breakdown with MikroTik API time, build/diff time, file write time, and LibreQoS apply time.
+- Data Source Status for PPPoE, DHCP, and Hotspot collector counts and read timing.
+- Last Sync Timeline with started time, status, file-change state, LibreQoS result, speed resolver summary, client changes, and process steps.
+- Cleanup Safety card showing which source cleanups were allowed and how many rows were removed.
+- Recent Client Change Feed showing affected clients, speed, parent node, and speed source.
+- Speed Source Breakdown showing how many rows used comments, profile names, config speeds, or defaults.
+- Generated Files and Drift Policy showing CSV/network change state, backup setting, and file drift behavior.
+- Version/Git Status showing branch, commit, dirty state, and diverged/behind/ahead state.
+- Services Snapshot for lqosd, lqos_scheduler, LQoSync, and optional legacy services.
 
 Actions:
 
-- Run Sync Now
-- Dry Run Preview
-- Enable Scheduler
-- Disable Scheduler
-- Pause Scheduler
-- Resume Scheduler
+- Run Sync Now, only when scheduler auto-apply is not active.
+- Dry Run Preview.
+- Enable/disable scheduler.
+- Navigate to Services & Journals, Logs & Backups, Shaped Devices, and Network Layout.
 
 ### Dry Run Preview
 

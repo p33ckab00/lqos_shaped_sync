@@ -1253,3 +1253,56 @@ Hotspot speed: user comment -> profile comment -> profile name -> profile rate-l
 ```
 
 See `docs/SELECTIVE_COLLECTION.md` and the in-app About module for the full operator guide.
+
+
+## v2.39 Operations Dashboard UX
+
+The Dashboard has been expanded into a production operations cockpit. It now groups information by operator question instead of showing unrelated counters.
+
+### Health and attention
+
+The System Health card combines config errors, sync errors, router errors, warnings, and pending LibreQoS apply state. A healthy state means the last sync completed without errors and no pending apply retry is waiting.
+
+### Apply Decision
+
+The Apply Decision panel explains exactly why LibreQoS was or was not triggered. Examples:
+
+```text
+files_changed              -> generated CSV/network changed, so LibreQoS.py ran
+retry_pending_failed_apply -> a previous apply failed after file writes, so LQoSync retried
+force_apply                -> operator forced LibreQoS.py --updateonly
+dry_run                    -> preview only; no writes and no apply
+auto_apply_disabled        -> files may be written, but automatic apply is disabled
+no_changes                 -> generated files match current files, so LibreQoS.py was skipped
+```
+
+This prevents confusion when `files_changed=false` and `libreqos_triggered=false` are correct behavior.
+
+### Performance Breakdown
+
+The dashboard now shows where cycle time is spent:
+
+```text
+MikroTik API       -> RouterOS connection and selected property reads
+Build / diff       -> CSV/network render and comparison
+File writes        -> atomic write time for changed files
+LibreQoS apply     -> LibreQoS.py --updateonly runtime
+```
+
+If MikroTik API dominates, tune selective collection, cache behavior, and source size. If LibreQoS apply dominates, reduce unnecessary writes and allow apply debounce/cooldown to combine changes.
+
+### Data Source Status
+
+The PPPoE/DHCP/Hotspot source cards show source-specific counts, metadata reads, generated rows, and timing. This helps identify whether PPP secrets, DHCP leases, or Hotspot profiles are the bottleneck.
+
+### Cleanup Safety
+
+The Cleanup Safety card makes source-aware cleanup visible. Rows are removed only for sources that scanned successfully. If a DHCP scan fails, old DHCP rows are preserved instead of mass-deleted.
+
+### Recent Client Change Feed
+
+The dashboard shows the most recent client changes directly: added, updated, removed, speed, parent node, speed source, and changed fields. Detailed history remains in Logs & Backups → Audit Events.
+
+### Git and version visibility
+
+The Dashboard now exposes Git-managed state: branch, commit, dirty worktree, and upstream relation. This helps operators detect `behind`, `ahead`, or `diverged` install states before running a GitHub update.

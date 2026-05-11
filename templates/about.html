@@ -205,13 +205,22 @@
       </div>
       <h3><i class="ti ti-dashboard"></i> Dashboard monitoring added</h3>
       <p>The Dashboard now exposes Collector Health, Source Counts, Speed Source Breakdown, Cache Efficiency, and richer Last Sync Timeline entries. This helps detect whether PPPoE, DHCP, Hotspot, speed resolution, cache, or LibreQoS apply is the current bottleneck.</p>
+      <h3><i class="ti ti-layout-dashboard"></i> v2.39 Operations Dashboard UX</h3>
+      <p>The Dashboard has been expanded into a production operations cockpit. It now explains system health, apply decisions, data source status, cleanup safety, performance breakdown, recent client changes, speed-source breakdown, generated file drift policy, service snapshot, and Git/version state.</p>
+      <div class="two-col" style="margin-top:12px">
+        <div class="note"><b>Apply Decision:</b> Shows why LibreQoS ran or skipped: files changed, retry pending failed apply, force apply, dry-run, auto-apply disabled, or no changes. This avoids confusion when <code>files_changed=false</code> correctly skips LibreQoS.py.</div>
+        <div class="note"><b>Performance Breakdown:</b> Shows how much time is spent in MikroTik API reads, build/diff, file writes, and LibreQoS apply. This makes bottlenecks visible before the network grows to hundreds or thousands of clients.</div>
+        <div class="note"><b>Cleanup Safety:</b> Shows which sources were eligible for stale-row cleanup and how many rows were removed. If a source scan fails, cleanup for that source is blocked to prevent mass deletion.</div>
+        <div class="note"><b>Recent Client Feed:</b> Shows latest client-level changes directly on the Dashboard, including speed, parent node, speed source, and changed fields. Full records remain in Audit Events.</div>
+      </div>
+
       <div class="note warn-note"><b>Excluded for now:</b> separate scan intervals and multi-router concurrency are intentionally not included in this phase. v2.38 focuses on safer selective collection, universal speed resolution, metadata cache visibility, and source-aware cleanup.</div>
     </section>
 
     <section id="features" class="card about-section">
       <h2><i class="ti ti-sparkles text-accent"></i> Features and Modules</h2>
       <div class="feature-grid">
-        <div class="feature"><i class="ti ti-player-play"></i><div><b>Dashboard</b><span>Sync controls, scheduler status, service health, counters, timings, last sync timeline, and latest client-change info bits.</span></div></div>
+        <div class="feature"><i class="ti ti-player-play"></i><div><b>Dashboard</b><span>Operations cockpit with health, apply decision, source status, cleanup safety, timing breakdown, recent client feed, Git status, and last sync timeline.</span></div></div>
         <div class="feature"><i class="ti ti-eye-check"></i><div><b>Dry-run Preview</b><span>Builds proposed CSV/network without writing files or calling LibreQoS.</span></div></div>
         <div class="feature"><i class="ti ti-topology-star-3"></i><div><b>Network Layout</b><span>Router roots, PPP plan nodes, DHCP site nodes, Hotspot nodes, bandwidth math, and JSON view.</span></div></div>
         <div class="feature"><i class="ti ti-device-desktop-analytics"></i><div><b>Shaped Devices</b><span>Searchable/filterable bounded table with row limits, per-column filters, duplicate IP hints, and detail panel.</span></div></div>

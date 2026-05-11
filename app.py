@@ -1,6 +1,7 @@
 import json
 import os
 import secrets
+import subprocess
 from pathlib import Path
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Response, abort
 from dotenv import load_dotenv
@@ -169,6 +170,71 @@ def _manual_sync_blocked(cfg):
     return bool(cfg.get("scheduler", {}).get("enabled", False)) and bool(cfg.get("app", {}).get("auto_apply", True))
 
 
+
+
+def _git_status():
+    """Return lightweight Git/update status for the installed app code.
+
+    This is read-only and safe for dashboard display. It helps operators see
+    whether /opt/lqosync is Git-managed, which branch/commit is installed, and
+    whether the local repo is ahead/behind/diverged.
+    """
+    root = Path(__file__).resolve().parent
+    data = {
+        "path": str(root),
+        "git_managed": (root / ".git").exists(),
+        "branch": "unknown",
+        "commit": "unknown",
+        "short_commit": "unknown",
+        "remote": "unknown",
+        "upstream": "unknown",
+        "relation": "unknown",
+        "dirty": False,
+        "error": None,
+    }
+    if not data["git_managed"]:
+        data["relation"] = "not_git_managed"
+        return data
+
+    def run_git(args):
+        return subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, timeout=8)
+
+    try:
+        res = run_git(["rev-parse", "--abbrev-ref", "HEAD"])
+        if res.returncode == 0:
+            data["branch"] = res.stdout.strip() or "unknown"
+        res = run_git(["rev-parse", "HEAD"])
+        if res.returncode == 0:
+            data["commit"] = res.stdout.strip()
+            data["short_commit"] = data["commit"][:7]
+        res = run_git(["remote", "get-url", "origin"])
+        if res.returncode == 0:
+            data["remote"] = res.stdout.strip() or "unknown"
+        res = run_git(["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"])
+        if res.returncode == 0:
+            data["upstream"] = res.stdout.strip() or "unknown"
+            cnt = run_git(["rev-list", "--left-right", "--count", f"HEAD...{data['upstream']}"])
+            if cnt.returncode == 0:
+                parts = cnt.stdout.strip().split()
+                if len(parts) >= 2:
+                    ahead, behind = int(parts[0]), int(parts[1])
+                    data["ahead"] = ahead
+                    data["behind"] = behind
+                    if ahead and behind:
+                        data["relation"] = "diverged"
+                    elif ahead:
+                        data["relation"] = "ahead"
+                    elif behind:
+                        data["relation"] = "behind"
+                    else:
+                        data["relation"] = "up_to_date"
+        res = run_git(["status", "--porcelain"])
+        if res.returncode == 0:
+            data["dirty"] = bool(res.stdout.strip())
+    except Exception as exc:
+        data["error"] = str(exc)
+    return data
+
 def _service_status(service):
     cfg = load_config(CONFIG_PATH)
     return service_status(cfg, service).get("active", "unknown")
@@ -231,7 +297,7 @@ def dashboard():
     cfg, state = get_status()
     services = all_service_status(cfg)
     errors, warnings = validate_config(cfg)
-    return render_template("dashboard.html", cfg=cfg, state=state, services=services, config_errors=errors, config_warnings=warnings, user=current_user())
+    return render_template("dashboard.html", cfg=cfg, state=state, services=services, git_status=_git_status(), config_errors=errors, config_warnings=warnings, user=current_user())
 
 
 @app.route("/sync/run", methods=["POST"])
@@ -662,6 +728,7 @@ def download_network():
 def api_status():
     _cfg, state = get_status()
     state["sync_lock_running"] = scheduler.is_running()
+    state["git_status"] = _git_status()
     return jsonify(state)
 
 

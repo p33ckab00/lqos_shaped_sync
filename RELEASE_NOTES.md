@@ -1,5 +1,18 @@
 # Release Notes
 
+## v2.39.0 - Operations Dashboard UX
+
+- Expanded the Dashboard into a production operations cockpit focused on health, apply decisions, source status, timing, cleanup safety, client changes, and Git/update visibility.
+- Added Apply Decision explanation so operators can see why LibreQoS ran, skipped, retried a pending failed apply, was forced, or was blocked by dry-run/auto-apply policy.
+- Added Performance Breakdown with MikroTik API time, build/diff time, file write time, and LibreQoS apply time.
+- Added Data Source Status cards for PPPoE, DHCP, and Hotspot collector counts, metadata read stats, generated rows, and timing.
+- Added Cleanup Safety visibility for source-aware cleanup and removed row counts.
+- Added Recent Client Change Feed on the Dashboard with client, speed, parent node, speed source, and changed fields.
+- Added Generated Files and Drift Policy card for CSV/network change state, backup setting, and file drift policy.
+- Added Version/Git Status card showing branch, commit, dirty state, and upstream relation such as up-to-date, behind, ahead, or diverged.
+- Updated the About module and documentation to describe the new operator dashboard model.
+
+
 ## v2.38.0 - Selective MikroTik Collection
 
 - Added selective RouterOS field reads for PPPoE, DHCP, and Hotspot collectors.

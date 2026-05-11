@@ -1,31 +1,52 @@
 {% extends "base.html" %}{% block content %}
 {% set last = state.get('last_run') if state else None %}
 {% set dry = state.get('last_dry_run') if state else None %}
+{% set diff = last.get('diff', {}) if last else {} %}
 {% set counts = last.get('counts', {}) if last else {} %}
 {% set timings = last.get('timings', {}) if last else {} %}
+{% set timeline = last.get('timeline', []) if last else [] %}
 {% set sched_enabled = cfg.get('scheduler', {}).get('enabled', false) %}
 {% set auto_apply = cfg.get('app', {}).get('auto_apply', true) %}
 {% set manual_blocked = sched_enabled and auto_apply %}
 {% set pending_apply = state.get('pending_libreqos_apply', false) if state else false %}
-{% set change_summary = last.diff.client_change_summary if last and last.diff and last.diff.client_change_summary else none %}
-{% set client_changes = last.diff.client_changes if last and last.diff and last.diff.client_changes else [] %}
-{% set collector_metrics = last.diff.collector_metrics if last and last.diff and last.diff.collector_metrics else {} %}
-{% set speed_breakdown = last.diff.speed_source_breakdown if last and last.diff and last.diff.speed_source_breakdown else {} %}
-{% set cache_metrics = last.diff.cache_metrics if last and last.diff and last.diff.cache_metrics else {} %}
+{% set change_summary = diff.get('client_change_summary') if diff else none %}
+{% set client_changes = diff.get('client_changes', []) if diff else [] %}
+{% set collector_metrics = diff.get('collector_metrics', {}) if diff else {} %}
+{% set speed_breakdown = diff.get('speed_source_breakdown', {}) if diff else {} %}
+{% set cache_metrics = diff.get('cache_metrics', {}) if diff else {} %}
+{% set apply_decision = diff.get('libreqos_apply_decision', 'no_result') if diff else 'no_result' %}
+{% set apply_working_dir = diff.get('libreqos_working_dir') or cfg.get('libreqos', {}).get('working_dir', '/opt/libreqos/src') %}
+{% set cycle_ms = timings.get('cycle_total', 0) if timings else 0 %}
+{% set api_ms = timings.get('routers_total', 0) if timings else 0 %}
+{% set build_ms = (timings.get('csv_render',0) + timings.get('network_render',0) + timings.get('diff',0)) if timings else 0 %}
+{% set write_ms = (timings.get('csv_write',0) + timings.get('network_write',0)) if timings else 0 %}
+{% set apply_ms = timings.get('libreqos_apply', 0) if timings else 0 %}
+{% set warn_count = (last.get('warnings', [])|length if last else 0) + (config_warnings|length) %}
+{% set error_count = (last.get('errors', [])|length if last else 0) + (last.get('router_errors', [])|length if last else 0) + (config_errors|length) %}
+{% set generated_rows = counts.get('pppoe',0) + counts.get('dhcp',0) + counts.get('hotspot',0) %}
+{% set source_count = (1 if counts.get('pppoe',0) else 0) + (1 if counts.get('dhcp',0) else 0) + (1 if counts.get('hotspot',0) else 0) %}
+{% set cleanup = collector_metrics.get('cleanup', {}) if collector_metrics else {} %}
+{% set git = git_status or {} %}
+<style>
+  .ops-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:10px;margin-top:10px}
+  .metric-list{display:grid;gap:8px}.metric-row{display:grid;grid-template-columns:150px 1fr 88px;align-items:center;gap:10px;font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+  .bar-track{height:8px;border-radius:999px;background:rgba(148,163,184,.18);overflow:hidden}.bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--c-accent),var(--c-accent2))}
+  .op-line{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--br0);border-radius:10px;padding:8px 10px;font-family:var(--font-mono);font-size:11px;color:var(--muted);align-items:center}.op-line strong{color:var(--txt)}
+  .feed-item{border:1px solid var(--br0);border-radius:10px;padding:10px;background:rgba(2,6,23,.20)}.feed-title{display:flex;justify-content:space-between;gap:10px;align-items:center;font-family:var(--font-mono);font-size:12px}.feed-meta{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:6px;line-height:1.45}.decision-box{border:1px solid var(--br0);border-radius:12px;padding:12px;background:rgba(15,23,42,.38)}
+  .timeline-list{display:grid;gap:7px}.timeline-step{display:grid;grid-template-columns:1fr 90px 88px;gap:8px;align-items:start;border:1px solid var(--br0);border-radius:10px;padding:8px 10px}.timeline-details{grid-column:1/-1;color:var(--hint);white-space:normal;font-size:10px;margin-top:2px}.source-card{border:1px solid var(--br0);border-radius:12px;padding:12px;background:rgba(11,18,32,.48)}
+  :root[data-theme=light] .decision-box,:root[data-theme=light] .feed-item,:root[data-theme=light] .source-card{background:#fff}
+  @media(max-width:1100px){.ops-grid{grid-template-columns:1fr}.metric-row{grid-template-columns:1fr}.timeline-step{grid-template-columns:1fr}.timeline-details{grid-column:1}.op-line{display:block}.op-line span:last-child{display:block;margin-top:4px}}
+</style>
 <div x-data="{state:null,lastRunFinished:'{{ last.finished_at if last else '' }}', refresh(){fetch('/api/status').then(r=>r.json()).then(j=>{const f=(j.last_run&&j.last_run.finished_at)||''; if(this.lastRunFinished && f && f!==this.lastRunFinished){this.lastRunFinished=f; setTimeout(()=>window.location.reload(),250);} else if(!this.lastRunFinished && f){this.lastRunFinished=f;} this.state=j;}).catch(()=>{})}}" x-init="refresh(); setInterval(()=>refresh(), {{ cfg.get('ui',{}).get('refresh_seconds',5) }}000)">
   <div class="page-header">
     <div>
-      <div class="page-title">Dashboard</div>
-      <div class="page-subtitle">Database-free live MikroTik → LibreQoS controller · {{ (cfg.get('routers') or [{}])[0].get('name','No router') }}</div>
+      <div class="page-title">Operations Dashboard</div>
+      <div class="page-subtitle">Production control plane for MikroTik collection, LibreQoS file generation, apply decisions, and timing metrics · {{ (cfg.get('routers') or [{}])[0].get('name','No router') }}</div>
     </div>
     <div class="btn-row">
       {% if user.role == 'admin' %}
       <form method="post" action="/sync/dry-run">{{ csrf_field()|safe }}<button class="btn"><i class="ti ti-eye"></i> Dry run</button></form>
-      {% if manual_blocked %}
-      <button class="btn btn-primary" disabled title="Auto update via scheduler is active"><i class="ti ti-refresh"></i> Run sync now</button>
-      {% else %}
-      <form method="post" action="/sync/run">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-refresh"></i> Run sync now</button></form>
-      {% endif %}
+      {% if manual_blocked %}<button class="btn btn-primary" disabled title="Auto update via scheduler is active"><i class="ti ti-refresh"></i> Run sync now</button>{% else %}<form method="post" action="/sync/run">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-refresh"></i> Run sync now</button></form>{% endif %}
       <form method="post" action="/scheduler/{{ 'disable' if sched_enabled else 'enable' }}">{{ csrf_field()|safe }}<button class="btn"><i class="ti {{ 'ti-player-pause' if sched_enabled else 'ti-player-play' }}"></i> {{ 'Disable' if sched_enabled else 'Enable' }} scheduler</button></form>
       {% endif %}
     </div>
@@ -34,142 +55,165 @@
   {% if config_errors %}<div class="card" style="border-color:rgba(239,68,68,.5);margin-bottom:12px"><div class="card-title text-err"><i class="ti ti-alert-circle"></i> Config Errors</div><ul class="mono text-err text-sm" style="padding-left:18px">{% for e in config_errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
   {% if config_warnings %}<div class="card" style="border-color:rgba(245,158,11,.5);margin-bottom:12px"><div class="card-title text-warn"><i class="ti ti-alert-triangle"></i> Config Warnings</div><ul class="mono text-warn text-sm" style="padding-left:18px">{% for w in config_warnings %}<li>{{ w }}</li>{% endfor %}</ul></div>{% endif %}
 
-  {% if manual_blocked %}
-  <div class="card" style="border-color:rgba(34,197,94,.35);margin-bottom:12px;background:rgba(34,197,94,.08)">
-    <div class="card-title"><i class="ti ti-refresh-dot text-accent"></i> Auto update via scheduler is active</div>
-    <div class="text-sm" style="color:var(--muted)">Manual Run Sync Now is disabled to avoid overlapping operator-triggered applies. The scheduler will automatically write changed files and run LibreQoS.py immediately when changes are detected. Use Dry Run for preview, or disable the scheduler to run manually.</div>
-  </div>
-  {% endif %}
-  {% if pending_apply %}
-  <div class="card" style="border-color:rgba(245,158,11,.5);margin-bottom:12px;background:rgba(245,158,11,.08)">
-    <div class="card-title text-warn"><i class="ti ti-alert-triangle"></i> Pending LibreQoS apply</div>
-    <div class="text-sm" style="color:var(--muted)">The last LibreQoS apply failed or did not complete. LQoSync will retry automatically on the next non-dry-run cycle. You can also use Services & Journals → Force LibreQoS Apply.</div>
-  </div>
-  {% endif %}
-
-  {% if dry %}
-  <a href="/sync/dry-run" class="card" style="display:flex;gap:10px;align-items:center;margin-bottom:12px;text-decoration:none;border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.08)">
-    <i class="ti ti-info-circle text-dhcp" style="font-size:19px"></i>
-    <span class="text-sm">Last dry run: <b class="text-dhcp">+{{ dry.diff.csv.counts.added if dry.diff and dry.diff.csv else 0 }}</b> added, <b class="text-dhcp">~{{ dry.diff.csv.counts.updated if dry.diff and dry.diff.csv else 0 }}</b> updated, <b class="text-dhcp">-{{ dry.diff.csv.counts.removed if dry.diff and dry.diff.csv else 0 }}</b> removed. Preview available.</span>
-  </a>
-  {% endif %}
+  {% if manual_blocked %}<div class="card" style="border-color:rgba(34,197,94,.35);margin-bottom:12px;background:rgba(34,197,94,.08)"><div class="card-title"><i class="ti ti-refresh-dot text-accent"></i> Auto update via scheduler is active</div><div class="text-sm" style="color:var(--muted)">Manual Run Sync Now is disabled to avoid overlapping applies. The scheduler writes changed files and runs LibreQoS.py automatically when changes are detected. Dry Run remains available for preview.</div></div>{% endif %}
+  {% if pending_apply %}<div class="card" style="border-color:rgba(245,158,11,.5);margin-bottom:12px;background:rgba(245,158,11,.08)"><div class="card-title text-warn"><i class="ti ti-alert-triangle"></i> Pending LibreQoS apply</div><div class="text-sm" style="color:var(--muted)">Files were written but the last apply failed or did not complete. LQoSync will retry on the next non-dry-run cycle, or you can use Services & Journals → Force LibreQoS Apply.</div></div>{% endif %}
+  {% if dry %}<a href="/sync/dry-run" class="card" style="display:flex;gap:10px;align-items:center;margin-bottom:12px;text-decoration:none;border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.08)"><i class="ti ti-info-circle text-dhcp" style="font-size:19px"></i><span class="text-sm">Last dry run: <b class="text-dhcp">+{{ dry.diff.csv.counts.added if dry.diff and dry.diff.csv else 0 }}</b> added, <b class="text-dhcp">~{{ dry.diff.csv.counts.updated if dry.diff and dry.diff.csv else 0 }}</b> updated, <b class="text-dhcp">-{{ dry.diff.csv.counts.removed if dry.diff and dry.diff.csv else 0 }}</b> removed. Preview available.</span></a>{% endif %}
 
   <section class="grid-stats">
-    <div class="stat"><div class="stat-label"><span class="dot {{ 'dot-green pulse' if sched_enabled else 'dot-idle' }}"></span> Scheduler</div><div class="stat-value" x-text="state ? state.scheduler_state : '{{ state.get('scheduler_state','idle') }}'">{{ state.get('scheduler_state','idle') }}</div><div class="stat-sub">enabled={{ sched_enabled }}</div></div>
-    <div class="stat"><div class="stat-label"><i class="ti ti-router"></i> Routers</div><div class="stat-value">{{ last.routers_processed if last else 0 }}</div><div class="stat-sub">processed last cycle</div></div>
-    <div class="stat"><div class="stat-label"><i class="ti ti-file-spreadsheet"></i> CSV Rows</div><div class="stat-value text-accent">{{ counts.get('csv_rows', 0) }}</div><div class="stat-sub">ShapedDevices.csv</div></div>
-    <div class="stat"><div class="stat-label"><i class="ti ti-topology-star-3"></i> Nodes</div><div class="stat-value">{{ counts.get('nodes', 0) }}</div><div class="stat-sub">network.json</div></div>
+    <div class="stat"><div class="stat-label"><span class="dot {{ 'dot-err' if error_count else ('dot-warn' if warn_count or pending_apply else 'dot-green pulse') }}"></span> System Health</div><div class="stat-value {{ 'text-err' if error_count else ('text-warn' if warn_count or pending_apply else 'text-accent') }}">{{ 'Error' if error_count else ('Warn' if warn_count or pending_apply else 'Healthy') }}</div><div class="stat-sub">errors={{ error_count }} · warnings={{ warn_count }}</div></div>
+    <div class="stat"><div class="stat-label"><i class="ti ti-bolt"></i> LibreQoS Apply</div><div class="stat-value {{ 'text-accent' if last and last.libreqos_exit_code == 0 else ('text-warn' if pending_apply else '') }}">{{ 'OK' if last and last.libreqos_exit_code == 0 else ('Pending' if pending_apply else (last.libreqos_exit_code if last and last.libreqos_exit_code is not none else '—')) }}</div><div class="stat-sub">triggered={{ last.libreqos_triggered if last else false }} · {{ (apply_ms/1000)|round(3) if apply_ms else '—' }}s</div></div>
+    <div class="stat"><div class="stat-label"><span class="dot {{ 'dot-green pulse' if sched_enabled else 'dot-idle' }}"></span> Scheduler</div><div class="stat-value" x-text="state ? state.scheduler_state : '{{ state.get('scheduler_state','idle') }}'">{{ state.get('scheduler_state','idle') }}</div><div class="stat-sub">enabled={{ sched_enabled }} · next=<span x-text="state ? (state.next_run_at || 'n/a') : '{{ state.get('next_run_at','n/a') }}'"></span></div></div>
+    <div class="stat"><div class="stat-label"><i class="ti ti-alert-triangle"></i> Attention</div><div class="stat-value {{ 'text-err' if error_count else ('text-warn' if warn_count else 'text-accent') }}">{{ error_count + warn_count }}</div><div class="stat-sub">items needing review</div></div>
   </section>
 
   <section class="grid-stats" style="margin-top:10px">
-    <div class="stat"><div class="stat-label"><span class="badge b-ppp">PPP</span> PPPoE Active</div><div class="stat-value text-ppp">{{ counts.get('pppoe',0) }}</div><div class="stat-sub">active PPP sessions</div></div>
-    <div class="stat"><div class="stat-label"><span class="badge b-dhcp">DHCP</span> DHCP Leases</div><div class="stat-value text-dhcp">{{ counts.get('dhcp',0) }}</div><div class="stat-sub">included DHCP leases</div></div>
+    <div class="stat"><div class="stat-label"><span class="badge b-ppp">PPP</span> PPPoE</div><div class="stat-value text-ppp">{{ counts.get('pppoe',0) }}</div><div class="stat-sub">active PPP sessions</div></div>
+    <div class="stat"><div class="stat-label"><span class="badge b-dhcp">DHCP</span> DHCP</div><div class="stat-value text-dhcp">{{ counts.get('dhcp',0) }}</div><div class="stat-sub">included DHCP leases</div></div>
     <div class="stat"><div class="stat-label"><span class="badge b-hs">HS</span> Hotspot</div><div class="stat-value text-hs">{{ counts.get('hotspot',0) }}</div><div class="stat-sub">active hotspot users</div></div>
-    <div class="stat"><div class="stat-label"><i class="ti ti-bolt"></i> LibreQoS Apply</div><div class="stat-value {{ 'text-accent' if last and last.libreqos_exit_code == 0 else '' }}">{{ last.libreqos_exit_code if last and last.libreqos_exit_code is not none else '—' }}</div><div class="stat-sub">triggered={{ last.libreqos_triggered if last else false }} · pending=<span x-text="state ? state.pending_libreqos_apply : '{{ pending_apply }}'">{{ pending_apply }}</span></div></div>
+    <div class="stat"><div class="stat-label"><i class="ti ti-file-spreadsheet"></i> Generated Rows</div><div class="stat-value text-accent">{{ counts.get('csv_rows', 0) }}</div><div class="stat-sub">{{ counts.get('nodes',0) }} nodes · {{ generated_rows }} source rows</div></div>
   </section>
 
   <section class="grid-stats" style="margin-top:10px">
-    <div class="stat"><div class="stat-label"><i class="ti ti-gauge"></i> Cycle Total</div><div class="stat-value text-accent">{{ (timings.get('cycle_total',0) / 1000)|round(3) if timings else 0 }}s</div><div class="stat-sub">full sync elapsed time</div></div>
-    <div class="stat"><div class="stat-label"><i class="ti ti-router"></i> MikroTik Scan</div><div class="stat-value">{{ (timings.get('routers_total',0) / 1000)|round(3) if timings else 0 }}s</div><div class="stat-sub">connect + PPP/DHCP/HS</div></div>
-    <div class="stat"><div class="stat-label"><i class="ti ti-file-code"></i> Build Files</div><div class="stat-value">{{ ((timings.get('csv_render',0) + timings.get('network_render',0) + timings.get('diff',0)) / 1000)|round(3) if timings else 0 }}s</div><div class="stat-sub">render CSV/network/diff</div></div>
-    <div class="stat"><div class="stat-label"><i class="ti ti-bolt"></i> LibreQoS Apply Time</div><div class="stat-value">{{ (timings.get('libreqos_apply',0) / 1000)|round(3) if timings.get('libreqos_apply') else '—' }}</div><div class="stat-sub">LibreQoS.py --updateonly</div></div>
+    <div class="stat"><div class="stat-label"><i class="ti ti-gauge"></i> Cycle Total</div><div class="stat-value text-accent">{{ (cycle_ms / 1000)|round(3) if cycle_ms else 0 }}s</div><div class="stat-sub">full sync elapsed</div></div>
+    <div class="stat"><div class="stat-label"><i class="ti ti-router"></i> MikroTik API</div><div class="stat-value">{{ (api_ms / 1000)|round(3) if api_ms else 0 }}s</div><div class="stat-sub">connect + selective reads</div></div>
+    <div class="stat"><div class="stat-label"><i class="ti ti-file-code"></i> Build / Diff</div><div class="stat-value">{{ (build_ms / 1000)|round(3) if build_ms else 0 }}s</div><div class="stat-sub">CSV + network + compare</div></div>
+    <div class="stat"><div class="stat-label"><i class="ti ti-cache"></i> Cache Efficiency</div><div class="stat-value">{{ cache_metrics.get('hits',0) }}/{{ cache_metrics.get('misses',0) }}</div><div class="stat-sub">hits/misses · changes={{ cache_metrics.get('changes',0) }}</div></div>
   </section>
 
-
-
-  <section class="grid-stats" style="margin-top:10px">
-    <div class="stat"><div class="stat-label"><i class="ti ti-heart-rate-monitor"></i> Collector Health</div><div class="stat-value text-accent">{{ collector_metrics|length }}</div><div class="stat-sub">source metric groups in last cycle</div></div>
-    <div class="stat"><div class="stat-label"><i class="ti ti-database-search"></i> Source Reads</div><div class="stat-value">{{ counts.get('pppoe',0) + counts.get('dhcp',0) + counts.get('hotspot',0) }}</div><div class="stat-sub">generated rows across collectors</div></div>
-    <div class="stat"><div class="stat-label"><i class="ti ti-chart-pie"></i> Speed Sources</div><div class="stat-value">{{ speed_breakdown|length }}</div><div class="stat-sub">resolver source types used</div></div>
-    <div class="stat"><div class="stat-label"><i class="ti ti-cache"></i> Cache</div><div class="stat-value">{{ cache_metrics.get('hits',0) }}/{{ cache_metrics.get('misses',0) }}</div><div class="stat-sub">hits / misses · changes={{ cache_metrics.get('changes',0) }}</div></div>
+  <section class="ops-grid">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-route"></i> Apply Decision</div>
+      <div class="decision-box">
+        <div class="mono text-sm" style="display:grid;gap:8px;color:var(--muted)">
+          <div style="display:flex;justify-content:space-between;gap:10px"><span>Decision</span><span class="badge {{ 'b-ok' if last and last.libreqos_triggered else ('b-warn' if pending_apply else 'b-static') }}">{{ apply_decision.replace('_',' ') }}</span></div>
+          <div style="display:flex;justify-content:space-between;gap:10px"><span>Files changed</span><span>{{ last.files_changed if last else false }}</span></div>
+          <div style="display:flex;justify-content:space-between;gap:10px"><span>CSV / network</span><span>{{ last.csv_changed if last else false }} / {{ last.network_changed if last else false }}</span></div>
+          <div style="display:flex;justify-content:space-between;gap:10px"><span>Dry run</span><span>{{ last.mode == 'dry_run' if last else false }}</span></div>
+          <div style="display:flex;justify-content:space-between;gap:10px"><span>Working dir</span><span>{{ apply_working_dir }}</span></div>
+        </div>
+        <div class="text-sm" style="color:var(--muted);margin-top:12px;line-height:1.55">
+          {% if apply_decision == 'files_changed' %}LibreQoS ran because generated files changed after this cycle.
+          {% elif apply_decision == 'retry_pending_failed_apply' %}LibreQoS ran because a previous file write left a pending failed apply marker.
+          {% elif apply_decision == 'force_apply' %}LibreQoS was forced manually using the current files.
+          {% elif apply_decision == 'dry_run' %}Dry-run preview never writes files or applies LibreQoS.
+          {% elif apply_decision == 'auto_apply_disabled' %}Files may have been written, but auto-apply is disabled; a manual force apply is required.
+          {% elif apply_decision == 'no_changes' %}Generated output matched current files, so LibreQoS.py was skipped to avoid unnecessary reload.
+          {% else %}No apply decision has been recorded yet. Run sync or dry-run to populate this panel.
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-chart-bar"></i> Performance Breakdown</div>
+      <div class="metric-list">
+        <div class="metric-row"><span>MikroTik API</span><div class="bar-track"><div class="bar-fill" style="width:{{ ((api_ms / cycle_ms) * 100)|round(1) if cycle_ms else 0 }}%"></div></div><span>{{ api_ms|round(1) }}ms</span></div>
+        <div class="metric-row"><span>Build / diff</span><div class="bar-track"><div class="bar-fill" style="width:{{ ((build_ms / cycle_ms) * 100)|round(1) if cycle_ms else 0 }}%"></div></div><span>{{ build_ms|round(1) }}ms</span></div>
+        <div class="metric-row"><span>File writes</span><div class="bar-track"><div class="bar-fill" style="width:{{ ((write_ms / cycle_ms) * 100)|round(1) if cycle_ms else 0 }}%"></div></div><span>{{ write_ms|round(1) }}ms</span></div>
+        <div class="metric-row"><span>LibreQoS apply</span><div class="bar-track"><div class="bar-fill" style="width:{{ ((apply_ms / cycle_ms) * 100)|round(1) if cycle_ms else 0 }}%"></div></div><span>{{ apply_ms|round(1) if apply_ms else '—' }}ms</span></div>
+      </div>
+      <div class="text-sm" style="color:var(--muted);margin-top:12px">Use this card to spot bottlenecks. If MikroTik API dominates, tune collector fields/cache. If LibreQoS apply dominates, reduce unnecessary file changes and rely on apply cooldown.</div>
+    </div>
   </section>
 
   <section class="layout-grid" style="margin-top:10px">
     <div class="card">
-      <div class="card-title"><i class="ti ti-heart-rate-monitor"></i> Collector Monitoring</div>
-      {% if collector_metrics %}
+      <div class="card-title"><i class="ti ti-database-search"></i> Data Source Status</div>
       <div style="display:grid;gap:8px">
+        {% if collector_metrics %}
         {% for key, m in collector_metrics.items() if key != 'cleanup' %}
-        <div class="math-line" style="white-space:normal">
-          <b>{{ key }}</b> · {{ m.source }} · rows={{ m.generated_rows if m.generated_rows is defined else m.valid_leases if m.valid_leases is defined else m.active_matched if m.active_matched is defined else 0 }}
-          <br><span style="color:var(--hint)">
-          {% if m.source == 'PPPoE' %}active={{ m.active_sessions }} secrets={{ m.secrets_loaded }} profiles={{ m.profiles_loaded }} reads={{ m.read_active_ms }}ms/{{ m.read_secrets_ms }}ms/{{ m.read_profiles_ms }}ms parse={{ m.parse_ms }}ms{% endif %}
-          {% if m.source == 'DHCP' %}leases={{ m.leases_scanned }} valid={{ m.valid_leases }} skipped={{ m.skipped_leases }} mode={{ m.lease_mode }} read={{ m.read_leases_ms }}ms server-meta={{ m.read_servers_ms }}ms parse={{ m.parse_ms }}ms{% endif %}
-          {% if m.source == 'Hotspot' %}active={{ m.active_users }} users={{ m.users_loaded }} profiles={{ m.profiles_loaded }} enhanced={{ m.enhanced_metadata }} read={{ m.read_active_ms }}ms/{{ m.read_users_ms }}ms/{{ m.read_profiles_ms }}ms parse={{ m.parse_ms }}ms{% endif %}
-          </span>
+        <div class="source-card">
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b class="mono">{{ m.source or key }}</b><span class="badge b-ok">OK</span></div>
+          <div class="mono text-xs" style="color:var(--muted);margin-top:6px;line-height:1.55">
+            {% if m.source == 'PPPoE' %}active={{ m.active_sessions }} · secrets={{ m.secrets_loaded }} · profiles={{ m.profiles_loaded }} · rows={{ m.generated_rows }} · read={{ m.read_active_ms }}ms/{{ m.read_secrets_ms }}ms/{{ m.read_profiles_ms }}ms{% endif %}
+            {% if m.source == 'DHCP' %}leases={{ m.leases_scanned }} · valid={{ m.valid_leases }} · skipped={{ m.skipped_leases }} · mode={{ m.lease_mode }} · server metadata={{ m.dhcp_servers_loaded }}{% endif %}
+            {% if m.source == 'Hotspot' %}active={{ m.active_users }} · users={{ m.users_loaded }} · profiles={{ m.profiles_loaded }} · enhanced={{ m.enhanced_metadata }} · rows={{ m.generated_rows }}{% endif %}
+          </div>
         </div>
         {% endfor %}
-        {% if collector_metrics.cleanup %}<div class="math-line" style="white-space:normal"><b>cleanup</b> · removed={{ collector_metrics.cleanup.removed }} · sources={{ collector_metrics.cleanup.sources|join(', ') }}</div>{% endif %}
+        {% else %}<div class="mono text-sm" style="color:var(--muted)">No source metrics yet. Run sync/dry-run.</div>{% endif %}
       </div>
-      {% else %}<div class="mono text-sm" style="color:var(--muted)">No collector metrics yet. Run sync/dry-run.</div>{% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-timeline"></i> Last Sync Timeline</div>
+      {% if last %}
+      <div class="timeline-list">
+        <div class="timeline-step"><div class="mono"><span class="dot dot-green"></span> Started</div><div class="mono text-xs">{{ last.started_at }}</div><span class="badge {{ 'b-ok' if last.status == 'success' else ('b-warn' if last.status == 'dry_run_complete' else 'b-err') }}">{{ last.status }}</span></div>
+        <div class="timeline-step"><div class="mono"><span class="dot {{ 'dot-green' if last.files_changed else 'dot-idle' }}"></span> Generated files</div><div class="mono text-xs">{{ 'changed' if last.files_changed else 'unchanged' }}</div><span class="badge {{ 'b-ok' if last.files_changed else 'b-static' }}">CSV={{ last.csv_changed }} · NET={{ last.network_changed }}</span></div>
+        <div class="timeline-step"><div class="mono"><span class="dot {{ 'dot-green' if last.libreqos_triggered else 'dot-idle' }}"></span> LibreQoS apply</div><div class="mono text-xs">{{ (apply_ms/1000)|round(3) if apply_ms else '—' }}s</div><span class="badge {{ 'b-ok' if last.libreqos_exit_code == 0 else ('b-warn' if not last.libreqos_triggered else 'b-err') }}">{{ 'exit 0' if last.libreqos_exit_code == 0 else ('skipped' if not last.libreqos_triggered else 'exit ' ~ last.libreqos_exit_code) }}</span></div>
+        {% if speed_breakdown %}<div class="timeline-step"><div class="mono"><span class="dot dot-green"></span> Speed resolver</div><div class="mono text-xs">{{ speed_breakdown|length }} sources</div><span class="badge b-ok">{{ counts.get('csv_rows',0) }} rows</span><div class="timeline-details">{% for source,n in speed_breakdown.items()|sort %}{{ source.replace('_',' ') }}={{ n }}{% if not loop.last %}, {% endif %}{% endfor %}</div></div>{% endif %}
+        {% if change_summary %}<div class="timeline-step"><div class="mono"><span class="dot {{ 'dot-green' if change_summary.counts.total else 'dot-idle' }}"></span> Client changes</div><div class="mono text-xs">{{ change_summary.counts.total if change_summary.counts else 0 }}</div><span class="badge {{ 'b-ok' if change_summary.counts.total else 'b-static' }}">{{ change_summary.summary_text }}</span>{% if change_summary.clients_preview %}<div class="timeline-details"><i class="ti ti-users"></i> {{ change_summary.clients_preview }}</div>{% endif %}</div>{% endif %}
+        {% for item in timeline[:8] %}
+        <div class="timeline-step"><div class="mono">{{ item.step.replace('_',' ') }}</div><div class="mono text-xs">{{ item.duration_ms }}ms</div><span class="badge {{ 'b-ok' if item.status == 'ok' else ('b-warn' if item.status == 'failed' else 'b-static') }}">{{ item.status }}</span>{% if item.details %}<div class="timeline-details">{{ item.details }}</div>{% endif %}</div>
+        {% endfor %}
+      </div>
+      {% else %}<div class="mono text-sm" style="color:var(--muted)">No sync result yet. Run dry-run or manual sync.</div>{% endif %}
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-shield-check"></i> Cleanup Safety</div>
+      <div style="display:grid;gap:8px">
+        <div class="op-line"><span>Source-aware cleanup</span><strong>{{ 'active' if cleanup else 'waiting for scan' }}</strong></div>
+        <div class="op-line"><span>Allowed sources</span><strong>{{ cleanup.get('sources', [])|join(', ') if cleanup else '—' }}</strong></div>
+        <div class="op-line"><span>Removed rows</span><strong>{{ cleanup.get('removed', 0) if cleanup else 0 }}</strong></div>
+        <div class="op-line"><span>Static preservation</span><strong>{{ cfg.get('defaults', {}).get('static_comment_value','static') }}</strong></div>
+      </div>
+      <div class="text-sm" style="color:var(--muted);margin-top:12px">Cleanup only removes stale rows for sources that scanned successfully. If PPP/DHCP/Hotspot fails, rows from that source are preserved to avoid mass deletion.</div>
+    </div>
+  </section>
+
+  <section class="ops-grid">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-users"></i> Recent Client Change Feed</div>
+      {% if client_changes %}
+      <div style="display:grid;gap:8px">
+        {% for c in client_changes[:8] %}
+        <div class="feed-item">
+          <div class="feed-title"><span>{{ c.client }}</span><span class="badge {{ 'b-ok' if c.change_type == 'added' else ('b-warn' if c.change_type == 'updated' else 'b-err') }}">{{ c.change_type }}</span></div>
+          <div class="feed-meta">speed={{ c.speed or c.after_speed or c.before_speed or 'n/a' }} · node={{ c.parent_node or c.after_parent_node or c.before_parent_node or 'no parent' }}{% if c.speed_source %} · source={{ c.speed_source.replace('_',' ') }}{% endif %}{% if c.changed_fields %}<br>changed={{ c.changed_fields.keys()|list|join(', ') }}{% endif %}</div>
+        </div>
+        {% endfor %}
+        {% if client_changes|length > 8 %}<div class="mono text-xs" style="color:var(--hint)">+{{ client_changes|length - 8 }} more. Open Logs & Backups → Audit Events for full review.</div>{% endif %}
+      </div>
+      {% else %}<div class="mono text-sm" style="color:var(--muted)">No client changes recorded in the last run. This is normal when generated files are unchanged.</div>{% endif %}
     </div>
     <div class="card">
       <div class="card-title"><i class="ti ti-chart-pie"></i> Speed Source Breakdown</div>
       {% if speed_breakdown %}
       <div style="display:grid;gap:8px">
         {% for source, n in speed_breakdown.items()|sort %}
-        <div class="mono text-sm" style="display:flex;justify-content:space-between;border:1px solid var(--br0);border-radius:8px;padding:7px 9px"><span>{{ source.replace('_',' ') }}</span><b class="text-accent">{{ n }}</b></div>
+        <div class="op-line"><span>{{ source.replace('_',' ') }}</span><strong class="text-accent">{{ n }}</strong></div>
         {% endfor %}
       </div>
       {% else %}<div class="mono text-sm" style="color:var(--muted)">No speed-source data yet. Run sync/dry-run.</div>{% endif %}
     </div>
   </section>
 
-  <section class="layout-grid">
+  <section class="layout-grid" style="margin-top:10px">
     <div class="card">
-      <div class="card-title"><i class="ti ti-clock"></i> Scheduler</div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span class="dot {{ 'dot-green pulse' if sched_enabled else 'dot-idle' }}"></span><div class="mono" style="font-size:15px" x-text="state ? state.scheduler_state : '{{ state.get('scheduler_state','idle') }}'"></div></div>
-      <div class="mono text-sm" style="display:grid;gap:7px;color:var(--muted)">
-        <div style="display:flex;justify-content:space-between"><span>Last run</span><span>{{ last.started_at if last else 'none' }}</span></div>
-        <div style="display:flex;justify-content:space-between"><span>Next run</span><span x-text="state ? (state.next_run_at || 'n/a') : '{{ state.get('next_run_at','n/a') }}'"></span></div>
-        <div style="display:flex;justify-content:space-between"><span>Duration</span><span>{{ last.duration_seconds if last else 0 }}s</span></div>
-        <div style="display:flex;justify-content:space-between"><span>Files changed</span><span>{{ last.files_changed if last else false }}</span></div>
+      <div class="card-title"><i class="ti ti-files"></i> Generated Files and Drift Policy</div>
+      <div style="display:grid;gap:8px">
+        <div class="op-line"><span>ShapedDevices.csv</span><strong>{{ 'changed' if last and last.csv_changed else 'unchanged' }}</strong></div>
+        <div class="op-line"><span>network.json</span><strong>{{ 'changed' if last and last.network_changed else 'unchanged' }}</strong></div>
+        <div class="op-line"><span>Drift policy</span><strong>{{ cfg.get('app',{}).get('file_drift_policy','overwrite_with_backup') }}</strong></div>
+        <div class="op-line"><span>Backup before apply</span><strong>{{ cfg.get('app',{}).get('backup_before_apply', true) }}</strong></div>
       </div>
-      {% if user.role == 'admin' %}
-      <div class="btn-row" style="margin-top:12px">
-        {% if manual_blocked %}
-        <button class="btn" disabled title="Auto update via scheduler is active"><i class="ti ti-player-play"></i> Run now</button>
-        {% else %}
-        <form method="post" action="/scheduler/run-now">{{ csrf_field()|safe }}<button class="btn"><i class="ti ti-player-play"></i> Run now</button></form>
-        {% endif %}
-        <form method="post" action="/scheduler/{{ 'pause' if sched_enabled else 'resume' }}">{{ csrf_field()|safe }}<button class="btn"><i class="ti {{ 'ti-player-pause' if sched_enabled else 'ti-player-play' }}"></i> {{ 'Pause' if sched_enabled else 'Resume' }}</button></form>
-      </div>
-      {% endif %}
     </div>
-
     <div class="card">
-      <div class="card-title"><i class="ti ti-list-check"></i> Last Sync Timeline</div>
-      {% if last %}
-      <div class="mono text-sm" style="display:grid;gap:8px;color:var(--muted)">
-        <div><span class="dot dot-green"></span> Started: <span class="text-accent">{{ last.started_at }}</span></div>
-        <div><span class="dot {{ 'dot-green' if last.status == 'success' else 'dot-warn' }}"></span> Status: <span class="{{ 'text-accent' if last.status == 'success' else 'text-warn' }}">{{ last.status }}</span></div>
-        <div><span class="dot {{ 'dot-green' if last.csv_changed else 'dot-idle' }}"></span> CSV changed: {{ last.csv_changed }}</div>
-        <div><span class="dot {{ 'dot-green' if last.network_changed else 'dot-idle' }}"></span> network.json changed: {{ last.network_changed }}</div>
-        <div><span class="dot {{ 'dot-green' if last.libreqos_triggered else 'dot-idle' }}"></span> LibreQoS apply: {{ last.libreqos_triggered }}</div>
-        {% if collector_metrics %}<div><span class="dot dot-green"></span> Collectors: {{ collector_metrics|length }} metric groups · cache {{ cache_metrics.get('hits',0) }} hit(s), {{ cache_metrics.get('misses',0) }} miss(es)</div>{% endif %}
-        {% if speed_breakdown %}<div style="white-space:normal"><span class="dot dot-green"></span> Speed resolver: {% for source,n in speed_breakdown.items()|sort %}{{ source.replace('_',' ') }}={{ n }}{% if not loop.last %}, {% endif %}{% endfor %}</div>{% endif %}
-        {% if change_summary %}
-        <div style="border-top:1px solid var(--br0);margin-top:8px;padding-top:8px">
-          <div><span class="dot {{ 'dot-green' if change_summary.counts.total else 'dot-idle' }}"></span> Client changes: <span class="text-accent">{{ change_summary.summary_text }}</span></div>
-          {% if change_summary.clients_preview %}<div style="white-space:normal"><i class="ti ti-users"></i> {{ change_summary.clients_preview }}</div>{% endif %}
-          {% for c in client_changes[:5] %}
-          <div class="math-line" style="margin:6px 0;white-space:normal">
-            <b>{{ c.change_type|upper }}</b> · {{ c.client }} · {{ c.speed }} · {{ c.parent_node or c.before_parent_node or 'no parent' }}
-            {% if c.changed_fields %}<br><span style="color:var(--hint)">Changed: {{ c.changed_fields.keys()|list|join(', ') }}</span>{% endif %}
-          </div>
-          {% endfor %}
-          {% if change_summary.total_changes and change_summary.total_changes > 5 %}<div class="mono text-xs" style="color:var(--hint)">+{{ change_summary.total_changes - 5 }} more change events. See Logs & Backups → Audit Events.</div>{% endif %}
-        </div>
-        {% endif %}
+      <div class="card-title"><i class="ti ti-brand-github"></i> Version / Git Status</div>
+      <div style="display:grid;gap:8px">
+        <div class="op-line"><span>Installed commit</span><strong>{{ git.short_commit or 'unknown' }}</strong></div>
+        <div class="op-line"><span>Branch</span><strong>{{ git.branch or 'unknown' }}</strong></div>
+        <div class="op-line"><span>Relation</span><strong class="{{ 'text-warn' if git.relation in ['diverged','behind','ahead'] else 'text-accent' }}">{{ (git.relation or 'unknown').replace('_',' ') }}</strong></div>
+        <div class="op-line"><span>Dirty worktree</span><strong>{{ git.dirty }}</strong></div>
       </div>
-      {% else %}<div class="mono text-sm" style="color:var(--muted)">No sync result yet. Run dry-run or manual sync.</div>{% endif %}
+      <div class="text-sm" style="color:var(--muted);margin-top:12px">If Git relation is diverged/behind, use the GitHub installer or upgrade script with preservation policy. Live config/users/logs remain operator-owned and should not be overwritten by normal code updates.</div>
     </div>
-
     <div class="card">
-      <div class="card-title"><i class="ti ti-server"></i> Services</div>
+      <div class="card-title"><i class="ti ti-server"></i> Services Snapshot</div>
       <div style="display:grid;gap:7px">
         {% for svc,info in services.items() %}
-        <div class="mono text-sm" style="display:flex;align-items:center;justify-content:space-between;border:1px solid var(--br0);border-radius:8px;padding:7px 9px;gap:8px"><span>{{ svc }}{% if info.legacy_optional %} <span class="badge b-warn">legacy</span>{% endif %}</span><span style="display:flex;align-items:center;gap:6px"><span class="badge {{ 'b-ok' if info.active == 'active' else ('b-warn' if info.active == 'not_installed' or info.load == 'not-found' else 'b-err') }}">{{ 'not installed' if info.active == 'not_installed' else info.active }}</span>{% if user.role == 'admin' and info.active != 'not_installed' %}<form method="post" action="/services/{{ svc }}/restart" onsubmit="return confirm('Restart {{ svc }}?')">{{ csrf_field()|safe }}<button class="action-btn" title="Restart {{ svc }}" type="submit"><i class="ti ti-refresh"></i></button></form>{% endif %}</span></div>
+        <div class="op-line"><span>{{ svc }}{% if info.legacy_optional %} <span class="badge b-warn">legacy</span>{% endif %}</span><strong class="{{ 'text-accent' if info.active == 'active' else ('text-warn' if info.active == 'not_installed' else 'text-err') }}">{{ 'not installed' if info.active == 'not_installed' else info.active }}</strong></div>
         {% endfor %}
       </div>
       <div class="btn-row" style="margin-top:12px"><a class="btn" href="/services"><i class="ti ti-terminal-2"></i> Services & Journals</a></div>
@@ -179,19 +223,14 @@
   <section class="bottom-grid" style="margin-top:10px">
     <div class="card">
       <div class="card-title"><i class="ti ti-topology-star-3"></i> Node Math Preview</div>
-      {% if last and last.node_math %}
-      <div style="display:grid;gap:8px">
-        {% for node, math in last.node_math.items() %}
-        <a href="/network" class="math-line" style="display:block;text-decoration:none;margin:0"><b>{{ node }}</b><br>{{ math.formula }}</a>
-        {% endfor %}
-      </div>
-      {% else %}<div class="mono text-sm" style="color:var(--muted)">No node math yet. Run sync/dry-run.</div>{% endif %}
+      {% if last and last.node_math %}<div style="display:grid;gap:8px">{% for node, math in last.node_math.items() %}<a href="/network" class="math-line" style="display:block;text-decoration:none;margin:0"><b>{{ node }}</b><br>{{ math.formula }}</a>{% endfor %}</div>{% else %}<div class="mono text-sm" style="color:var(--muted)">No node math yet. Run sync/dry-run.</div>{% endif %}
     </div>
     <div class="card">
-      <div class="card-title"><i class="ti ti-terminal-2"></i> Warnings / Errors</div>
-      {% if last and (last.warnings or last.errors) %}
-        {% if last.warnings %}<div class="text-warn mono text-sm" style="margin-bottom:8px">{% for w in last.warnings %}⚠ {{ w }}<br>{% endfor %}</div>{% endif %}
-        {% if last.errors %}<div class="text-err mono text-sm">{% for e in last.errors %}✖ {{ e }}<br>{% endfor %}</div>{% endif %}
+      <div class="card-title"><i class="ti ti-alert-triangle"></i> Warnings and Errors</div>
+      {% if last and (last.warnings or last.errors or last.router_errors) %}
+        {% if last.errors %}<div class="text-err mono text-sm" style="margin-bottom:8px">{% for e in last.errors %}✖ {{ e }}<br>{% endfor %}</div>{% endif %}
+        {% if last.router_errors %}<div class="text-err mono text-sm" style="margin-bottom:8px">{% for e in last.router_errors %}✖ {{ e.router }} {{ e.source or '' }}: {{ e.error }}<br>{% endfor %}</div>{% endif %}
+        {% if last.warnings %}<div class="text-warn mono text-sm">{% for w in last.warnings %}⚠ {{ w }}<br>{% endfor %}</div>{% endif %}
       {% else %}<div class="mono text-sm" style="color:var(--muted)">No warnings or errors in last run.</div>{% endif %}
       <div class="btn-row" style="margin-top:12px"><a class="btn" href="/logs"><i class="ti ti-file-text"></i> View logs</a><a class="btn" href="/devices"><i class="ti ti-device-desktop-analytics"></i> Devices</a><a class="btn" href="/network"><i class="ti ti-topology-star"></i> Network</a></div>
     </div>

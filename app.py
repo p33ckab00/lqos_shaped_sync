@@ -640,6 +640,28 @@ def discover_dhcp(router_idx):
 
 
 
+
+
+@app.route("/updates")
+@admin_required
+def update_center():
+    """Read-only Git/update operations center.
+
+    The UI intentionally shows commands and status instead of running arbitrary
+    git operations from the browser. Operators can copy the recommended safe
+    commands and run them in SSH, where sudo prompts, backups, and policy
+    choices are visible.
+    """
+    cfg, state = get_status()
+    return render_template(
+        "updates.html",
+        cfg=cfg,
+        state=state,
+        git_status=_git_status(),
+        user=current_user(),
+    )
+
+
 @app.route("/about")
 @login_required
 def about_page():

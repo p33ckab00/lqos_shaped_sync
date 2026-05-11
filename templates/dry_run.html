@@ -24,6 +24,17 @@
   <div class="stat"><div class="stat-label"><i class="ti ti-bolt"></i> Would Apply</div><div class="stat-value {{ 'text-warn' if result.files_changed else '' }}">{{ result.files_changed }}</div><div class="stat-sub">LibreQoS only on fresh apply</div></div>
 </section>
 
+<section class="card" style="margin-top:10px;border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.06)">
+  <div class="card-title"><i class="ti ti-shield-check text-accent"></i> Safe Simulation Report</div>
+  <div class="grid-stats" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+    <div class="stat"><div class="stat-label">Duplicate IPs</div><div class="stat-value {{ 'text-warn' if result.warnings and ('duplicate' in (result.warnings|join(' ')|lower)) else 'text-accent' }}">{{ 'Check' if result.warnings and ('duplicate' in (result.warnings|join(' ')|lower)) else 'OK' }}</div></div>
+    <div class="stat"><div class="stat-label">Parent nodes</div><div class="stat-value {{ 'text-warn' if result.warnings and ('parent' in (result.warnings|join(' ')|lower)) else 'text-accent' }}">{{ 'Check' if result.warnings and ('parent' in (result.warnings|join(' ')|lower)) else 'OK' }}</div></div>
+    <div class="stat"><div class="stat-label">Invalid speeds</div><div class="stat-value {{ 'text-err' if result.errors and ('speed' in (result.errors|join(' ')|lower) or 'bandwidth' in (result.errors|join(' ')|lower)) else 'text-accent' }}">{{ 'Block' if result.errors and ('speed' in (result.errors|join(' ')|lower) or 'bandwidth' in (result.errors|join(' ')|lower)) else 'OK' }}</div></div>
+    <div class="stat"><div class="stat-label">LibreQoS apply</div><div class="stat-value text-dhcp">Never</div><div class="stat-sub">dry-run mode</div></div>
+  </div>
+  <p class="text-sm" style="color:var(--muted);margin-top:10px">Dry-run uses the same collection, speed resolver, node builder, diff, and preflight path as live sync, but it does not write files and does not run <code>LibreQoS.py --updateonly</code>. Use this before enabling scheduler auto-apply or after changing Config Center settings.</p>
+</section>
+
 <section class="two-grid" style="margin-top:10px">
   <div class="card">
     <div class="card-title"><i class="ti ti-device-desktop-analytics"></i> Circuit Diff</div>

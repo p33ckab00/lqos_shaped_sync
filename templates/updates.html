@@ -1,0 +1,77 @@
+{% extends "base.html" %}{% block content %}
+{% set git = git_status or {} %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Update Center</div>
+    <div class="page-subtitle">Read-only GitHub source status, preservation policy, and production-safe update commands.</div>
+  </div>
+  <div class="btn-row">
+    <a class="btn" href="/about#github-update"><i class="ti ti-book"></i> Update docs</a>
+    <a class="btn" href="/services"><i class="ti ti-server"></i> Services</a>
+  </div>
+</div>
+
+{% set relation = git.get('relation','unknown') %}
+<div class="card" style="border-color:{{ 'rgba(239,68,68,.45)' if relation == 'diverged' else ('rgba(245,158,11,.45)' if relation in ['ahead','behind','dirty'] or git.get('dirty') else 'rgba(34,197,94,.35)') }};background:{{ 'rgba(239,68,68,.08)' if relation == 'diverged' else ('rgba(245,158,11,.08)' if relation in ['ahead','behind','dirty'] or git.get('dirty') else 'rgba(34,197,94,.08)') }};margin-bottom:12px">
+  <div class="card-title"><i class="ti {{ 'ti-alert-triangle text-err' if relation == 'diverged' else ('ti-alert-circle text-warn' if relation in ['ahead','behind','dirty'] or git.get('dirty') else 'ti-circle-check text-accent') }}"></i> Git update status</div>
+  <div class="text-sm" style="color:var(--muted)">
+    {% if relation == 'up_to_date' %}This install is Git-managed and appears up to date with its upstream branch.{% endif %}
+    {% if relation == 'behind' %}This install is behind the GitHub branch. A safe update can pull newer app code while preserving config, users, logs, state, and LibreQoS files.{% endif %}
+    {% if relation == 'ahead' %}This install has local commits not present on GitHub. Review before updating or use backup-and-reset policy if GitHub is the app-code source of truth.{% endif %}
+    {% if relation == 'diverged' %}Local and remote Git histories diverged. Recommended production action: backup local branch, reset app code to GitHub main, then run preserve-and-migrate install.{% endif %}
+    {% if relation == 'not_git_managed' %}This install is not Git-managed. Use the adoption command to safely convert it to a GitHub-managed install without losing operator data.{% endif %}
+  </div>
+</div>
+
+<section class="grid-stats">
+  <div class="stat"><div class="stat-label"><i class="ti ti-code"></i> Version</div><div class="stat-value">{{ version }}</div><div class="stat-sub">installed app version</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-git-branch"></i> Branch</div><div class="stat-value">{{ git.get('branch','unknown') }}</div><div class="stat-sub">{{ git.get('upstream','no upstream') }}</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-hash"></i> Commit</div><div class="stat-value">{{ git.get('short_commit','unknown') }}</div><div class="stat-sub">dirty={{ git.get('dirty', false) }}</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-arrows-split"></i> Relation</div><div class="stat-value {{ 'text-err' if relation == 'diverged' else ('text-warn' if relation in ['ahead','behind'] else 'text-accent') }}">{{ relation }}</div><div class="stat-sub">ahead={{ git.get('ahead','?') }} · behind={{ git.get('behind','?') }}</div></div>
+</section>
+
+<section class="two-grid" style="margin-top:12px">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-shield-check"></i> Default safe update</div>
+    <p class="text-sm" style="color:var(--muted)">This is the recommended production update. It pulls source code from GitHub, preserves operator-owned data, migrates only missing safe config defaults, reapplies permissions, and restarts the service.</p>
+    <pre class="mono" style="white-space:pre-wrap;background:var(--bg2);border:1px solid var(--br0);border-radius:10px;padding:12px;font-size:11px">cd /opt/lqosync
+sudo UPDATE_POLICY=preserve_and_migrate bash upgrade.sh</pre>
+    <div class="note" style="margin-top:10px"><b>Preserved:</b> /opt/libreqos/src/config.json, ShapedDevices.csv, network.json, /opt/lqosync/users.json, .env, state, logs, and backups.</div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-git-compare"></i> Diverged history recovery</div>
+    <p class="text-sm" style="color:var(--muted)">Use this when git pull fails because local and remote histories diverged. It backs up the local branch, resets app code to GitHub main, and keeps live operational files outside the app-code history.</p>
+    <pre class="mono" style="white-space:pre-wrap;background:var(--bg2);border:1px solid var(--br0);border-radius:10px;padding:12px;font-size:11px">cd /opt/lqosync
+sudo git branch backup-before-reset-$(date +%F_%H%M%S)
+sudo git fetch origin main
+sudo git reset --hard origin/main
+sudo LQOSYNC_INIT_POLICY=preserve_existing bash install.sh
+sudo systemctl restart lqos_shaped_sync</pre>
+  </div>
+</section>
+
+<section class="two-grid" style="margin-top:12px">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-download"></i> Adopt existing ZIP/manual install</div>
+    <p class="text-sm" style="color:var(--muted)">Use this if /opt/lqosync exists but was not installed by Git clone. It creates a safety backup, pulls the GitHub source, restores local users/env/logs/state, and runs preserve-existing install.</p>
+    <pre class="mono" style="white-space:pre-wrap;background:var(--bg2);border:1px solid var(--br0);border-radius:10px;padding:12px;font-size:11px">cd /opt
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/lqos_shaped_sync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+sudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh</pre>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-list-check"></i> Update policy options</div>
+    <div style="display:grid;gap:8px">
+      <div class="op-line"><strong>pull_only</strong><span>Fetch/pull code only. No install, migration, dependency update, or restart.</span></div>
+      <div class="op-line"><strong>code_only</strong><span>Update app code but avoid touching live config/runtime files.</span></div>
+      <div class="op-line"><strong>preserve_and_migrate</strong><span>Recommended default. Preserve live files and add safe missing defaults.</span></div>
+      <div class="op-line"><strong>refresh_with_backup</strong><span>Major repair/refresh with backups, permissions, and service reinstall.</span></div>
+      <div class="op-line"><strong>factory_reset</strong><span>Danger mode; requires explicit confirmation.</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="card" style="margin-top:12px">
+  <div class="card-title"><i class="ti ti-info-circle"></i> Why updates are not executed directly from this page</div>
+  <p class="text-sm" style="color:var(--muted)">Git updates can stop services, rewrite application code, repair permissions, and migrate config. LQoSync shows exact commands here so the operator can run them over SSH with full terminal visibility, sudo control, backups, and rollback context.</p>
+</div>
+{% endblock %}

@@ -1,3 +1,13 @@
+# v2.40.0 - Operator Experience Polish
+
+- Added a Dashboard health summary banner that explains healthy/warning/error/pending-apply states in operator-friendly language.
+- Added Dashboard “What changed last sync?” and Apply Decision explanation panels.
+- Added Config Center change preview and save confirmation for important settings such as scheduler, apply policy, collector settings, network mode, and router/source settings.
+- Added Safe Simulation Report to Dry Run Preview with risk-check style status for duplicate IPs, parent nodes, invalid speeds, and explicit dry-run no-apply behavior.
+- Added Update Center with read-only Git status, branch/commit relation, diverged-history guidance, safe update commands, and adoption commands for ZIP/manual installs.
+- Added mobile card mode for Shaped Devices so phones can inspect clients without relying only on a wide table.
+- Updated About module and repository documentation with the v2.40 operator-experience model.
+
 # Release Notes
 
 ## v2.39.0 - Operations Dashboard UX

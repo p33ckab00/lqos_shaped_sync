@@ -214,6 +214,18 @@
         <div class="note"><b>Recent Client Feed:</b> Shows latest client-level changes directly on the Dashboard, including speed, parent node, speed source, and changed fields. Full records remain in Audit Events.</div>
       </div>
 
+      
+      <h3><i class="ti ti-sparkles"></i> v2.40 Operator Experience Polish</h3>
+      <p>LQoSync v2.40 expands the UI from a data display into an operator-guided experience. The interface now explains what happened, why it happened, and what the safe next action is.</p>
+      <div class="two-col" style="margin-top:12px">
+        <div class="note"><b>Health summary banner:</b> The Dashboard shows a human-readable status such as Healthy, Warning, Pending Apply, or Action Needed instead of forcing operators to interpret raw booleans.</div>
+        <div class="note"><b>What changed panel:</b> The Dashboard summarizes added, updated, removed, and total client changes, with a client feed for speed, parent node, and source changes.</div>
+        <div class="note"><b>Config change preview:</b> Config Center shows important changes before saving and prompts the operator to confirm network mode, scheduler, collector, apply-policy, and router/source changes.</div>
+        <div class="note"><b>Safe dry-run report:</b> Dry Run Preview now explains risk checks, confirms that LibreQoS will never be applied in dry-run mode, and highlights duplicate IP, parent node, and speed validation state.</div>
+        <div class="note"><b>Update Center:</b> A read-only page shows Git branch, commit, ahead/behind/diverged state, recommended update commands, preservation policy, and adoption commands for ZIP/manual installs.</div>
+        <div class="note"><b>Mobile card mode:</b> Shaped Devices now has a phone-friendly card view so operators can inspect clients without scrolling a wide table on mobile.</div>
+      </div>
+
       <div class="note warn-note"><b>Excluded for now:</b> separate scan intervals and multi-router concurrency are intentionally not included in this phase. v2.38 focuses on safer selective collection, universal speed resolution, metadata cache visibility, and source-aware cleanup.</div>
     </section>
 

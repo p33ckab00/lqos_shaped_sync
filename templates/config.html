@@ -78,6 +78,21 @@ function cfgEditor(initial) {
     removeFactor(router, i){ router.pppoe.factor_rules.splice(i,1); },
     submitTest(){ this.syncHidden(); this.$refs.testRouterIdx.value = String(this.routerIndex ?? 0); this.$refs.testPayload.value = this.jsonText; this.$refs.testForm.submit(); },
     submitDiscover(){ this.syncHidden(); this.$refs.discoverRouterIdx.value = String(this.routerIndex ?? 0); this.$refs.discoverPayload.value = this.jsonText; this.$refs.discoverForm.submit(); },
+    changedPaths(){
+      const before = window.initialConfig || {}; const after = this.cfg; const paths = [
+        ['scheduler.enabled','Scheduler enabled'], ['app.auto_apply','Auto apply'], ['app.backup_before_apply','Backup before apply'], ['network_mode','Network mode'],
+        ['libreqos.run_mode','LibreQoS run mode'], ['libreqos.working_dir','LibreQoS working directory'], ['libreqos.retry_if_last_apply_failed','Retry failed apply'],
+        ['collector.selective_fields','Selective MikroTik fields'], ['collector.dhcp.lease_mode','DHCP lease mode'], ['collector.hotspot.enhanced_metadata','Hotspot enhanced metadata'],
+        ['ui.default_theme','Default theme']
+      ];
+      const get=(obj,path)=>path.split('.').reduce((o,k)=>o&&o[k], obj);
+      const out=[];
+      paths.forEach(([path,label])=>{ const a=get(after,path), b=get(before,path); if(JSON.stringify(a)!==JSON.stringify(b)) out.push({path,label,before:b,after:a}); });
+      if(JSON.stringify(before.routers||[])!==JSON.stringify(after.routers||[])) out.push({path:'routers',label:'Router/source settings',before:(before.routers||[]).length+' router(s)',after:(after.routers||[]).length+' router(s)'});
+      return out;
+    },
+    configDiffHtml(){ const changes=this.changedPaths(); if(!changes.length) return '<div class="cfg-help">No important changes detected yet. Saving will still normalize config.json safely.</div>'; return changes.slice(0,8).map(c=>`<div class="op-line"><strong>${c.label}</strong><span>${JSON.stringify(c.before)} → ${JSON.stringify(c.after)}</span></div>`).join('') + (changes.length>8?`<div class="cfg-help">+${changes.length-8} more changed groups</div>`:''); },
+    confirmSave(form){ this.syncHidden(); const changes=this.changedPaths(); let msg='Save normalized config.json?'; if(changes.length){ msg+='\n\nChange preview:'; changes.slice(0,10).forEach(c=>{msg+=`\n- ${c.label}: ${JSON.stringify(c.before)} -> ${JSON.stringify(c.after)}`;}); if(changes.length>10) msg+=`\n- +${changes.length-10} more`; } else { msg+='\n\nNo important changes detected; config will still be normalized.'; } msg+='\n\nRecommended after major changes: run Dry Run Preview before enabling scheduler auto-apply.'; if(confirm(msg)) form.submit(); },
     nodePreview(template, values){ return (template || '').replaceAll('{router}', values.router || '').replaceAll('{server}', values.server || '').replaceAll('{profile}', values.profile || 'Tier-15M').replaceAll('{plan}', values.plan || '15M'); }
   }
 }
@@ -90,7 +105,7 @@ function cfgEditor(initial) {
 </style>
 
 <div x-data="cfgEditor(window.initialConfig)" class="space-y-4">
-  <form method="post" @submit="syncHidden()" class="space-y-4">{{ csrf_field()|safe }}
+  <form method="post" @submit.prevent="confirmSave($el)" class="space-y-4">{{ csrf_field()|safe }}
     <input type="hidden" name="config_json" x-ref="configJson">
 
     <div class="page-header">
@@ -340,6 +355,12 @@ function cfgEditor(initial) {
       </main>
 
       <aside class="cfg-side space-y-3">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-git-compare"></i> Config Change Preview</div>
+          <p class="text-xs" style="color:var(--muted);margin-bottom:10px">Shows important changes before saving. This protects router credentials, apply policy, scheduler, collector behavior, and topology settings from accidental edits.</p>
+          <div style="display:grid;gap:7px" x-html="configDiffHtml()"></div>
+          <div class="note" style="margin-top:10px"><b>Recommended:</b> after changing router, speed, collector, or network-mode settings, run Dry Run Preview before enabling live scheduler auto-apply.</div>
+        </div>
         <div class="card">
           <div class="flex items-center justify-between mb-3"><div class="card-title" style="margin-bottom:0"><i class="ti ti-code"></i> Live Raw JSON</div><button type="button" @click="openRaw()" class="btn" style="padding:5px 9px">Edit</button></div>
           <p class="text-xs" style="color:var(--muted);margin-bottom:10px">This is the exact normalized payload posted to config.json on save.</p>

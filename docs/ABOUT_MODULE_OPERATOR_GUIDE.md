@@ -393,3 +393,22 @@ Is the Git-managed install up to date, behind, ahead, or diverged?
 - **Recent Client Change Feed**: shows client, speed, parent node, and changed fields.
 - **Generated Files and Drift Policy**: shows whether `ShapedDevices.csv` or `network.json` changed and which drift/backup policy applies.
 - **Version / Git Status**: shows Git branch, commit, relation to upstream, and dirty worktree.
+
+
+## LQoSync v2.40 Operator Experience Polish
+
+This release improves the operator-facing UI/UX without changing the core LibreQoS-safe sync workflow. It focuses on making the dashboard explain decisions, risks, and next actions clearly.
+
+### Added UI/UX behavior
+
+- **Health Summary Banner** — shows whether the system is healthy, warning, pending apply, or action-needed.
+- **What Changed Panel** — summarizes added, updated, removed, and total client changes from the last sync.
+- **Apply Decision Explanation** — explains why LibreQoS ran or skipped, including no changes, dry-run, files changed, forced apply, or retry of a pending failed apply.
+- **Config Change Preview** — Config Center previews important config changes before saving and encourages dry-run after major changes.
+- **Safe Dry Run Report** — Dry Run Preview highlights duplicate IP, parent-node, speed validation, and confirms that dry-run never writes or applies.
+- **Update Center** — shows Git/version state and recommended production-safe update/adoption commands without running arbitrary shell operations from the browser.
+- **Mobile Shaped Devices Cards** — mobile users get compact device cards instead of relying only on a wide table.
+
+### Operator principle
+
+The UI should answer: what happened, why did LQoSync decide that, what changed, was cleanup safe, did LibreQoS apply successfully, where did time go, and what is the safest next action.

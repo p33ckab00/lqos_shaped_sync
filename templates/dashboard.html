@@ -59,6 +59,46 @@
   {% if pending_apply %}<div class="card" style="border-color:rgba(245,158,11,.5);margin-bottom:12px;background:rgba(245,158,11,.08)"><div class="card-title text-warn"><i class="ti ti-alert-triangle"></i> Pending LibreQoS apply</div><div class="text-sm" style="color:var(--muted)">Files were written but the last apply failed or did not complete. LQoSync will retry on the next non-dry-run cycle, or you can use Services & Journals → Force LibreQoS Apply.</div></div>{% endif %}
   {% if dry %}<a href="/sync/dry-run" class="card" style="display:flex;gap:10px;align-items:center;margin-bottom:12px;text-decoration:none;border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.08)"><i class="ti ti-info-circle text-dhcp" style="font-size:19px"></i><span class="text-sm">Last dry run: <b class="text-dhcp">+{{ dry.diff.csv.counts.added if dry.diff and dry.diff.csv else 0 }}</b> added, <b class="text-dhcp">~{{ dry.diff.csv.counts.updated if dry.diff and dry.diff.csv else 0 }}</b> updated, <b class="text-dhcp">-{{ dry.diff.csv.counts.removed if dry.diff and dry.diff.csv else 0 }}</b> removed. Preview available.</span></a>{% endif %}
 
+
+  <div class="card" style="margin-bottom:12px;border-color:{{ 'rgba(239,68,68,.45)' if error_count else ('rgba(245,158,11,.45)' if warn_count or pending_apply else 'rgba(34,197,94,.35)') }};background:{{ 'rgba(239,68,68,.08)' if error_count else ('rgba(245,158,11,.08)' if warn_count or pending_apply else 'rgba(34,197,94,.08)') }}">
+    <div class="card-title"><i class="ti {{ 'ti-alert-circle text-err' if error_count else ('ti-alert-triangle text-warn' if warn_count or pending_apply else 'ti-circle-check text-accent') }}"></i> Operator health summary</div>
+    <div class="text-sm" style="color:var(--muted);line-height:1.55">
+      {% if error_count %}<b class="text-err">Action needed.</b> One or more errors were recorded in the last cycle or config validation. Open Logs & Backups or Services & Journals for the exact failure.{% elif pending_apply %}<b class="text-warn">Apply retry pending.</b> Files were written but the last LibreQoS apply failed; the next non-dry-run cycle will retry automatically.{% elif warn_count %}<b class="text-warn">System is running with warnings.</b> Review warnings before changing scheduler/apply policy.{% else %}<b class="text-accent">System healthy.</b> MikroTik collection, file generation, and LibreQoS apply state are normal based on the last recorded cycle.{% endif %}
+    </div>
+    <div class="pillline" style="margin-top:10px">
+      <span class="small-pill">apply={{ 'pending' if pending_apply else (last.libreqos_exit_code if last and last.libreqos_exit_code is not none else 'idle') }}</span>
+      <span class="small-pill">scheduler={{ 'enabled' if sched_enabled else 'disabled' }}</span>
+      <span class="small-pill">rows={{ generated_rows }}</span>
+      <span class="small-pill">cycle={{ (cycle_ms/1000)|round(3) if cycle_ms else '—' }}s</span>
+    </div>
+  </div>
+
+  <section class="two-grid" style="margin-bottom:12px">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-list-details"></i> What changed last sync?</div>
+      {% if change_summary %}
+      <div class="grid-stats" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+        <div class="stat"><div class="stat-label">Added</div><div class="stat-value text-accent">{{ change_summary.added or 0 }}</div></div>
+        <div class="stat"><div class="stat-label">Updated</div><div class="stat-value text-warn">{{ change_summary.updated or 0 }}</div></div>
+        <div class="stat"><div class="stat-label">Removed</div><div class="stat-value text-err">{{ change_summary.removed or 0 }}</div></div>
+        <div class="stat"><div class="stat-label">Total changes</div><div class="stat-value">{{ change_summary.total or (client_changes|length) }}</div></div>
+      </div>
+      <div class="text-sm" style="color:var(--muted);margin-top:8px">Recent client changes appear below with speed, node, and speed-source details. Full records are stored in Audit Events.</div>
+      {% else %}
+      <div class="text-sm" style="color:var(--muted)">No client-level changes were recorded in the last cycle. This usually means the generated files matched the existing LibreQoS files.</div>
+      {% endif %}
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-help-circle"></i> Apply decision explanation</div>
+      <div class="decision-box">
+        <div class="mono" style="font-size:12px;color:var(--txt)">{{ apply_decision }}</div>
+        <div class="text-sm" style="color:var(--muted);margin-top:8px;line-height:1.5">
+          {% if apply_decision == 'no_changes' %}LibreQoS was skipped because generated files were identical and there was no pending failed apply.{% elif apply_decision == 'files_changed' %}LibreQoS ran because LQoSync wrote changed output files.{% elif apply_decision == 'retry_pending_failed_apply' %}LibreQoS ran because a previous apply failed after files were written.{% elif apply_decision == 'dry_run' %}Dry-run never writes files and never applies LibreQoS.{% else %}The dashboard records why LibreQoS ran or skipped so operators do not need to infer behavior from raw logs.{% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="grid-stats">
     <div class="stat"><div class="stat-label"><span class="dot {{ 'dot-err' if error_count else ('dot-warn' if warn_count or pending_apply else 'dot-green pulse') }}"></span> System Health</div><div class="stat-value {{ 'text-err' if error_count else ('text-warn' if warn_count or pending_apply else 'text-accent') }}">{{ 'Error' if error_count else ('Warn' if warn_count or pending_apply else 'Healthy') }}</div><div class="stat-sub">errors={{ error_count }} · warnings={{ warn_count }}</div></div>
     <div class="stat"><div class="stat-label"><i class="ti ti-bolt"></i> LibreQoS Apply</div><div class="stat-value {{ 'text-accent' if last and last.libreqos_exit_code == 0 else ('text-warn' if pending_apply else '') }}">{{ 'OK' if last and last.libreqos_exit_code == 0 else ('Pending' if pending_apply else (last.libreqos_exit_code if last and last.libreqos_exit_code is not none else '—')) }}</div><div class="stat-sub">triggered={{ last.libreqos_triggered if last else false }} · {{ (apply_ms/1000)|round(3) if apply_ms else '—' }}s</div></div>

@@ -149,9 +149,9 @@
     body.privacy-mode .privacy-banner{display:block}.privacy-banner{display:none;margin-bottom:12px;border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.10);color:var(--txt);border-radius:12px;padding:10px 12px;font-size:12px}.privacy-toggle.active{border-color:rgba(245,158,11,.55);background:rgba(245,158,11,.14);color:var(--txt)}
     .redact{transition:opacity .12s ease}.redact.is-redacted{font-family:var(--font-mono);letter-spacing:.02em;color:var(--txt);background:rgba(100,116,139,.10);border:1px solid rgba(100,116,139,.22);border-radius:5px;padding:0 4px}
     .icon-toggle{position:relative;width:42px;min-width:42px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:10px}
-    .icon-toggle i{font-size:17px}.privacy-slash{position:absolute;font-family:var(--font-mono);font-size:21px;line-height:1;right:10px;top:5px;transform:rotate(14deg);font-weight:700;color:var(--c-err);pointer-events:none}.privacy-toggle.active .privacy-slash{display:none}
-    .privacy-toggle.active .privacy-spy-icon{color:var(--c-warn)}.theme-toggle i{color:var(--c-accent2)}
-    .privacy-spy-icon{width:20px;height:20px;display:block;color:currentColor}.privacy-spy-icon *{vector-effect:non-scaling-stroke}
+    .icon-toggle i{font-size:17px}.privacy-slash{position:absolute;width:24px;height:24px;right:8px;top:5px;pointer-events:none;color:var(--c-err)}.privacy-slash::before{content:'';position:absolute;left:11px;top:0;width:2.5px;height:25px;border-radius:999px;background:currentColor;transform:rotate(42deg);box-shadow:0 0 0 2px var(--bg1)}:root[data-theme=light] .privacy-slash::before{box-shadow:0 0 0 2px #fff}.privacy-toggle.active .privacy-slash{display:none}
+    .privacy-toggle.active{border-color:rgba(14,165,233,.55);background:rgba(14,165,233,.14)}.privacy-toggle.active .privacy-shield-icon{color:var(--c-accent)}.theme-toggle i{color:var(--c-accent2)}
+    .privacy-shield-icon{width:21px;height:21px;display:block;color:currentColor}.privacy-shield-icon *{vector-effect:non-scaling-stroke}
 
   </style>
 </head>
@@ -166,15 +166,12 @@
       <i class="ti ti-sun theme-icon" id="themeIcon"></i>
     </button>
     <button type="button" class="btn icon-toggle privacy-toggle" id="privacyToggle" title="Toggle WebUI privacy/redaction mode" aria-label="Toggle WebUI privacy/redaction mode" onclick="togglePrivacyMode()">
-      <svg class="privacy-spy-icon" id="privacyIcon" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-        <path d="M12 26h40" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-        <path d="M21 26c2-9 3-14 11-14s9 5 11 14" fill="currentColor" opacity=".9"/>
-        <path d="M16 29c4-2 9-3 16-3s12 1 16 3" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-        <path d="M20 36c4 10 20 10 24 0" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-        <path d="M24 36h16" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
-        <path d="M28 36c0 3-2 5-5 5s-5-2-5-5M46 36c0 3-2 5-5 5s-5-2-5-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      <svg class="privacy-shield-icon" id="privacyIcon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 3.2 5.5 5.8v5.6c0 4.1 2.7 7.4 6.5 9.4 3.8-2 6.5-5.3 6.5-9.4V5.8L12 3.2Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+        <path d="M7.8 12.2S9.5 9.7 12 9.7s4.2 2.5 4.2 2.5-1.7 2.5-4.2 2.5-4.2-2.5-4.2-2.5Z" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+        <circle cx="12" cy="12.2" r="1.25" fill="currentColor"/>
       </svg>
-      <span class="privacy-slash" aria-hidden="true">/</span>
+      <span class="privacy-slash" aria-hidden="true"></span>
     </button>
     {% if user %}<span class="user-chip">{{ (user.username or 'ad')[:2] }}</span>{% endif %}
   </header>
@@ -205,7 +202,7 @@
   <div class="mobile-backdrop" id="mobileBackdrop" onclick="closeMobileMenu()"></div>
   <main class="main">
     {% with messages = get_flashed_messages() %}{% if messages %}<div class="flash">{{ messages[0] }}</div>{% endif %}{% endwith %}
-    <div class="privacy-banner" id="privacyBanner"><i class="ti ti-mask"></i> Privacy Mode enabled. Visible client/router identifiers are masked for screenshots only. Source files and logs are unchanged.</div>
+    <div class="privacy-banner" id="privacyBanner"><i class="ti ti-shield-lock"></i> Privacy Mode enabled. Visible client/router identifiers are masked for screenshots only. Source files and logs are unchanged.</div>
     {% block content %}{% endblock %}
   </main>
 </div>

@@ -1399,3 +1399,8 @@ The Services & Journals page now uses equal-height desktop panels for Journal Vi
 Update Center now performs a fresh `git fetch origin main` before comparing local and remote state. It compares local `HEAD` against the latest fetched `origin/main`, displays local and remote commits, reads the remote `VERSION` file using `git show origin/main:VERSION`, and shows whether an update is needed based on commit or version difference.
 
 Update Center remains read-only. It displays safe SSH commands for updating, but it does not execute Git or upgrade actions from the browser.
+
+
+## v2.44 UI polish note
+
+LQoSync v2.44 refines the browser-only Privacy Mode icon and Services & Journals layout. Privacy Mode now uses a shield-and-eye redaction icon with a slash state when masking is disabled. Services & Journals now uses matching scroll-shell panels for Journal Viewer and LibreQoS Apply Logs so both areas line up visually and use the available card height consistently. These changes do not modify the core engine, generated files, or LibreQoS apply logic.

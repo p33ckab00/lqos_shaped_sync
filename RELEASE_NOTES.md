@@ -1,5 +1,18 @@
 # LQoSync Release Notes
 
+## v2.44.0 - Privacy Icon and Services Journal Layout Polish
+
+### Improved
+
+- Replaced the previous incognito-style Privacy Mode icon with a shield-and-eye redaction icon that better matches the purpose of masking visible subscriber, node, IP, MAC, circuit, and ID values for screenshots.
+- Kept the slash overlay for Privacy Mode off and the active highlight for Privacy Mode on, while preserving browser-only redaction behavior.
+- Refined Services & Journals so the Journal Viewer and LibreQoS Apply Logs use matching scroll-shell panels, equal desktop heights, cleaner card rhythm, and aligned scroll behavior.
+- Improved the Journal Viewer container so the log output fills the available panel space instead of looking visually smaller than the LibreQoS Apply Logs column.
+
+### Notes
+
+These are UI/UX polish changes only. The core sync engine, MikroTik collectors, LibreQoS runner, generated files, and apply behavior are unchanged.
+
 ## v2.43.0 - UI Polish and Git Update Detection
 
 ### Improved

@@ -88,3 +88,10 @@ engine/policy_engine.py        runtime decision maker
 policy_state.json              pending confirmations and cleanup queue
 docs/content/*.md              documentation source blocks
 ```
+
+
+## v2.54 First Run Setup Wizard
+
+LQoSync v2.54 adds a guided First Run Setup Wizard. The wizard computes readiness from config, runtime state, setup/repair checks, source configuration, Network Layout mode, Smart Policy preset, Dry Run status, and scheduler state. It gives the operator a clean onboarding path: confirm LibreQoS paths, configure MikroTik routers, enable PPPoE/DHCP/Hotspot sources, choose Network Layout, choose policy preset, run Dry Run, and enable scheduler only after results are clean and expected.
+
+The wizard is read-only while loading. It does not contact routers or write generated LibreQoS files automatically. Policy preset and layout-mode changes are explicit form actions and are followed by a reminder to run Dry Run.

@@ -1,0 +1,112 @@
+{% extends "base.html" %}{% block content %}
+<style>
+  .wizard-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;align-items:start}
+  .wizard-step{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;border:1px solid var(--br0);border-radius:14px;padding:12px;background:rgba(15,23,42,.16)}
+  :root[data-theme=light] .wizard-step{background:#fff}
+  .wizard-step-num{width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:800;background:rgba(14,165,233,.12);color:var(--c-accent2)}
+  .wizard-step.done .wizard-step-num{background:rgba(16,185,129,.14);color:var(--c-accent)}
+  .wizard-step.warn .wizard-step-num{background:rgba(245,158,11,.14);color:var(--c-warn)}
+  .wizard-step.blocked .wizard-step-num{background:rgba(239,68,68,.14);color:var(--c-err)}
+  .progress-track{height:12px;border-radius:999px;background:rgba(148,163,184,.18);overflow:hidden;border:1px solid var(--br0)}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--c-accent),var(--c-accent2));border-radius:999px}
+  .wizard-action-card{border:1px solid var(--br0);border-radius:14px;padding:12px;background:rgba(15,23,42,.14)}
+  :root[data-theme=light] .wizard-action-card{background:#fff}
+  .preset-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.mode-row{display:grid;gap:8px}
+  @media(max-width:1100px){.wizard-grid,.preset-row{grid-template-columns:1fr}}
+</style>
+
+<div class="page-header">
+  <div>
+    <div class="page-title">First Run Setup Wizard</div>
+    <div class="page-subtitle">Guided onboarding for MikroTik sources, Network Layout, Smart Policy preset, Dry Run, and production scheduler readiness.</div>
+  </div>
+  <div class="btn-row">
+    <a class="btn" href="/setup-repair"><i class="ti ti-tool"></i> Repair Center</a>
+    <a class="btn" href="/config"><i class="ti ti-settings"></i> Config Center</a>
+    <form method="post" action="/sync/dry-run">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-eye"></i> Run Dry Run</button></form>
+  </div>
+</div>
+
+<section class="card" style="margin-bottom:12px;border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.07)">
+  <div class="card-title"><i class="ti ti-route"></i> Wizard status: {{ wizard.readiness.replace('_',' ') }}</div>
+  <div class="progress-track"><div class="progress-fill" style="width:{{ wizard.progress }}%"></div></div>
+  <div class="pillline" style="margin-top:10px">
+    <span class="small-pill">Progress {{ wizard.progress }}%</span>
+    <span class="small-pill">{{ wizard.done_steps }}/{{ wizard.total_steps }} done</span>
+    <span class="small-pill">Blocked {{ wizard.blocked_steps }}</span>
+    <span class="small-pill">Warnings {{ wizard.warnings }}</span>
+  </div>
+  <p class="text-sm" style="color:var(--muted);margin-top:10px"><b>Next action:</b> {{ wizard.next_action }}</p>
+</section>
+
+<section class="grid-stats">
+  <div class="stat"><div class="stat-label"><i class="ti ti-router"></i> Routers</div><div class="stat-value">{{ wizard.source_summary.enabled_routers }}/{{ wizard.source_summary.routers }}</div><div class="stat-sub">enabled / configured</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-network"></i> Sources</div><div class="stat-value">{{ wizard.source_summary.pppoe + wizard.source_summary.dhcp + wizard.source_summary.hotspot }}</div><div class="stat-sub">PPP={{ wizard.source_summary.pppoe }} · DHCP={{ wizard.source_summary.dhcp }} · HS={{ wizard.source_summary.hotspot }}</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-topology-star-3"></i> Layout</div><div class="stat-value" style="font-size:16px">{{ wizard.network_mode }}</div><div class="stat-sub">network_mode</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-shield-cog"></i> Policy</div><div class="stat-value text-accent">{{ wizard.policy_mode }}</div><div class="stat-sub">current preset/mode</div></div>
+</section>
+
+<section class="wizard-grid" style="margin-top:12px">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-list-check"></i> Guided checklist</div>
+    <div style="display:grid;gap:9px">
+      {% for s in wizard.steps %}
+      <div class="wizard-step {{ s.status }}">
+        <div class="wizard-step-num">{{ s.number }}</div>
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b>{{ s.title }}</b><span class="badge {{ 'b-ok' if s.status=='done' else ('b-warn' if s.status in ['warn','todo'] else 'b-err') }}">{{ s.status }}</span></div>
+          <div class="mono text-xs" style="color:var(--hint);margin-top:4px">{{ s.summary }}</div>
+          <div class="text-sm" style="color:var(--muted);margin-top:7px">{{ s.description }}</div>
+          {% if s.href %}<div class="btn-row" style="margin-top:9px"><a class="btn" href="{{ s.href }}"><i class="ti ti-arrow-right"></i> {{ s.action }}</a></div>{% endif %}
+          {% if s.command %}<pre class="mono text-xs" style="white-space:pre-wrap;background:var(--bg2);border:1px solid var(--br0);border-radius:10px;padding:10px;margin-top:8px">{{ s.command }}</pre>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div style="display:grid;gap:12px">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-shield-cog"></i> Choose Smart Policy preset</div>
+      <p class="text-sm" style="color:var(--muted)">Preset changes write to <code>config.json → policies</code>. Run Dry Run after changing presets before enabling scheduler/auto-apply.</p>
+      <div class="preset-row" style="margin-top:10px">
+        {% for preset, desc in [('conservative','Safest production behavior.'),('balanced','Recommended default.'),('aggressive','Fast cleanup for dynamic/lab networks.')] %}
+        <form class="wizard-action-card" method="post" action="/setup-wizard/policy-preset">
+          {{ csrf_field()|safe }}<input type="hidden" name="preset" value="{{ preset }}">
+          <div style="display:flex;justify-content:space-between;gap:8px"><b>{{ preset.title() }}</b>{% if wizard.policy_mode == preset %}<span class="badge b-ok">active</span>{% endif %}</div>
+          <p class="text-sm" style="color:var(--muted);min-height:48px">{{ desc }}</p>
+          <button class="btn btn-primary" onclick="return confirm('Apply {{ preset }} preset and then run Dry Run?')"><i class="ti ti-check"></i> Apply</button>
+        </form>
+        {% endfor %}
+      </div>
+      <div class="btn-row" style="margin-top:10px"><a class="btn" href="/policy"><i class="ti ti-adjustments"></i> Full Policy Center</a></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-topology-star-3"></i> Choose Network Layout mode</div>
+      <p class="text-sm" style="color:var(--muted)">This writes <code>network_mode</code> only. Run Dry Run to preview generated Parent Node and network.json changes.</p>
+      <form method="post" action="/setup-wizard/network-mode" class="mode-row" style="margin-top:10px">
+        {{ csrf_field()|safe }}
+        {% for mode,label in network_modes %}
+        <label class="wizard-action-card" style="display:flex;gap:8px;align-items:center;cursor:pointer">
+          <input type="radio" name="network_mode" value="{{ mode }}" {{ 'checked' if wizard.network_mode == mode else '' }}>
+          <span><b>{{ label }}</b><br><span class="mono text-xs" style="color:var(--hint)">{{ mode }}</span></span>
+        </label>
+        {% endfor %}
+        <button class="btn btn-primary" onclick="return confirm('Save network layout mode and run Dry Run afterwards?')"><i class="ti ti-device-floppy"></i> Save Layout Mode</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-rocket"></i> Production go-live</div>
+      <div class="text-sm" style="color:var(--muted);line-height:1.55">
+        Use this order: configure routers → select sources → choose layout → choose policy preset → run Dry Run → review reports/lifecycle → enable scheduler.
+      </div>
+      <div class="btn-row" style="margin-top:10px">
+        <form method="post" action="/scheduler/enable">{{ csrf_field()|safe }}<button class="btn"><i class="ti ti-player-play"></i> Enable scheduler</button></form>
+        <form method="post" action="/scheduler/disable">{{ csrf_field()|safe }}<button class="btn"><i class="ti ti-player-pause"></i> Disable scheduler</button></form>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

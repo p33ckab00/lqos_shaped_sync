@@ -1,5 +1,20 @@
 # Release Notes
 
+## v2.54.0 - First Run Setup Wizard
+
+### Added
+
+- Added `engine/setup_wizard.py` for read-only first-run readiness computation, progress scoring, guided step state, source summary, and safe next-action guidance.
+- Added `/setup-wizard` page with a step-by-step onboarding checklist for LibreQoS paths, MikroTik routers, enabled PPPoE/DHCP/Hotspot sources, Network Layout mode, Smart Policy preset, Dry Run, and scheduler go-live.
+- Added wizard actions to apply Conservative/Balanced/Aggressive Smart Policy presets directly from the wizard while reminding operators to run Dry Run afterward.
+- Added wizard action to save Network Layout mode from the wizard, preserving legacy `flat_network` / `no_parent` compatibility flags.
+- Added Setup Wizard navigation and cross-links between Setup Wizard, Setup & Repair, Config Center, Policy Center, Network Layout, Dry Run, and Dashboard.
+
+### Notes
+
+Setup Wizard is for first-run onboarding and go-live flow. Setup & Repair remains the diagnostics/repair center. About / Documentation remains the long-form manual source of truth.
+
+
 ## v2.53.0 - Client Lifecycle Timeline FULL
 
 - Adds `engine/lifecycle_report.py` for read-only client lifecycle reports, filtering, per-client event timelines, cleanup queue visibility, confirmation history, recommendations, and export formatting.

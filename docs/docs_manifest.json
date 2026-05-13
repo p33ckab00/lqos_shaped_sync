@@ -42,5 +42,11 @@
     "file": "docs/content/client_lifecycle_timeline.md",
     "anchor": "client-lifecycle-timeline",
     "summary": "v2.53 client lifecycle timeline, active/stale/queued/removed/returned states, cleanup queue, confirmations, and exports."
+  },
+  "setup_wizard.first_run": {
+    "title": "First Run Setup Wizard",
+    "file": "docs/content/setup_wizard_first_run.md",
+    "anchor": "first-run-setup-wizard",
+    "summary": "v2.54 guided first-run onboarding for paths, routers, sources, layout, policy preset, Dry Run, and scheduler readiness."
   }
 }

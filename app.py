@@ -23,6 +23,7 @@ from collectors.mikrotik_client import test_router_connection, connect_to_router
 from engine.audit import write_audit, tail_audit
 from engine.policy_state import load_policy_state, save_policy_state, confirm_cleanup, dismiss_confirmation
 from engine.setup_repair import compute_setup_repair_report, apply_policy_preset
+from engine.setup_wizard import compute_setup_wizard, NETWORK_MODE_OPTIONS
 from engine.policy_schema import grouped_policy_schema, policy_diff_from_preset, closest_preset, parse_policy_form, normalize_policies, POLICY_SCHEMA, get_by_path
 from engine.config_simulator import simulate_config_change
 from engine.reports import compute_operator_report, report_to_csv, report_to_markdown
@@ -916,6 +917,76 @@ def lifecycle_export(fmt):
     if fmt in {"md", "markdown"}:
         return Response(lifecycle_report_to_markdown(report), mimetype="text/markdown", headers={"Content-Disposition": "attachment; filename=lqos_lifecycle_report.md"})
     abort(404)
+
+
+@app.route("/setup-wizard")
+@admin_required
+def setup_wizard_center():
+    """First Run Setup Wizard: step-by-step operator onboarding."""
+    cfg, state = get_status()
+    errors, warnings = validate_config(cfg)
+    services = all_service_status(cfg)
+    setup_report = compute_setup_repair_report(
+        cfg,
+        state,
+        git_status=_git_status(fetch_remote=False),
+        services=services,
+        config_errors=errors,
+        config_warnings=warnings,
+    )
+    wizard = compute_setup_wizard(cfg, state, setup_report)
+    return render_template(
+        "setup_wizard.html",
+        cfg=cfg,
+        state=state,
+        report=setup_report,
+        wizard=wizard,
+        network_modes=NETWORK_MODE_OPTIONS,
+        services=services,
+        config_errors=errors,
+        config_warnings=warnings,
+        user=current_user(),
+    )
+
+
+@app.route("/setup-wizard/policy-preset", methods=["POST"])
+@admin_required
+def setup_wizard_policy_preset():
+    cfg = load_config(CONFIG_PATH)
+    preset = request.form.get("preset", "balanced")
+    try:
+        new_cfg = apply_policy_preset(cfg, preset)
+        save_config(new_cfg, CONFIG_PATH)
+        write_audit(new_cfg, "wizard_policy_preset_applied", actor=(current_user() or {}).get("username"), details={"preset": preset})
+        flash(f"Wizard policy preset applied: {preset}. Run Dry Run before enabling scheduler or auto-apply.")
+    except Exception as exc:
+        flash(f"Wizard policy preset update failed: {exc}")
+    return redirect(url_for("setup_wizard_center"))
+
+
+@app.route("/setup-wizard/network-mode", methods=["POST"])
+@admin_required
+def setup_wizard_network_mode():
+    cfg = load_config(CONFIG_PATH)
+    mode = request.form.get("network_mode", "router_children")
+    valid = {m for m, _label in NETWORK_MODE_OPTIONS}
+    if mode not in valid:
+        flash("Invalid network layout mode.")
+        return redirect(url_for("setup_wizard_center"))
+    cfg["network_mode"] = mode
+    if mode == "flat_no_parent":
+        cfg["flat_network"] = True
+        cfg["no_parent"] = True
+    elif mode == "flat_router_root":
+        cfg["flat_network"] = True
+        cfg["no_parent"] = False
+    else:
+        cfg["flat_network"] = False
+        cfg["no_parent"] = False
+    save_config(cfg, CONFIG_PATH)
+    write_audit(cfg, "wizard_network_mode_saved", actor=(current_user() or {}).get("username"), details={"network_mode": mode})
+    flash(f"Network layout mode saved: {mode}. Run Dry Run to preview generated parent nodes.")
+    return redirect(url_for("setup_wizard_center"))
 
 
 @app.route("/setup-repair")

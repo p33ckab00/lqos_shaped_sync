@@ -28,6 +28,7 @@ from engine.config_simulator import simulate_config_change
 from engine.reports import compute_operator_report, report_to_csv, report_to_markdown
 from engine.config_schema import migrate_config_schema, validate_schema, CONFIG_SCHEMA_VERSION
 from engine.lifecycle import lifecycle_summary, client_event_timeline
+from engine.lifecycle_report import compute_lifecycle_report, lifecycle_report_to_csv, lifecycle_report_to_markdown
 from applier.atomic_writer import atomic_write_text
 from monitoring.service_monitor import (
     all_service_status, service_status, restart_service as monitor_restart_service,
@@ -856,30 +857,65 @@ def policy_dismiss_confirmation(confirmation_id):
 @app.route("/lifecycle")
 @admin_required
 def lifecycle_center():
-    """Smart Lifecycle Center: read-only view of stale clients, cleanup queue, source lifecycle, and client events."""
+    """Client Lifecycle Timeline Center: read-only view of client state, cleanup queue, and per-client events."""
     cfg, state = get_status()
     pstate = load_policy_state(cfg)
-    summary = lifecycle_summary(pstate)
+    status = request.args.get("status", "all")
+    source = request.args.get("source", "all")
+    search = request.args.get("search", "")
     code = request.args.get("code") or ""
-    events = client_event_timeline(pstate, code=code or None, limit=int(request.args.get("limit", 150)))
-    clients = pstate.get("client_lifecycle", {}) or {}
-    # Stable ordering: active first, then queued/stale/removed by most recent event.
-    client_items = sorted(
-        clients.items(),
-        key=lambda kv: (str(kv[1].get("status") or ""), str(kv[1].get("last_event_at") or kv[1].get("last_seen_at") or "")),
-        reverse=True,
-    )[:500]
+    limit = int(request.args.get("limit", 500))
+    report = compute_lifecycle_report(pstate, status=status, source=source, search=search, code=code, limit=limit)
     return render_template(
         "lifecycle.html",
         cfg=cfg,
         state=state,
         policy_state=pstate,
-        summary=summary,
-        events=events,
-        client_items=client_items,
+        summary=report.get("summary", {}),
+        report=report,
+        events=report.get("events", []),
+        client_items=[(c.get("code"), c) for c in report.get("clients", [])],
         selected_code=code,
         user=current_user(),
     )
+
+
+@app.route("/api/lifecycle/report")
+@admin_required
+def api_lifecycle_report():
+    cfg = load_config(CONFIG_PATH)
+    pstate = load_policy_state(cfg)
+    report = compute_lifecycle_report(
+        pstate,
+        status=request.args.get("status", "all"),
+        source=request.args.get("source", "all"),
+        search=request.args.get("search", ""),
+        code=request.args.get("code", ""),
+        limit=int(request.args.get("limit", 500)),
+    )
+    return jsonify(report)
+
+
+@app.route("/lifecycle/export/<fmt>")
+@admin_required
+def lifecycle_export(fmt):
+    cfg = load_config(CONFIG_PATH)
+    pstate = load_policy_state(cfg)
+    report = compute_lifecycle_report(
+        pstate,
+        status=request.args.get("status", "all"),
+        source=request.args.get("source", "all"),
+        search=request.args.get("search", ""),
+        code=request.args.get("code", ""),
+        limit=int(request.args.get("limit", 500)),
+    )
+    if fmt == "json":
+        return Response(json.dumps(report, indent=2, ensure_ascii=False), mimetype="application/json", headers={"Content-Disposition": "attachment; filename=lqos_lifecycle_report.json"})
+    if fmt == "csv":
+        return Response(lifecycle_report_to_csv(report), mimetype="text/csv", headers={"Content-Disposition": "attachment; filename=lqos_lifecycle_report.csv"})
+    if fmt in {"md", "markdown"}:
+        return Response(lifecycle_report_to_markdown(report), mimetype="text/markdown", headers={"Content-Disposition": "attachment; filename=lqos_lifecycle_report.md"})
+    abort(404)
 
 
 @app.route("/setup-repair")

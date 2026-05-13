@@ -1,5 +1,15 @@
 # Release Notes
 
+## v2.53.0 - Client Lifecycle Timeline FULL
+
+- Adds `engine/lifecycle_report.py` for read-only client lifecycle reports, filtering, per-client event timelines, cleanup queue visibility, confirmation history, recommendations, and export formatting.
+- Upgrades `/lifecycle` into a Client Lifecycle Timeline Center with filters for status, source, search, and row limits.
+- Adds active/stale/queued/removed/returned lifecycle visibility with source lifecycle status, cleanup queue, pending confirmations, selected-client detail, and recent event timeline.
+- Adds `/api/lifecycle/report` and lifecycle exports for JSON, CSV, and Markdown.
+- Keeps Privacy Mode support for client names, nodes, IPs, and MACs inside lifecycle tables and timelines.
+- Adds documentation source `docs/content/client_lifecycle_timeline.md` and updates docs manifest, About module, README, full documentation, operator guide, release notes, and version metadata for v2.53.
+
+
 ## v2.52.0 - Smart Reports + Operator Audit FULL
 
 - Adds `engine/reports.py` for read-only operator report generation from runtime state, policy state, audit events, services, backups, smart insights, policy decisions, cleanup decisions, and client changes.

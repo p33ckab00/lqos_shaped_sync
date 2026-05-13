@@ -26,3 +26,8 @@ Lifecycle data is stored in the same Smart Policy runtime state file:
 ```
 
 This is runtime state, not operator config.
+
+
+## v2.53 Client Lifecycle Timeline
+
+LQoSync v2.53 expands the Lifecycle Center into a client timeline and cleanup-state investigation tool. It adds status/source/search filters, selected-client focus, source lifecycle summaries, cleanup queue visibility, pending confirmations, cleanup and confirmation history, recommendations, and JSON/CSV/Markdown exports. Privacy Mode redacts visible client names, parent nodes, IPs, and MACs in lifecycle tables and timelines.

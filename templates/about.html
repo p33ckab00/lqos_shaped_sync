@@ -649,3 +649,12 @@ python3 -m json.tool network.json</div>
   <div class="card-title"><i class="ti ti-history-toggle"></i> v2.47 Smart Lifecycle</div>
   <p class="text-sm" style="color:var(--muted)">Smart Lifecycle records client lifecycle state, cleanup queue history, confirmation history, source lifecycle snapshots, per-client event timelines, and returned-client detection. It helps operators see whether clients are active, stale, queued for cleanup, removed, or returned before cleanup is applied.</p>
 </section>
+
+      <h3><i class="ti ti-timeline"></i> v2.53 Client Lifecycle Timeline</h3>
+      <p>LQoSync v2.53 expands the Lifecycle Center into a client timeline and cleanup-state investigation tool. Operators can filter by status/source/search, focus one client, review active/stale/queued/removed/returned states, inspect cleanup queue and confirmations, and export lifecycle reports as JSON, CSV, or Markdown.</p>
+      <div class="note-grid">
+        <div class="note"><b>Per-client timeline:</b> Tracks added, updated, returned, removed, queued cleanup, preserved stale, and cleanup-applied events.</div>
+        <div class="note"><b>Cleanup visibility:</b> Shows cleanup queue, pending confirmations, cleanup history, and confirmation history from policy_state.json.</div>
+        <div class="note"><b>Exports:</b> Lifecycle reports can be downloaded as JSON, CSV, or Markdown for audit and support.</div>
+        <div class="note"><b>Privacy safe:</b> Lifecycle tables and timelines respect WebUI Privacy Mode for client names, nodes, IPs, and MACs.</div>
+      </div>

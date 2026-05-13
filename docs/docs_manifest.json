@@ -36,5 +36,11 @@
     "file": "docs/content/smart_reports_operator_audit.md",
     "anchor": "smart-reports--operator-audit",
     "summary": "v2.52 operator report page with 24h summary, policy decision report, cleanup report, client changes, config audit, and exports."
+  },
+  "lifecycle.client_timeline": {
+    "title": "Client Lifecycle Timeline",
+    "file": "docs/content/client_lifecycle_timeline.md",
+    "anchor": "client-lifecycle-timeline",
+    "summary": "v2.53 client lifecycle timeline, active/stale/queued/removed/returned states, cleanup queue, confirmations, and exports."
   }
 }

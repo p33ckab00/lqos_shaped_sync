@@ -707,6 +707,18 @@ python3 -m json.tool network.json</div>
       <div class="note"><b>Compatibility:</b> <code>/health</code> redirects to the Dashboard health section, while <code>/api/health/trends</code> remains available for JSON diagnostics and integrations.</div>
     </section>
 
+
+    <section id="telegram-notifications" class="card about-section">
+      <h2><i class="ti ti-brand-telegram text-accent"></i> v2.58 Telegram Notifications</h2>
+      <p>LQoSync v2.58 adds optional Telegram delivery for internal notification candidates produced by Dashboard source health, performance trends, LibreQoS apply health, and policy/confirmation workflows.</p>
+      <div class="two-col">
+        <div class="note"><b>Disabled by default:</b> Dashboard/internal notifications still work even when Telegram delivery is off.</div>
+        <div class="note"><b>Digest delivery:</b> Telegram can send grouped alert digests with level filtering, dedupe window, and minimum interval protection.</div>
+        <div class="note"><b>Test workflow:</b> The Notifications page includes Test Telegram and Send current alerts actions.</div>
+        <div class="note"><b>Security:</b> Bot tokens are secrets stored in config.json. Protect file permissions and avoid publishing raw config screenshots.</div>
+      </div>
+    </section>
+
 {% endblock %}
 
 <section class="card" style="margin-top:12px">

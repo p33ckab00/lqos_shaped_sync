@@ -98,5 +98,11 @@
     "title": "Source Health & Performance Trends",
     "file": "docs/content/source_health_performance_trends.md",
     "description": "Dashboard-consolidated source health, RouterOS API timing, LibreQoS apply health, and internal notification candidates."
+  },
+  "notifications.telegram": {
+    "title": "Telegram Notifications",
+    "file": "docs/content/telegram_notifications.md",
+    "anchor": "v258-telegram-notifications",
+    "summary": "v2.58 optional Telegram delivery for internal health, policy, apply, and source notification candidates."
   }
 }

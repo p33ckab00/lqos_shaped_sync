@@ -1,0 +1,106 @@
+{% extends "base.html" %}{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Telegram Notifications</div>
+    <div class="page-subtitle">Optional Telegram delivery for LQoSync health alerts, policy blocks, apply failures, and confirmation-needed events.</div>
+  </div>
+  <div class="btn-row">
+    <a class="btn" href="/#source-health-performance"><i class="ti ti-layout-dashboard"></i> Dashboard health</a>
+    <a class="btn" href="/config"><i class="ti ti-adjustments"></i> Config Center</a>
+  </div>
+</div>
+
+<style>
+  .notif-grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:12px;align-items:start}.notif-card{border:1px solid var(--br0);border-radius:16px;background:var(--bg1);padding:14px}.notif-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.notif-field{display:grid;gap:6px}.notif-field label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--hint);font-weight:700}.notif-field input,.notif-field select{border:1px solid var(--br1);border-radius:10px;background:rgba(2,6,23,.48);color:var(--txt);padding:9px 10px;font-family:var(--font-mono);font-size:12px}.notif-toggle{display:flex;align-items:flex-start;gap:9px;border:1px solid var(--br0);border-radius:12px;padding:10px;background:rgba(15,23,42,.22)}.notif-toggle input{margin-top:2px}.notif-help{font-size:12px;color:var(--muted);line-height:1.45}.notif-list{display:grid;gap:8px}.notif-item{border:1px solid var(--br0);border-radius:12px;padding:10px;background:var(--bg2)}.secret-pill{font-family:var(--font-mono);font-size:11px;color:var(--muted);border:1px solid var(--br0);border-radius:999px;padding:5px 8px;display:inline-flex}.guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:1100px){.notif-grid,.notif-form-grid,.guide-grid{grid-template-columns:1fr}}
+  :root[data-theme=light] .notif-field input,:root[data-theme=light] .notif-field select{background:#fff;color:#0f172a;border-color:#cbd5e1}:root[data-theme=light] .notif-toggle{background:#f8fafc}
+</style>
+
+<section class="grid-stats">
+  <div class="stat"><div class="stat-label"><i class="ti ti-brand-telegram"></i> Telegram</div><div class="stat-value {{ 'text-accent' if telegram.configured and telegram.enabled else 'text-warn' }}">{{ 'enabled' if telegram.enabled else 'off' }}</div><div class="stat-sub">configured={{ telegram.configured }}</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-bell"></i> Candidates</div><div class="stat-value {{ 'text-warn' if notifications else 'text-accent' }}">{{ notifications|length }}</div><div class="stat-sub">current health alerts</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-filter"></i> Levels</div><div class="stat-value">{{ telegram.notify_levels|join(', ') }}</div><div class="stat-sub">delivery filter</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-clock"></i> Dedupe</div><div class="stat-value">{{ telegram.dedupe_window_minutes }}m</div><div class="stat-sub">repeat suppression</div></div>
+</section>
+
+<div class="notif-grid" style="margin-top:12px">
+  <section class="notif-card">
+    <div class="card-title"><i class="ti ti-brand-telegram"></i> Telegram settings</div>
+    <p class="notif-help">Telegram delivery is optional. Internal notifications still appear in Dashboard even when Telegram is disabled. Bot token and chat ID are saved in <code>config.json</code>, so protect file permissions and avoid sharing raw config screenshots.</p>
+    <form method="post" action="/notifications" style="display:grid;gap:12px;margin-top:12px">
+      {{ csrf_field()|safe }}
+      <div class="guide-grid">
+        <label class="notif-toggle"><input type="checkbox" name="telegram_enabled" {{ 'checked' if telegram.enabled else '' }}><span><b>Enable Telegram delivery</b><div class="notif-help">When enabled and configured, LQoSync can send selected health alerts to Telegram.</div></span></label>
+        <label class="notif-toggle"><input type="checkbox" name="send_digest" {{ 'checked' if telegram.send_digest else '' }}><span><b>Send digest</b><div class="notif-help">Recommended. Sends one grouped message instead of many messages.</div></span></label>
+        <label class="notif-toggle"><input type="checkbox" name="send_individual" {{ 'checked' if telegram.send_individual else '' }}><span><b>Send individual messages</b><div class="notif-help">Advanced. May be noisy on active networks.</div></span></label>
+      </div>
+
+      <div class="notif-form-grid">
+        <div class="notif-field"><label>Bot token</label><input name="bot_token" type="password" value="{{ cfg.notifications.telegram.bot_token if cfg.notifications and cfg.notifications.telegram else '' }}" placeholder="123456:ABC..."><div class="notif-help">Create a bot through BotFather. Current: <span class="secret-pill">{{ telegram.token_masked or 'not set' }}</span></div></div>
+        <div class="notif-field"><label>Chat ID</label><input name="chat_id" value="{{ cfg.notifications.telegram.chat_id if cfg.notifications and cfg.notifications.telegram else '' }}" placeholder="-1001234567890"><div class="notif-help">Use a private chat or group chat ID. Current: <span class="secret-pill">{{ telegram.chat_id_masked or 'not set' }}</span></div></div>
+        <div class="notif-field"><label>Dashboard/base URL</label><input name="base_url" value="{{ telegram.base_url or '' }}" placeholder="https://lqos.example.com"><div class="notif-help">Optional. Used to add clickable links in alerts.</div></div>
+        <div class="notif-field"><label>Parse mode</label><select name="parse_mode"><option value="HTML" {{ 'selected' if telegram.parse_mode == 'HTML' else '' }}>HTML</option><option value="" {{ 'selected' if not telegram.parse_mode else '' }}>None</option></select><div class="notif-help">HTML is used for readable bold/code formatting.</div></div>
+        <div class="notif-field"><label>Timeout seconds</label><input name="timeout_seconds" type="number" min="1" value="{{ telegram.timeout_seconds }}"></div>
+        <div class="notif-field"><label>Minimum interval seconds</label><input name="minimum_interval_seconds" type="number" min="0" value="{{ telegram.minimum_interval_seconds }}"><div class="notif-help">Prevents repeated sends too quickly.</div></div>
+        <div class="notif-field"><label>Dedupe window minutes</label><input name="dedupe_window_minutes" type="number" min="0" value="{{ telegram.dedupe_window_minutes }}"><div class="notif-help">Suppresses repeated identical alerts.</div></div>
+        <div class="notif-field"><label>Max items per digest</label><input name="max_items_per_digest" type="number" min="1" value="{{ telegram.max_items_per_digest }}"></div>
+      </div>
+
+      <div class="notif-card" style="padding:12px;background:var(--bg2)">
+        <div class="card-title"><i class="ti ti-filter"></i> Notify levels</div>
+        <div class="guide-grid">
+          {% for level in ['critical','warning','info'] %}
+          <label class="notif-toggle"><input type="checkbox" name="notify_levels" value="{{ level }}" {{ 'checked' if level in telegram.notify_levels else '' }}><span><b>{{ level|capitalize }}</b><div class="notif-help">{{ 'Highest priority alerts.' if level == 'critical' else ('Recommended operational warnings.' if level == 'warning' else 'Low priority informational alerts.') }}</div></span></label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="notif-card" style="padding:12px;background:var(--bg2)">
+        <div class="card-title"><i class="ti ti-bell-cog"></i> Event filters</div>
+        <div class="guide-grid">
+          {% set tgcfg = cfg.notifications.telegram if cfg.notifications and cfg.notifications.telegram else {} %}
+          {% for key,label in [
+            ('notify_on_apply_failed','LibreQoS apply failed'),
+            ('notify_on_policy_block','Policy block / high risk'),
+            ('notify_on_confirmation_required','Cleanup confirmation required'),
+            ('notify_on_update_available','Update available'),
+            ('notify_on_source_health_warning','Source health warning'),
+            ('notify_on_performance_slow','Performance slow')
+          ] %}
+          <label class="notif-toggle"><input type="checkbox" name="{{ key }}" {{ 'checked' if tgcfg.get(key, true) else '' }}><span><b>{{ label }}</b><div class="notif-help">Allow this category to be delivered when matching candidates exist.</div></span></label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary"><i class="ti ti-device-floppy"></i> Save Telegram settings</button>
+        <a class="btn" href="/api/health/trends" target="_blank"><i class="ti ti-code"></i> View health JSON</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="notif-card">
+    <div class="card-title"><i class="ti ti-send"></i> Test and send</div>
+    <p class="notif-help">Use Test Telegram after saving token/chat ID. “Send current alerts” sends the notification candidates currently visible from Dashboard health.</p>
+    <div class="btn-row" style="margin-top:10px">
+      <form method="post" action="/notifications/test">{{ csrf_field()|safe }}<button class="btn"><i class="ti ti-brand-telegram"></i> Test Telegram</button></form>
+      <form method="post" action="/notifications/send-current">{{ csrf_field()|safe }}<input type="hidden" name="force" value="1"><button class="btn"><i class="ti ti-send"></i> Send current alerts</button></form>
+    </div>
+    <div class="note" style="margin-top:12px"><b>Security note:</b> Bot tokens are secrets. They are masked in summaries, but still stored in config.json. Do not publish config.json with real tokens.</div>
+
+    <div class="card-title" style="margin-top:16px"><i class="ti ti-bell-ringing"></i> Current candidates</div>
+    {% if notifications %}
+    <div class="notif-list">
+      {% for n in notifications %}
+      <div class="notif-item">
+        <div style="display:flex;justify-content:space-between;gap:8px"><b>{{ n.title }}</b><span class="badge {{ 'b-err' if n.level == 'critical' else ('b-warn' if n.level == 'warning' else 'b-ok') }}">{{ n.level }}</span></div>
+        <div class="notif-help" style="margin-top:6px">{{ n.message }}</div>
+        {% if n.target %}<a class="text-xs" href="{{ n.target }}" style="color:var(--c-accent);text-decoration:none">Open related page</a>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="notif-item notif-help">No notification-worthy health conditions detected.</div>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

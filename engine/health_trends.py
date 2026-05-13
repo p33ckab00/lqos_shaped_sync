@@ -259,15 +259,16 @@ def notification_candidates(config: dict, state: dict[str, Any], source_cards: l
         if s.get("status") in {"warning", "error"}:
             items.append({
                 "level": "critical" if s.get("status") == "error" else "warning",
+                "event": "source_health_warning",
                 "title": f"{s.get('label')} source health: {s.get('status')}",
                 "message": "; ".join(s.get("warnings") or []) or "Source requires review.",
                 "target": "/#source-health-performance",
             })
     for name, data in [("Router API", trends.get("router_api") or {}), ("Sync cycle", trends.get("cycle") or {}), ("LibreQoS apply", trends.get("libreqos_apply") or {})]:
         if data.get("status") == "slow":
-            items.append({"level": "warning", "title": f"{name} slower than baseline", "message": f"Current {data.get('current_ms')}ms vs average {data.get('average_ms')}ms.", "target": "/#source-health-performance"})
+            items.append({"level": "warning", "event": "performance_slow", "title": f"{name} slower than baseline", "message": f"Current {data.get('current_ms')}ms vs average {data.get('average_ms')}ms.", "target": "/#source-health-performance"})
     if apply_health.get("status") in {"pending", "warning", "error"}:
-        items.append({"level": "critical" if apply_health.get("status") == "error" else "warning", "title": "LibreQoS apply needs attention", "message": "; ".join(apply_health.get("warnings") or []) or "Review apply health.", "target": "/services"})
+        items.append({"level": "critical" if apply_health.get("status") == "error" else "warning", "event": "apply_failed" if apply_health.get("status") == "error" else "apply_warning", "title": "LibreQoS apply needs attention", "message": "; ".join(apply_health.get("warnings") or []) or "Review apply health.", "target": "/services"})
     return items[:25]
 
 
@@ -314,6 +315,6 @@ def compute_health_report(config: dict, state: dict[str, Any], policy_state: dic
         },
         "notification_delivery": {
             "internal_center": True,
-            "telegram": "planned_v2.58",
+            "telegram": "available_v2.58",
         },
     }

@@ -119,7 +119,17 @@
       "notify_on_apply_failed": true,
       "notify_on_policy_block": true,
       "notify_on_confirmation_required": true,
-      "notify_on_update_available": true
+      "notify_on_update_available": true,
+      "base_url": "",
+      "parse_mode": "HTML",
+      "timeout_seconds": 10,
+      "minimum_interval_seconds": 60,
+      "dedupe_window_minutes": 60,
+      "max_items_per_digest": 10,
+      "send_digest": true,
+      "send_individual": false,
+      "notify_on_source_health_warning": true,
+      "notify_on_performance_slow": true
     }
   },
   "setup_repair": {

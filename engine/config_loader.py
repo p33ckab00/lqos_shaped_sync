@@ -120,11 +120,21 @@ DEFAULT_CONFIG = {
             "enabled": False,
             "bot_token": "",
             "chat_id": "",
+            "base_url": "",
+            "parse_mode": "HTML",
+            "timeout_seconds": 10,
             "notify_levels": ["critical", "warning"],
+            "minimum_interval_seconds": 60,
+            "dedupe_window_minutes": 60,
+            "max_items_per_digest": 10,
+            "send_digest": True,
+            "send_individual": False,
             "notify_on_apply_failed": True,
             "notify_on_policy_block": True,
             "notify_on_confirmation_required": True,
-            "notify_on_update_available": True
+            "notify_on_update_available": True,
+            "notify_on_source_health_warning": True,
+            "notify_on_performance_slow": True
         }
     },
     "setup_repair": {

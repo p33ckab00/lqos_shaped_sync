@@ -1,5 +1,22 @@
 # LQoSync Release Notes
 
+## v2.58.0 - Telegram Notifications
+
+### Added
+
+- Added `engine/notifications.py` for optional Telegram delivery of LQoSync internal notification candidates.
+- Added `/notifications` Telegram Notification Center for bot token, chat ID, base URL, notify levels, digest mode, dedupe, and delivery filters.
+- Added Telegram test workflow and current-alert delivery workflow.
+- Added `/api/notifications/telegram/test` for structured Telegram test delivery.
+- Added digest formatting, level filtering, event filtering, minimum interval protection, and dedupe window protection.
+- Added notification state tracking under `state/notification_state.json` by default.
+- Updated Dashboard health notification delivery state from planned to available.
+- Added Telegram notification config defaults and documentation.
+
+### Notes
+
+Telegram is disabled by default. Internal Dashboard notifications still work even when Telegram is off. Bot tokens are secrets and are stored in `config.json`, so protect file permissions and avoid sharing raw config screenshots.
+
 ## v2.57.1 - Dashboard Health Consolidation
 
 ### Improved

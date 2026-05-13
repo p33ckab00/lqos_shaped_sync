@@ -27,6 +27,7 @@ from engine.setup_wizard import compute_setup_wizard, NETWORK_MODE_OPTIONS
 from engine.policy_schema import grouped_policy_schema, policy_diff_from_preset, closest_preset, parse_policy_form, normalize_policies, POLICY_SCHEMA, get_by_path
 from engine.policy_conflicts import evaluate_policy_conflicts, enhanced_preset_comparison, client_identity_report
 from engine.health_trends import compute_health_report
+from engine.notifications import telegram_settings_summary, send_test_message, dispatch_telegram_notifications
 from engine.config_simulator import simulate_config_change
 from engine.reports import compute_operator_report, report_to_csv, report_to_markdown
 from engine.config_schema import migrate_config_schema, validate_schema, CONFIG_SCHEMA_VERSION
@@ -1121,6 +1122,88 @@ def setup_wizard_network_mode():
     write_audit(cfg, "wizard_network_mode_saved", actor=(current_user() or {}).get("username"), details={"network_mode": mode})
     flash(f"Network layout mode saved: {mode}. Run Dry Run to preview generated parent nodes.")
     return redirect(url_for("setup_wizard_center"))
+
+
+
+
+@app.route("/notifications", methods=["GET", "POST"])
+@admin_required
+def notifications_center():
+    """Telegram notification settings and delivery center."""
+    cfg, state = get_status()
+    if request.method == "POST":
+        tg = cfg.setdefault("notifications", {}).setdefault("telegram", {})
+        tg["enabled"] = bool(request.form.get("telegram_enabled"))
+        tg["bot_token"] = request.form.get("bot_token", "").strip()
+        tg["chat_id"] = request.form.get("chat_id", "").strip()
+        tg["base_url"] = request.form.get("base_url", "").strip().rstrip("/")
+        tg["parse_mode"] = request.form.get("parse_mode", "HTML").strip() or "HTML"
+        tg["notify_levels"] = request.form.getlist("notify_levels") or ["critical", "warning"]
+        for key in ["timeout_seconds", "minimum_interval_seconds", "dedupe_window_minutes", "max_items_per_digest"]:
+            try:
+                tg[key] = max(0, int(request.form.get(key, tg.get(key, 0)) or 0))
+            except Exception:
+                pass
+        tg["send_digest"] = bool(request.form.get("send_digest"))
+        tg["send_individual"] = bool(request.form.get("send_individual"))
+        for key in [
+            "notify_on_apply_failed", "notify_on_policy_block", "notify_on_confirmation_required",
+            "notify_on_update_available", "notify_on_source_health_warning", "notify_on_performance_slow",
+        ]:
+            tg[key] = bool(request.form.get(key))
+        save_config(cfg, CONFIG_PATH, backup_existing=True)
+        write_audit(cfg, "telegram_notifications_saved", actor=(current_user() or {}).get("username"), details={"enabled": tg.get("enabled"), "levels": tg.get("notify_levels")})
+        flash("Telegram notification settings saved.")
+        return redirect(url_for("notifications_center"))
+
+    policy_state = load_policy_state(cfg)
+    services = all_service_status(cfg)
+    apply_runs = list_apply_runs(cfg, limit=25)
+    report = compute_health_report(cfg, state, policy_state=policy_state, services=services, apply_runs=apply_runs)
+    return render_template(
+        "notifications.html",
+        cfg=cfg,
+        state=state,
+        report=report,
+        telegram=telegram_settings_summary(cfg),
+        notifications=report.get("notifications", []),
+        user=current_user(),
+    )
+
+
+@app.route("/notifications/test", methods=["POST"])
+@admin_required
+def notifications_test():
+    cfg = load_config(CONFIG_PATH)
+    result = send_test_message(cfg, actor=(current_user() or {}).get("username"))
+    write_audit(cfg, "telegram_test_sent", actor=(current_user() or {}).get("username"), details={"ok": result.get("ok"), "error": result.get("error")})
+    flash("Telegram test sent successfully." if result.get("ok") else f"Telegram test failed: {result.get('error') or result.get('response') or 'unknown error'}")
+    return redirect(url_for("notifications_center"))
+
+
+@app.route("/notifications/send-current", methods=["POST"])
+@admin_required
+def notifications_send_current():
+    cfg, state = get_status()
+    policy_state = load_policy_state(cfg)
+    services = all_service_status(cfg)
+    apply_runs = list_apply_runs(cfg, limit=25)
+    report = compute_health_report(cfg, state, policy_state=policy_state, services=services, apply_runs=apply_runs)
+    result = dispatch_telegram_notifications(cfg, report.get("notifications", []), force=bool(request.form.get("force")), title="LQoSync current health alerts")
+    write_audit(cfg, "telegram_current_alerts_sent", actor=(current_user() or {}).get("username"), details={"ok": result.get("ok"), "sent": result.get("sent"), "reason": result.get("reason")})
+    if result.get("ok"):
+        flash(f"Telegram current alerts sent: {result.get('sent', 0)} item(s).")
+    else:
+        flash(f"Telegram alert delivery skipped/failed: {result.get('reason') or result.get('error') or result.get('response') or 'unknown'}")
+    return redirect(url_for("notifications_center"))
+
+
+@app.route("/api/notifications/telegram/test", methods=["POST"])
+@admin_required
+def api_notifications_telegram_test():
+    cfg = load_config(CONFIG_PATH)
+    result = send_test_message(cfg, actor=(current_user() or {}).get("username"))
+    return jsonify(result)
 
 
 @app.route("/setup-repair")

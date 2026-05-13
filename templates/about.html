@@ -609,4 +609,17 @@ python3 -m json.tool network.json</div>
     </section>
   </div>
 </div>
+
+    <section class="card">
+      <h2><i class="ti ti-brain text-accent"></i> v2.46 Smart Insights</h2>
+      <p>Smart Insights turns policy decisions, timing metrics, data quality signals, fallback-speed usage, backups, and anomaly checks into operator-readable guidance. It answers: what happened, why it matters, and what the safest next action is.</p>
+      <ul>
+        <li><b>Data Quality Score</b> summarizes validation errors, collector errors, warnings, fallback-speed usage, and policy blocks.</li>
+        <li><b>Backup Readiness</b> checks whether backup_before_apply and retention are production-safe.</li>
+        <li><b>Fallback Speed Review</b> lists clients whose speed came from default/fallback sources.</li>
+        <li><b>Anomaly Detection</b> compares the current run with the previous successful run for sudden client-count or duration changes.</li>
+        <li><b>Why / Fix / Next</b> explains common warnings such as fallback speeds, duplicate IPs, missing parent nodes, and collector/API issues.</li>
+      </ul>
+    </section>
+
 {% endblock %}

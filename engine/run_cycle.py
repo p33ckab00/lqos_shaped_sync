@@ -32,6 +32,7 @@ from engine.policy_engine import (
     build_cleanup_candidates, evaluate_cleanup_policy, evaluate_apply_guards,
     existing_source_counts, update_successful_source_counts,
 )
+from engine.insights import compute_smart_insights
 
 
 class Timeline:
@@ -364,6 +365,18 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
             for b in policy_decision.blocked_reasons:
                 result.errors.append(f"Policy blocked: {b.get('message') or b.get('title')}")
         save_policy_state(config, policy_state)
+        try:
+            result.diff["smart_insights"] = compute_smart_insights(
+                config,
+                result,
+                policy_decision.to_dict(),
+                state_before=state_before,
+                preflight=preflight,
+                policy_state=policy_state,
+            )
+        except Exception as insights_error:
+            result.warnings.append(f"Smart insights failed: {insights_error}")
+            result.diff["smart_insights"] = {"summary": "Smart insights failed", "error": str(insights_error), "recommendations": []}
         timeline.record("policy_evaluation", t, status="blocked" if not policy_decision.write_allowed else policy_decision.verdict, details={"verdict": policy_decision.verdict, "risk_level": policy_decision.risk_level, "risk_score": policy_decision.risk_score})
 
         if mode == "dry_run":

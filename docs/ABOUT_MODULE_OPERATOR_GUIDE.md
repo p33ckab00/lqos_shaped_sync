@@ -504,3 +504,8 @@ Key behavior:
 The Policy Center exposes policy mode, source cleanup behavior, pending cleanup confirmations, runtime policy state, apply guards, and collector guards. Normal inactive cleanup, source-disabled cleanup, collector failure, zero-result scans, and mass-removal events are treated differently so intentional operator actions are not confused with API failure or suspicious data loss.
 
 Recommended production default is balanced mode. In balanced mode, collector failures preserve rows, enabled sources returning zero rows are protected, source-disabled cleanup can require confirmation, and dangerous validation failures block file writes and LibreQoS apply.
+
+## v2.46 Smart Insights note
+
+LQoSync v2.46 adds Smart Insights on top of the Smart Policy Center. The dashboard and dry-run pages now summarize data quality, backup readiness, fallback-speed usage, anomaly detection, recommendations, and Why/Fix/Next explanations. These insights are rule-based and operator-facing: they do not replace the policy engine, but explain what happened, why it matters, and the safest next action.
+

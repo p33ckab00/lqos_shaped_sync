@@ -2077,3 +2077,8 @@ LQoSync v2.45 introduces the Smart Policy Center. It adds policy-driven safety d
 The Dashboard and Dry Run pages now expose policy verdict, risk level, write/apply permission, pending confirmations, and recommendations. The Policy Center page shows current policy mode, source cleanup behavior, pending cleanup confirmations, apply guards, collector guards, runtime policy state, and last policy decision.
 
 This turns LQoSync into a policy-driven operator tool: config defines operator intent, policies define how safely it happens, the policy engine decides before write/apply, and the UI explains every decision.
+
+## v2.46 Smart Insights note
+
+LQoSync v2.46 adds Smart Insights on top of the Smart Policy Center. The dashboard and dry-run pages now summarize data quality, backup readiness, fallback-speed usage, anomaly detection, recommendations, and Why/Fix/Next explanations. These insights are rule-based and operator-facing: they do not replace the policy engine, but explain what happened, why it matters, and the safest next action.
+

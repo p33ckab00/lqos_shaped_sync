@@ -1,0 +1,16 @@
+{% set smart = result.diff.get('smart_insights', {}) if result and result.diff else {} %}
+{% if smart %}
+{% set quality = smart.get('data_quality', {}) %}
+{% set fallback = smart.get('fallback_speed_review', {}) %}
+{% set recs = smart.get('recommendations', []) %}
+<section class="card" style="margin-top:10px;border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.06)">
+  <div class="card-title"><i class="ti ti-brain"></i> Smart Dry Run Insights</div>
+  <p class="text-sm" style="color:var(--muted);margin-top:0">{{ smart.get('summary','No smart-insight summary available.') }}</p>
+  <div class="grid-stats" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+    <div class="stat"><div class="stat-label">Data Quality</div><div class="stat-value {{ 'text-accent' if quality.get('score',0) >= 90 else ('text-warn' if quality.get('score',0) >= 50 else 'text-err') }}">{{ quality.get('score','—') }}%</div><div class="stat-sub">{{ (quality.get('level','unknown') ~ '').replace('_',' ') }}</div></div>
+    <div class="stat"><div class="stat-label">Fallback Speeds</div><div class="stat-value {{ 'text-warn' if fallback.get('fallback_count',0) else 'text-accent' }}">{{ fallback.get('fallback_count',0) }}</div><div class="stat-sub">{{ fallback.get('fallback_percent',0) }}%</div></div>
+    <div class="stat"><div class="stat-label">Recommendations</div><div class="stat-value {{ 'text-warn' if recs else 'text-accent' }}">{{ recs|length }}</div><div class="stat-sub">operator actions</div></div>
+  </div>
+  {% if recs %}<div style="display:grid;gap:8px;margin-top:10px">{% for r in recs[:5] %}<div class="feed-item"><div class="feed-title"><span>{{ r.title }}</span><span class="badge {{ 'b-err' if r.severity in ['critical','high'] else ('b-warn' if r.severity == 'warning' else 'b-static') }}">{{ r.severity }}</span></div><div class="feed-meta"><b>Reason:</b> {{ r.reason }}<br><b>Next:</b> {{ r.action }}</div></div>{% endfor %}</div>{% endif %}
+</section>
+{% endif %}

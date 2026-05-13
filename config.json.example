@@ -339,5 +339,14 @@
       },
       "parent_node": ""
     }
-  ]
+  ],
+  "insights": {
+    "enabled": true,
+    "show_recommendations": true,
+    "show_data_quality": true,
+    "show_backup_readiness": true,
+    "show_anomaly_detection": true,
+    "show_warning_explanations": true,
+    "fallback_speed_review_limit": 100
+  }
 }

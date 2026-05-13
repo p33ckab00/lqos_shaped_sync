@@ -1,0 +1,60 @@
+{% set smart = diff.get('smart_insights', {}) if diff else {} %}
+{% set quality = smart.get('data_quality', {}) if smart else {} %}
+{% set backup = smart.get('backup_readiness', {}) if smart else {} %}
+{% set fallback = smart.get('fallback_speed_review', {}) if smart else {} %}
+{% set anomalies = smart.get('anomaly_detection', {}).get('anomalies', []) if smart else [] %}
+{% set recs = smart.get('recommendations', []) if smart else [] %}
+{% set explanations = smart.get('warning_explanations', []) if smart else [] %}
+<section class="layout-grid" style="margin-top:10px">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-brain"></i> Smart Insights</div>
+    {% if smart %}
+    <p class="text-sm" style="color:var(--muted);margin-top:0">{{ smart.get('summary','No smart-insight summary available.') }}</p>
+    <div class="grid-stats" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+      <div class="stat"><div class="stat-label">Data Quality</div><div class="stat-value {{ 'text-accent' if quality.get('score',0) >= 90 else ('text-warn' if quality.get('score',0) >= 50 else 'text-err') }}">{{ quality.get('score','—') }}%</div><div class="stat-sub">{{ (quality.get('level','unknown') ~ '').replace('_',' ') }}</div></div>
+      <div class="stat"><div class="stat-label">Backup Readiness</div><div class="stat-value {{ 'text-accent' if backup.get('status') == 'ready' else 'text-warn' }}">{{ backup.get('status','unknown') }}</div><div class="stat-sub">retention {{ backup.get('retention','—') }}</div></div>
+      <div class="stat"><div class="stat-label">Fallback Speeds</div><div class="stat-value {{ 'text-warn' if fallback.get('fallback_count',0) else 'text-accent' }}">{{ fallback.get('fallback_count',0) }}</div><div class="stat-sub">{{ fallback.get('fallback_percent',0) }}%</div></div>
+      <div class="stat"><div class="stat-label">Anomalies</div><div class="stat-value {{ 'text-warn' if anomalies else 'text-accent' }}">{{ anomalies|length }}</div><div class="stat-sub">baseline checks</div></div>
+    </div>
+    {% if quality.get('factors') %}
+    <details style="margin-top:10px"><summary class="mono text-sm text-dhcp" style="cursor:pointer">Data quality factors</summary><div style="display:grid;gap:7px;margin-top:8px">{% for f in quality.get('factors', [])[:8] %}<div class="op-line"><span>{{ f.title }}</span><strong class="{{ 'text-err' if f.severity in ['critical','high'] else 'text-warn' }}">-{{ f.penalty }}</strong><span class="timeline-details">{{ f.message }}</span></div>{% endfor %}</div></details>
+    {% endif %}
+    {% else %}<div class="mono text-sm" style="color:var(--muted)">No smart-insight data yet. Run sync or dry-run.</div>{% endif %}
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-bulb"></i> Recommended Actions</div>
+    {% if recs %}
+    <div style="display:grid;gap:8px">
+      {% for r in recs[:6] %}
+      <div class="feed-item">
+        <div class="feed-title"><span>{{ r.title }}</span><span class="badge {{ 'b-err' if r.severity in ['critical','high'] else ('b-warn' if r.severity == 'warning' else 'b-static') }}">{{ r.severity }}</span></div>
+        <div class="feed-meta"><b>Reason:</b> {{ r.reason }}<br><b>Next:</b> {{ r.action }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}<div class="mono text-sm" style="color:var(--muted)">No recommendations. Current sync state looks clean.</div>{% endif %}
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-alert-triangle"></i> Anomaly Detection</div>
+    {% if anomalies %}
+    <div style="display:grid;gap:8px">
+      {% for a in anomalies[:5] %}
+      <div class="feed-item">
+        <div class="feed-title"><span>{{ a.title }}</span><span class="badge {{ 'b-err' if a.severity == 'high' else 'b-warn' }}">{{ a.severity }}</span></div>
+        <div class="feed-meta">{{ a.message }}<br><b>Why:</b> {{ a.why }}<br><b>Next:</b> {{ a.next_action }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}<div class="mono text-sm" style="color:var(--muted)">No baseline anomalies detected.</div>{% endif %}
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-message-question"></i> Why / Fix / Next</div>
+    {% if explanations %}
+    <div style="display:grid;gap:8px">
+      {% for x in explanations[:5] %}
+      <div class="feed-item"><div class="feed-title"><span>{{ x.title }}</span></div><div class="feed-meta"><b>What:</b> {{ x.what }}<br><b>Why:</b> {{ x.why }}<br><b>Fix:</b> {{ x.fix }}</div></div>
+      {% endfor %}
+    </div>
+    {% else %}<div class="mono text-sm" style="color:var(--muted)">No warning explanations needed for the last run.</div>{% endif %}
+  </div>
+</section>

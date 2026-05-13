@@ -94,6 +94,15 @@ DEFAULT_CONFIG = {
         "show_virtual_nodes": True,
         "validate_before_save": True,
     },
+    "insights": {
+        "enabled": True,
+        "show_recommendations": True,
+        "show_data_quality": True,
+        "show_backup_readiness": True,
+        "show_anomaly_detection": True,
+        "show_warning_explanations": True,
+        "fallback_speed_review_limit": 100,
+    },
     "policies": smart_policy_defaults(),
     "services": {
         # Required/current LibreQoS + LQoSync units. lqos_node_manager is not

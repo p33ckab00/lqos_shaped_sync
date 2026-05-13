@@ -1,5 +1,22 @@
 # LQoSync Release Notes
 
+## v2.46.0 - Smart Insights
+
+### Added
+
+- Added Smart Insights as the operator guidance layer on top of Smart Policy Center.
+- Added Data Quality score based on validation errors, collector errors, warnings, fallback-speed usage, and policy decision state.
+- Added Backup Readiness checks for backup_before_apply and retention.
+- Added Fallback Speed Review to identify clients using default/fallback speed sources.
+- Added basic Anomaly Detection comparing current run against previous runtime state for sudden client-count drops and timing spikes.
+- Added Recommendations panel with reason and next-action guidance.
+- Added Why / Fix / Next explanations for common warnings such as fallback speeds, duplicate IPs, parent node issues, and collector/API problems.
+- Added Smart Dry Run Insights so dry-run reports include the same operator guidance without writing files or applying LibreQoS.
+
+### Notes
+
+Smart Insights is rule-based and explanatory. It does not bypass Smart Policy Center; it uses policy decisions, preflight results, timings, and metadata to explain what happened and what the operator should do next.
+
 ## v2.45.0 - Smart Policy Center
 
 ### Added

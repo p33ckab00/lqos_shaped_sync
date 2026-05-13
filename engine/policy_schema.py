@@ -126,6 +126,33 @@ for section_key, section_label, entries in [
         POLICY_SCHEMA.append(field(f"policies.{section_key}.{key}", label, typ, section=section_label, recommended=rec, risk=risk, description="Visible operator policy setting saved to config.json."))
 
 
+# v2.50 policy intelligence settings: optional stale/grace lifecycle and risk-aware auto apply.
+for source, label, default_identity in [
+    ("ppoe", "PPPoE", "username"),
+    ("dhcp", "DHCP", "server_mac"),
+    ("hotspot", "Hotspot", "username_or_mac"),
+    ("static", "Static/manual rows", "manual"),
+]:
+    sec = f"{label} Stale Lifecycle"
+    POLICY_SCHEMA.extend([
+        field(f"policies.stale_lifecycle.sources.{source}.identity", f"{label} identity key", "select", section=sec, choices=["username", "server_mac", "username_or_mac", "manual"], recommended=default_identity, risk="medium", description="Identity used when reasoning about stale/returned clients. Grace is safest only when identity is stable."),
+        field(f"policies.stale_lifecycle.sources.{source}.grace_enabled", f"{label} optional grace", "bool", section=sec, recommended=False, risk="high", description="When enabled, normal inactive cleanup waits for the configured grace runs before removal. Disabled by default for DHCP/Hotspot to avoid ghost rows with randomized MACs."),
+        field(f"policies.stale_lifecycle.sources.{source}.grace_runs", f"{label} grace runs", "number", section=sec, recommended=1 if source == "ppoe" else 0, risk="medium", minimum=0, maximum=10, description="How many consecutive missing runs are required before cleanup is allowed when optional grace is enabled."),
+        field(f"policies.stale_lifecycle.sources.{source}.return_cancels_cleanup", f"{label} return cancels cleanup", "bool", section=sec, recommended=(source == "ppoe"), risk="low", description="If the same identity returns before cleanup, clear stale/pending cleanup lifecycle state."),
+    ])
+
+POLICY_SCHEMA.extend([
+    field("policies.stale_lifecycle.enabled", "Stale lifecycle policy", "bool", section="Stale Lifecycle Core", recommended=True, risk="medium", description="Enables optional source-aware stale lifecycle behavior. Grace remains disabled by default per source unless operator enables it."),
+    field("policies.auto_apply_policy.enabled", "Risk-aware auto apply", "bool", section="Policy-Aware Auto Apply", recommended=True, risk="high", description="When enabled, LibreQoS auto-apply is allowed or held pending based on policy risk level."),
+    field("policies.auto_apply_policy.allow_low_risk", "Auto apply low risk", "bool", section="Policy-Aware Auto Apply", recommended=True, risk="low", description="Allow automatic LibreQoS apply when policy risk is low."),
+    field("policies.auto_apply_policy.allow_medium_risk", "Auto apply medium risk", "bool", section="Policy-Aware Auto Apply", recommended=False, risk="medium", description="Allow automatic LibreQoS apply when policy risk is medium. Recommended off for production."),
+    field("policies.auto_apply_policy.allow_high_risk", "Auto apply high risk", "bool", section="Policy-Aware Auto Apply", recommended=False, risk="high", description="Allow automatic LibreQoS apply when policy risk is high. Recommended off."),
+    field("policies.auto_apply_policy.allow_critical_risk", "Auto apply critical risk", "bool", section="Policy-Aware Auto Apply", recommended=False, risk="critical", description="Allow automatic LibreQoS apply when policy risk is critical. Recommended off."),
+    field("policies.auto_apply_policy.when_blocked", "When auto apply is held", "select", section="Policy-Aware Auto Apply", choices=["keep_pending_manual_apply", "block_write", "dry_run_only"], recommended="keep_pending_manual_apply", risk="high", description="Behavior when files are written but policy risk does not allow auto LibreQoS apply. keep_pending_manual_apply is safest."),
+    field("policies.decision_trace.enabled", "Decision trace", "bool", section="Policy Decision Trace", recommended=True, risk="low", description="Store explainable policy trace entries showing which rules influenced cleanup/write/apply decisions."),
+    field("policies.decision_trace.max_items", "Max trace items", "number", section="Policy Decision Trace", recommended=200, risk="low", minimum=10, maximum=2000, description="Maximum number of decision trace entries to keep in a single policy decision."),
+])
+
 def get_by_path(obj: dict, path: str, default: Any = None) -> Any:
     cur: Any = obj
     for part in path.split("."):

@@ -135,6 +135,52 @@ SMART_POLICY_DEFAULTS = {
         "show_why_fix_messages": True,
         "show_operator_next_action": True,
     },
+    "auto_apply_policy": {
+        "enabled": True,
+        "allow_low_risk": True,
+        "allow_medium_risk": False,
+        "allow_high_risk": False,
+        "allow_critical_risk": False,
+        "when_blocked": "keep_pending_manual_apply",
+    },
+    "decision_trace": {
+        "enabled": True,
+        "max_items": 200,
+    },
+    "stale_lifecycle": {
+        "enabled": True,
+        "sources": {
+            "pppoe": {
+                "identity": "username",
+                "grace_enabled": False,
+                "grace_runs": 1,
+                "return_cancels_cleanup": True,
+            },
+            "dhcp": {
+                "identity": "server_mac",
+                "grace_enabled": False,
+                "grace_runs": 0,
+                "return_cancels_cleanup": False,
+            },
+            "hotspot": {
+                "identity": "username_or_mac",
+                "grace_enabled": False,
+                "grace_runs": 0,
+                "return_cancels_cleanup": False,
+            },
+            "static": {
+                "identity": "manual",
+                "grace_enabled": False,
+                "grace_runs": 0,
+                "return_cancels_cleanup": False,
+            },
+        },
+    },
+    "policy_overrides": {
+        "dhcp_servers": {},
+        "hotspot_servers": {},
+        "pppoe_profiles": {},
+    },
 }
 
 

@@ -219,6 +219,52 @@
       "enabled": true,
       "show_why_fix_messages": true,
       "show_operator_next_action": true
+    },
+    "auto_apply_policy": {
+      "enabled": true,
+      "allow_low_risk": true,
+      "allow_medium_risk": false,
+      "allow_high_risk": false,
+      "allow_critical_risk": false,
+      "when_blocked": "keep_pending_manual_apply"
+    },
+    "decision_trace": {
+      "enabled": true,
+      "max_items": 200
+    },
+    "stale_lifecycle": {
+      "enabled": true,
+      "sources": {
+        "pppoe": {
+          "identity": "username",
+          "grace_enabled": false,
+          "grace_runs": 1,
+          "return_cancels_cleanup": true
+        },
+        "dhcp": {
+          "identity": "server_mac",
+          "grace_enabled": false,
+          "grace_runs": 0,
+          "return_cancels_cleanup": false
+        },
+        "hotspot": {
+          "identity": "username_or_mac",
+          "grace_enabled": false,
+          "grace_runs": 0,
+          "return_cancels_cleanup": false
+        },
+        "static": {
+          "identity": "manual",
+          "grace_enabled": false,
+          "grace_runs": 0,
+          "return_cancels_cleanup": false
+        }
+      }
+    },
+    "policy_overrides": {
+      "dhcp_servers": {},
+      "hotspot_servers": {},
+      "pppoe_profiles": {}
     }
   },
   "services": {

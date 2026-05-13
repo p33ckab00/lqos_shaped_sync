@@ -17,6 +17,7 @@ from engine.policy_state import (
     cleanup_queue_remove,
     is_confirmation_confirmed,
     queued_cleanup_lookup,
+    queued_cleanup_items,
     scope_hash,
     upsert_cleanup_queue,
     upsert_confirmation,
@@ -41,6 +42,7 @@ class PolicyDecision:
     recommendations: list[dict[str, Any]] = field(default_factory=list)
     cleanup_decisions: list[dict[str, Any]] = field(default_factory=list)
     triggered_policies: list[dict[str, Any]] = field(default_factory=list)
+    decision_trace: list[dict[str, Any]] = field(default_factory=list)
     remove_codes: list[str] = field(default_factory=list)
     preserve_codes: list[str] = field(default_factory=list)
     queued_codes: list[str] = field(default_factory=list)
@@ -59,6 +61,10 @@ class PolicyDecision:
 
     def add_policy(self, name: str, result: str, **extra):
         self.triggered_policies.append({"policy": name, "result": result, **extra})
+        self.add_trace(name, result, **extra)
+
+    def add_trace(self, policy: str, decision: str, **extra):
+        self.decision_trace.append({"policy": policy, "decision": decision, **extra})
 
     def finalize(self):
         score = 0
@@ -75,6 +81,8 @@ class PolicyDecision:
             self.risk_level = "medium"
         else:
             self.risk_level = "low"
+        if len(self.decision_trace) > 500:
+            self.decision_trace = self.decision_trace[-500:]
         if self.blocked_reasons:
             self.verdict = "blocked_by_policy"
         elif self.requires_confirmation:
@@ -164,6 +172,70 @@ def _action_for_reason(pol: dict, source: str, reason: str) -> str:
     return action_valid(sp.get("normal_inactive_action") or global_cleanup.get("normal_inactive_default_action"))
 
 
+def _source_key(source: str) -> str:
+    return SOURCE_KEYS.get(source, "static")
+
+
+def _grace_runs_for_source(pol: dict, source: str, reason: str) -> int:
+    if reason != "normal_inactive":
+        return 0
+    stale = pol.get("stale_lifecycle", {}) or {}
+    if not stale.get("enabled", True):
+        return 0
+    src = _source_key(source)
+    src_cfg = ((stale.get("sources") or {}).get(src) or {})
+    if not src_cfg.get("grace_enabled", False):
+        return 0
+    try:
+        return max(int(src_cfg.get("grace_runs", 1) or 1), 1)
+    except Exception:
+        return 1
+
+
+def evaluate_auto_apply_policy(config: dict, decision: PolicyDecision, should_run: bool, apply_reason: str) -> tuple[bool, str, dict[str, Any]]:
+    """Apply risk-aware auto-apply policy after files are written.
+
+    This does not change file write permission. It decides whether LibreQoS.py
+    should run automatically or whether written changes stay pending for manual
+    apply. This gives operators fast low-risk updates while keeping medium/high
+    risk changes visible and intentional.
+    """
+    pol = policies(config)
+    auto = pol.get("auto_apply_policy", {}) or {}
+    details = {
+        "enabled": bool(auto.get("enabled", True)),
+        "input_should_run": bool(should_run),
+        "input_reason": apply_reason,
+        "risk_level": decision.risk_level,
+        "allowed": bool(should_run),
+        "result_reason": apply_reason,
+    }
+    if not should_run or not auto.get("enabled", True):
+        return should_run, apply_reason, details
+    level_key = f"allow_{decision.risk_level}_risk"
+    allowed = bool(auto.get(level_key, decision.risk_level == "low"))
+    details["policy_key"] = level_key
+    details["allowed"] = allowed
+    if allowed:
+        decision.add_trace("auto_apply_policy", "allow_auto_apply", risk_level=decision.risk_level, policy_key=level_key)
+        return True, apply_reason, details
+    details["result_reason"] = f"auto_apply_held_by_policy_{decision.risk_level}_risk"
+    decision.add_warning(
+        "Auto-apply held by policy",
+        f"Files can be written, but LibreQoS auto-apply is held because policy risk is {decision.risk_level}.",
+        severity="warning",
+        risk_level=decision.risk_level,
+    )
+    decision.add_recommendation(
+        "Review pending LibreQoS apply",
+        f"Risk-aware auto-apply does not allow {decision.risk_level} risk to apply automatically.",
+        "Review Dashboard/Dry Run, then force LibreQoS apply if the change is intentional.",
+        severity="warning",
+    )
+    decision.add_trace("auto_apply_policy", "hold_pending_manual_apply", risk_level=decision.risk_level, policy_key=level_key)
+    return False, details["result_reason"], details
+
+
 def _confirmation_id(source: str, reason: str, codes: list[str], apply_mode: str) -> tuple[str, str]:
     sh = scope_hash(codes)
     return f"cleanup-{source.lower()}-{reason}-{apply_mode}-{sh}", sh
@@ -208,6 +280,7 @@ def evaluate_cleanup_policy(config: dict, policy_state: dict, candidates: list[d
         by_source_reason[(c.get("source", "UNKNOWN"), c.get("reason", "normal_inactive"))].append(c)
 
     queued = queued_cleanup_lookup(policy_state)
+    queued_items = queued_cleanup_items(policy_state)
     confirm_hours = int(pol.get("cleanup", {}).get("confirmation_expires_hours", 24) or 24)
 
     for (source, reason), group in sorted(by_source_reason.items()):
@@ -231,20 +304,28 @@ def evaluate_cleanup_policy(config: dict, policy_state: dict, candidates: list[d
         elif action == "cleanup_next_run":
             remove_now = []
             queue_now = []
+            grace_runs = _grace_runs_for_source(pol, source, effective_reason)
+            required_seen_runs = max(grace_runs, 1)
             for code in codes:
                 key = cleanup_queue_key(code, source, effective_reason)
-                if key in queued:
+                queued_item = queued_items.get(key, {})
+                seen_runs = int(queued_item.get("seen_runs", 0) or 0)
+                if key in queued and seen_runs >= required_seen_runs:
                     remove_now.append(code)
                 else:
-                    upsert_cleanup_queue(policy_state, code, source, effective_reason, ttl_hours=confirm_hours)
+                    item = upsert_cleanup_queue(policy_state, code, source, effective_reason, ttl_hours=confirm_hours)
                     queue_now.append(code)
+                    decision.add_trace("stale_lifecycle", "queue_cleanup", source=source, code=code, reason=effective_reason, seen_runs=item.get("seen_runs"), required_seen_runs=required_seen_runs)
             if remove_now:
                 decision.remove_codes.extend(remove_now)
             if queue_now:
                 decision.queued_codes.extend(queue_now)
                 decision.preserve_codes.extend(queue_now)
-            decision.cleanup_decisions.append({"source": source, "reason": effective_reason, "action": action, "decision": "queued_or_removed", "queued": len(queue_now), "removed": len(remove_now), "affected_rows": removed_count})
-            decision.add_warning(title, f"{len(queue_now)} row(s) queued for next-run cleanup; {len(remove_now)} row(s) already queued and will be removed now.", severity="warning")
+            decision.cleanup_decisions.append({"source": source, "reason": effective_reason, "action": action, "decision": "queued_or_removed", "queued": len(queue_now), "removed": len(remove_now), "affected_rows": removed_count, "required_seen_runs": required_seen_runs})
+            msg = f"{len(queue_now)} row(s) queued for cleanup; {len(remove_now)} row(s) met queue/grace criteria and will be removed now."
+            if grace_runs:
+                msg += f" Optional stale grace is enabled for this source: {required_seen_runs} missing run(s) required."
+            decision.add_warning(title, msg, severity="warning")
         elif action in {"require_confirm_immediate", "require_confirm_next_run"}:
             apply_mode = "immediate" if action.endswith("immediate") else "next_run"
             cid, sh = _confirmation_id(source, effective_reason, codes, apply_mode)

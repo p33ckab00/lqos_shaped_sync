@@ -1,5 +1,15 @@
 # Release Notes
 
+## v2.50.0 - Policy-Aware Cleanup Intelligence FULL
+
+- Adds optional source-aware stale lifecycle settings under `policies.stale_lifecycle`. Grace remains disabled by default per source and is intended only for stable identities such as PPPoE usernames or Hotspot vouchers.
+- Adds cleanup queue seen-run tracking so `cleanup_next_run` and optional grace can wait for a configured number of consecutive missing runs before removal.
+- Adds risk-aware LibreQoS auto-apply policy under `policies.auto_apply_policy`, allowing low-risk automatic applies while holding medium/high/critical changes pending for manual review by default.
+- Adds policy decision trace entries to explain cleanup queueing, grace behavior, confirmation, and auto-apply risk decisions.
+- Exposes the new v2.50 settings through the schema-driven Policy Center because `engine/policy_schema.py` powers the settings UI.
+- Adds documentation source `docs/content/policy_aware_cleanup_intelligence.md` and updates the docs manifest.
+
+
 ## v2.49.0 - Policy Settings Integration FULL
 
 - Adds `engine/policy_schema.py` as the single source of truth for visible Policy Center settings, allowed values, labels, descriptions, recommended defaults, and risk levels.

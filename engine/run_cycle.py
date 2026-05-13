@@ -30,6 +30,7 @@ from engine.collector_cache import cache_path as collector_cache_path, load_cach
 from engine.policy_state import load_policy_state, save_policy_state, prune_expired, cleanup_queue_remove
 from engine.policy_engine import (
     build_cleanup_candidates, evaluate_cleanup_policy, evaluate_apply_guards,
+    evaluate_auto_apply_policy,
     existing_source_counts, update_successful_source_counts,
 )
 from engine.insights import compute_smart_insights
@@ -456,7 +457,11 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
             update_state(state_path, pending_libreqos_apply=True, last_file_write_success=True)
 
         should_run_lq, apply_reason = _libreqos_should_apply(config, state_before, result, mode)
+        should_run_lq, apply_reason, auto_apply_policy_decision = evaluate_auto_apply_policy(config, policy_decision, should_run_lq, apply_reason)
         result.diff["libreqos_apply_decision"] = apply_reason
+        result.diff["auto_apply_policy_decision"] = auto_apply_policy_decision
+        result.diff["policy_decision"] = policy_decision.to_dict()
+        policy_state["last_policy_decision"] = policy_decision.to_dict()
         if should_run_lq:
             lq = _run_libreqos_apply(config, state_path, result, timeline, apply_reason)
             write_audit(config, "libreqos_apply", details={"ok": lq.get("ok"), "exit_code": lq.get("exit_code"), "run_id": lq.get("run_id"), "reason": apply_reason})

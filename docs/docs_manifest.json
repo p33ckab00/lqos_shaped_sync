@@ -18,5 +18,11 @@
     "title": "Smart Setup / Repair",
     "file": "docs/SMART_SETUP_REPAIR.md",
     "anchor": "smart-setup--repair"
+  },
+  "policy_aware_cleanup_intelligence": {
+    "title": "Policy-Aware Cleanup Intelligence",
+    "file": "docs/content/policy_aware_cleanup_intelligence.md",
+    "anchor": "policy-aware-cleanup-intelligence",
+    "summary": "v2.50 source-aware stale lifecycle, optional grace, risk-aware auto apply, and decision trace."
   }
 }

@@ -77,20 +77,31 @@ def queued_cleanup_lookup(state: dict[str, Any]) -> set[str]:
     return {str(item.get("key")) for item in state.get("cleanup_queue", []) if item.get("key")}
 
 
-def upsert_cleanup_queue(state: dict[str, Any], code: str, source: str, reason: str, ttl_hours: int = 24) -> None:
+def queued_cleanup_items(state: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Return cleanup queue items keyed by queue key."""
+    return {str(item.get("key")): item for item in state.get("cleanup_queue", []) if item.get("key")}
+
+
+def upsert_cleanup_queue(state: dict[str, Any], code: str, source: str, reason: str, ttl_hours: int = 24) -> dict[str, Any]:
     key = cleanup_queue_key(code, source, reason)
     now = utcnow()
     expires = now + timedelta(hours=max(int(ttl_hours or 24), 1))
+    existing = queued_cleanup_items(state).get(key, {})
     queue = [item for item in state.get("cleanup_queue", []) if item.get("key") != key]
-    queue.append({
+    item = {
+        **existing,
         "key": key,
         "code": code,
         "source": source,
         "reason": reason,
-        "first_seen_at": now.isoformat(),
+        "first_seen_at": existing.get("first_seen_at") or now.isoformat(),
+        "last_seen_at": now.isoformat(),
+        "seen_runs": int(existing.get("seen_runs", 0) or 0) + 1,
         "expires_at": expires.isoformat(),
-    })
+    }
+    queue.append(item)
     state["cleanup_queue"] = queue
+    return item
 
 
 def cleanup_queue_remove(state: dict[str, Any], codes: set[str]) -> None:

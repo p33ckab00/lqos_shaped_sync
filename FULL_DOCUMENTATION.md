@@ -1453,3 +1453,8 @@ engine/policy_engine.py        runtime decision maker
 policy_state.json              pending confirmations and cleanup queue
 docs/content/*.md              documentation source blocks
 ```
+
+
+## v2.50 Policy-Aware Cleanup Intelligence
+
+LQoSync v2.50 adds optional source-aware stale lifecycle behavior, risk-aware LibreQoS auto-apply, and policy decision trace entries. Grace is disabled by default per source and should only be enabled for stable identities. DHCP environments with randomized MAC addresses should usually keep grace disabled to avoid temporary ghost rows. Risk-aware auto-apply allows low-risk changes to apply automatically while holding medium/high/critical risk changes pending for operator review by default.

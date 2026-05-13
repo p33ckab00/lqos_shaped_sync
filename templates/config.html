@@ -1,6 +1,7 @@
 {% extends "base.html" %}{% block content %}
 <script>
 window.initialConfig = {{ config | tojson }};
+window.initialSchemaReport = {{ schema_report | tojson }};
 function cfgEditor(initial) {
   const blankFactor = () => ({max_plan_mbps: 9999, download_factor: 1.0, upload_factor: 1.0});
   const blankDhcp = () => ({
@@ -101,6 +102,16 @@ function cfgEditor(initial) {
       return out;
     },
     configDiffHtml(){ const changes=this.changedPaths(); if(!changes.length) return '<div class="cfg-help">No important changes detected yet. Saving will still normalize config.json safely.</div>'; return changes.slice(0,8).map(c=>`<div class="op-line"><strong>${c.label}</strong><span>${JSON.stringify(c.before)} → ${JSON.stringify(c.after)}</span></div>`).join('') + (changes.length>8?`<div class="cfg-help">+${changes.length-8} more changed groups</div>`:''); },
+    async simulateConfig(){
+      this.syncHidden(); this.simLoading=true; this.simError=''; this.simulation=null;
+      try{
+        const res = await lqosJsonFetch('/config/simulate', {config_json: this.jsonText});
+        const data = await res.json();
+        if(!res.ok || data.ok === false){ this.simError = data.error || 'Simulation failed'; }
+        else { this.simulation = data; }
+      }catch(e){ this.simError = String(e); }
+      this.simLoading=false;
+    },
     confirmSave(form){ this.syncHidden(); const changes=this.changedPaths(); let msg='Save normalized config.json?'; if(changes.length){ msg+='\n\nChange preview:'; changes.slice(0,10).forEach(c=>{msg+=`\n- ${c.label}: ${JSON.stringify(c.before)} -> ${JSON.stringify(c.after)}`;}); if(changes.length>10) msg+=`\n- +${changes.length-10} more`; } else { msg+='\n\nNo important changes detected; config will still be normalized.'; } msg+='\n\nRecommended after major changes: run Dry Run Preview before enabling scheduler auto-apply.'; if(confirm(msg)) form.submit(); },
     nodePreview(template, values){ return (template || '').replaceAll('{router}', values.router || '').replaceAll('{server}', values.server || '').replaceAll('{profile}', values.profile || 'Tier-15M').replaceAll('{plan}', values.plan || '15M'); }
   }
@@ -420,6 +431,26 @@ function cfgEditor(initial) {
       </main>
 
       <aside class="cfg-side space-y-3">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-shield-check"></i> Config Health / Simulation</div>
+          <div class="grid grid-cols-2 gap-2 mb-3">
+            <div class="cfg-kpi"><div class="cfg-kpi-label">Health</div><div class="cfg-kpi-value" :class="(simulation ? simulation.schema.health_score : schemaReport.health_score) >= 75 ? 'text-accent' : 'text-warn'" x-text="(simulation ? simulation.schema.health_score : schemaReport.health_score) + '%' "></div></div>
+            <div class="cfg-kpi"><div class="cfg-kpi-label">Schema</div><div class="cfg-kpi-value">v{{ schema_version }}</div></div>
+          </div>
+          <p class="text-xs" style="color:var(--muted);margin-bottom:10px">Preview unsaved settings before saving config.json. This checks schema health, policy impacts, risky changes, and recommendations without writing files.</p>
+          <div class="btn-row mb-2"><button type="button" @click="simulateConfig()" class="btn btn-primary"><i class="ti ti-player-play"></i> Preview Impact</button><a class="btn" href="/sync/dry-run"><i class="ti ti-eye"></i> Dry Run</a></div>
+          <div x-show="simLoading" class="cfg-help">Simulating current unsaved config…</div>
+          <div x-show="simError" x-text="simError" class="text-err text-sm"></div>
+          <template x-if="simulation">
+            <div style="display:grid;gap:7px;margin-top:10px">
+              <div class="op-line"><strong>Verdict</strong><span x-text="simulation.verdict"></span></div>
+              <div class="op-line"><strong>Risk</strong><span x-text="simulation.risk_level"></span></div>
+              <div class="op-line"><strong>Changes</strong><span x-text="simulation.summary.total"></span></div>
+              <template x-for="item in (simulation.impacts || []).slice(0,4)" :key="item.title + item.detail"><div class="op-line"><strong x-text="item.title"></strong><span x-text="item.severity"></span></div></template>
+              <template x-if="simulation.recommendations && simulation.recommendations.length"><div class="note"><b>Recommendation:</b> <span x-text="simulation.recommendations[0]"></span></div></template>
+            </div>
+          </template>
+        </div>
         <div class="card">
           <div class="card-title"><i class="ti ti-git-compare"></i> Config Change Preview</div>
           <p class="text-xs" style="color:var(--muted);margin-bottom:10px">Shows important changes before saving. This protects router credentials, apply policy, scheduler, collector behavior, and topology settings from accidental edits.</p>

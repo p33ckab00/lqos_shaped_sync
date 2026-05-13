@@ -24,6 +24,8 @@ from engine.audit import write_audit, tail_audit
 from engine.policy_state import load_policy_state, save_policy_state, confirm_cleanup, dismiss_confirmation
 from engine.setup_repair import compute_setup_repair_report, apply_policy_preset
 from engine.policy_schema import grouped_policy_schema, policy_diff_from_preset, closest_preset, parse_policy_form, normalize_policies, POLICY_SCHEMA, get_by_path
+from engine.config_simulator import simulate_config_change
+from engine.config_schema import migrate_config_schema, validate_schema, CONFIG_SCHEMA_VERSION
 from engine.lifecycle import lifecycle_summary, client_event_timeline
 from applier.atomic_writer import atomic_write_text
 from monitoring.service_monitor import (
@@ -570,7 +572,42 @@ def config_page():
             flash(f"Config save failed: {e}")
     cfg = load_config(CONFIG_PATH)
     errors, warnings = validate_config(cfg)
-    return render_template("config.html", config_json=json.dumps(cfg, indent=2), config=cfg, config_errors=errors, config_warnings=warnings, user=current_user())
+    schema_report = validate_schema(cfg)
+    return render_template(
+        "config.html",
+        config_json=json.dumps(cfg, indent=2),
+        config=cfg,
+        config_errors=errors,
+        config_warnings=warnings,
+        schema_report=schema_report,
+        schema_version=CONFIG_SCHEMA_VERSION,
+        user=current_user(),
+    )
+
+
+@app.route("/config/simulate", methods=["POST"])
+@admin_required
+def config_simulate():
+    """Read-only preview for unsaved Config Center changes.
+
+    Accepts JSON or form data containing config_json and returns config schema
+    health, diff, policy simulation, and operator-readable impact hints. It never
+    writes config.json or generated LibreQoS files.
+    """
+    try:
+        payload = request.get_json(silent=True) or request.form.to_dict()
+        raw = payload.get("config_json") if isinstance(payload, dict) else None
+        proposed = json.loads(raw) if raw else payload.get("config") if isinstance(payload, dict) else None
+        if not isinstance(proposed, dict):
+            return jsonify({"ok": False, "error": "config_json or config object is required"}), 400
+        migrated, migration_notes = migrate_config_schema(proposed)
+        saved = load_config(CONFIG_PATH)
+        _cfg, state = get_status()
+        report = simulate_config_change(saved, migrated, state)
+        report["migration_notes"] = sorted(set((report.get("migration_notes") or []) + migration_notes))
+        return jsonify(report)
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
 
 
 @app.route("/config/dhcp/<int:router_idx>/<int:server_idx>/toggle", methods=["POST"])

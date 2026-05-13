@@ -1458,3 +1458,20 @@ docs/content/*.md              documentation source blocks
 ## v2.50 Policy-Aware Cleanup Intelligence
 
 LQoSync v2.50 adds optional source-aware stale lifecycle behavior, risk-aware LibreQoS auto-apply, and policy decision trace entries. Grace is disabled by default per source and should only be enabled for stable identities. DHCP environments with randomized MAC addresses should usually keep grace disabled to avoid temporary ghost rows. Risk-aware auto-apply allows low-risk changes to apply automatically while holding medium/high/critical risk changes pending for operator review by default.
+
+
+## v2.51 Config Schema + Policy Simulation Engine
+
+LQoSync v2.51 adds a Config Center simulation layer. Operators can preview unsaved settings before saving `config.json`. The simulator validates schema health, detects important changes, explains policy impact, computes risk level, and recommends the next action.
+
+New files:
+
+```text
+engine/config_schema.py
+engine/config_diff.py
+engine/config_simulator.py
+engine/policy_simulator.py
+docs/content/config_schema_policy_simulation.md
+```
+
+Config Center now includes a Config Health / Simulation card with a Preview Impact button. This is read-only and does not write config.json or generated LibreQoS files.

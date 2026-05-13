@@ -1,5 +1,17 @@
 # Release Notes
 
+## v2.51.0 - Config Schema + Policy Simulation Engine FULL
+
+- Adds `config_schema_version` and `config_validation` defaults to `config.json`.
+- Adds `engine/config_schema.py` for versioned migration, schema validation, policy setting validation, and Config Health scoring.
+- Adds `engine/config_diff.py` for safe saved-vs-proposed config diffing with sensitive value masking.
+- Adds `engine/policy_simulator.py` for read-only policy-impact simulation based on unsaved Config Center changes and the latest runtime state.
+- Adds `engine/config_simulator.py` to combine schema health, config diff, policy simulation, risk level, verdict, impacts, and recommendations.
+- Adds `/config/simulate`, a read-only endpoint that previews unsaved Config Center changes without writing config.json, ShapedDevices.csv, network.json, or applying LibreQoS.
+- Adds a Config Health / Simulation card in Config Center with Preview Impact, verdict, risk, changed fields, and first recommendation.
+- Updates `config.json.example`, docs manifest, documentation, About module, release notes, and version metadata for v2.51.
+
+
 ## v2.50.0 - Policy-Aware Cleanup Intelligence FULL
 
 - Adds optional source-aware stale lifecycle settings under `policies.stale_lifecycle`. Grace remains disabled by default per source and is intended only for stable identities such as PPPoE usernames or Hotspot vouchers.

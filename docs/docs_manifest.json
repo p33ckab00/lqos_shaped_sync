@@ -24,5 +24,11 @@
     "file": "docs/content/policy_aware_cleanup_intelligence.md",
     "anchor": "policy-aware-cleanup-intelligence",
     "summary": "v2.50 source-aware stale lifecycle, optional grace, risk-aware auto apply, and decision trace."
+  },
+  "config.schema_policy_simulation": {
+    "title": "Config Schema + Policy Simulation Engine",
+    "file": "docs/content/config_schema_policy_simulation.md",
+    "anchor": "config-schema--policy-simulation-engine",
+    "summary": "v2.51 config_schema_version, config health, unsaved config preview, policy simulation, and impact verdicts."
   }
 }

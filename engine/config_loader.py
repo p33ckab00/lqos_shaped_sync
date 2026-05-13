@@ -7,8 +7,10 @@ from rules.network_mode import normalize_network_mode, VALID_NETWORK_MODES
 from datetime import datetime, timezone
 import shutil
 from engine.policy_defaults import smart_policy_defaults, CLEANUP_ACTIONS, POLICY_PRESETS
+from engine.config_schema import CONFIG_SCHEMA_VERSION, migrate_config_schema, validate_schema
 
 DEFAULT_CONFIG = {
+    "config_schema_version": CONFIG_SCHEMA_VERSION,
     "network_mode": "router_children",
     "flat_network": False,
     "no_parent": False,
@@ -110,6 +112,13 @@ DEFAULT_CONFIG = {
         "show_repair_commands": True,
         "allow_policy_preset_apply": True,
         "doctor_command": "sudo CONFIG_PATH=/opt/libreqos/src/config.json python3 /opt/lqosync/scripts/doctor.py",
+    },
+    "config_validation": {
+        "schema_version": CONFIG_SCHEMA_VERSION,
+        "validate_before_save": True,
+        "simulate_before_save": True,
+        "show_config_health": True,
+        "block_save_on_schema_errors": True,
     },
     "policies": smart_policy_defaults(),
     "services": {
@@ -225,10 +234,13 @@ def normalize_config(cfg):
     cfg.setdefault("preflight", {})
     cfg.setdefault("policies", {})
     cfg.setdefault("routers", [])
+    cfg.setdefault("config_validation", {})
 
     # Merge nested defaults without dropping user values.
     merged = deep_merge(DEFAULT_CONFIG, cfg)
     cfg.clear(); cfg.update(merged)
+    migrated, _migration_notes = migrate_config_schema(cfg)
+    cfg.clear(); cfg.update(migrated)
 
     # Network mode is the user-facing layout selector. Legacy flags are derived
     # automatically so old config.json files keep working.
@@ -436,4 +448,11 @@ def validate_config(cfg: dict):
             for key in ("default_plan_down_mbps", "default_plan_up_mbps", "download_factor", "upload_factor"):
                 try: float(server.get(key))
                 except Exception: errors.append(f"{name}/{server.get('name')}: {key} must be numeric")
+    schema_report = validate_schema(cfg)
+    for e in schema_report.get("errors", []):
+        if e not in errors:
+            errors.append(e)
+    for w in schema_report.get("warnings", []):
+        if w not in warnings:
+            warnings.append(w)
     return errors, warnings

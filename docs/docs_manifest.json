@@ -48,5 +48,10 @@
     "file": "docs/content/setup_wizard_first_run.md",
     "anchor": "first-run-setup-wizard",
     "summary": "v2.54 guided first-run onboarding for paths, routers, sources, layout, policy preset, Dry Run, and scheduler readiness."
+  },
+  "smart_reports_route_hotfix": {
+    "title": "Smart Reports route hotfix",
+    "file": "docs/content/smart_reports_route_hotfix.md",
+    "anchor": "v2541-smart-reports-route-hotfix"
   }
 }

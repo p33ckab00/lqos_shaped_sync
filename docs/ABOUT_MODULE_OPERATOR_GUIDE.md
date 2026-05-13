@@ -583,3 +583,8 @@ LQoSync v2.53 expands the Lifecycle Center into a client timeline and cleanup-st
 LQoSync v2.54 adds a guided First Run Setup Wizard. The wizard computes readiness from config, runtime state, setup/repair checks, source configuration, Network Layout mode, Smart Policy preset, Dry Run status, and scheduler state. It gives the operator a clean onboarding path: confirm LibreQoS paths, configure MikroTik routers, enable PPPoE/DHCP/Hotspot sources, choose Network Layout, choose policy preset, run Dry Run, and enable scheduler only after results are clean and expected.
 
 The wizard is read-only while loading. It does not contact routers or write generated LibreQoS files automatically. Policy preset and layout-mode changes are explicit form actions and are followed by a reminder to run Dry Run.
+
+
+## v2.54.1 Smart Reports route hotfix
+
+This hotfix restores the missing Flask route wiring for Smart Reports in `app.py`. The v2.54 package already included `engine/reports.py`, `templates/reports.html`, and the navigation link, but `/reports` returned `404 Not Found` because the route handler was not registered. v2.54.1 adds `/reports`, `/api/reports/operator`, and `/reports/export/<fmt>` so Smart Reports works cumulatively with the First Run Setup Wizard release.

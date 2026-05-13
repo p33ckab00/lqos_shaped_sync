@@ -1,5 +1,18 @@
 # Release Notes
 
+## v2.54.1 - Smart Reports Route Hotfix
+
+### Fixed
+
+- Restored the missing Flask route wiring for `/reports` in `app.py`.
+- Restored `/api/reports/operator` JSON endpoint.
+- Restored `/reports/export/json`, `/reports/export/csv`, and `/reports/export/markdown` export endpoints.
+- Keeps the existing `engine/reports.py`, `templates/reports.html`, and Smart Reports navigation entry cumulative with v2.54.
+
+### Why
+
+The v2.54 package included the Smart Reports engine/template/navigation from v2.52, but the Flask routes were missing from `app.py`, causing `/reports` to return `404 Not Found`.
+
 ## v2.54.0 - First Run Setup Wizard
 
 ### Added

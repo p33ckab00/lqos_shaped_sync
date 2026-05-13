@@ -87,5 +87,11 @@
     "file": "docs/content/policy_ux_conflict_identity.md",
     "anchor": "v256-policy-ux--conflict-intelligence",
     "summary": "v2.56 Policy Conflict Resolver, richer preset comparison, and client identity handling guidance."
+  },
+  "health.source_performance_trends": {
+    "title": "Source Health + Performance Trends",
+    "file": "docs/content/source_health_performance_trends.md",
+    "anchor": "v257-source-health--performance-trends",
+    "summary": "v2.57 source health dashboard, RouterOS API timing trends, LibreQoS apply health, and internal notification candidates."
   }
 }

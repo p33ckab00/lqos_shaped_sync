@@ -1,0 +1,93 @@
+{% extends "base.html" %}{% block content %}
+{% set sources = report.get('source_health', []) %}
+{% set trends = report.get('performance_trends', {}) %}
+{% set apply = report.get('libreqos_apply_health', {}) %}
+{% set notifications = report.get('notifications', []) %}
+<style>
+  .health-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.health-two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.source-health-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}.health-card{border:1px solid var(--br0);border-radius:14px;padding:12px;background:rgba(11,18,32,.38)}.health-card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.trend-row{display:grid;grid-template-columns:140px 1fr 92px;gap:10px;align-items:center;border:1px solid var(--br0);border-radius:10px;padding:9px 10px;font-family:var(--font-mono);font-size:11px;color:var(--muted)}.trend-bar{height:8px;background:rgba(148,163,184,.18);border-radius:999px;overflow:hidden}.trend-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--c-accent),var(--c-accent2))}.notification-item{border:1px solid var(--br0);border-radius:12px;padding:10px;background:rgba(2,6,23,.22)}.health-mini{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.health-mini div{border:1px solid var(--br0);border-radius:9px;padding:7px 8px;font-family:var(--font-mono);font-size:10px;color:var(--muted)}:root[data-theme=light] .health-card,:root[data-theme=light] .notification-item{background:#fff}@media(max-width:1100px){.health-grid,.source-health-grid,.health-two{grid-template-columns:1fr}.trend-row{grid-template-columns:1fr}.health-mini{grid-template-columns:1fr}}
+</style>
+<div class="page-header">
+  <div>
+    <div class="page-title">Source Health & Performance Trends</div>
+    <div class="page-subtitle">Read-only source health dashboard, RouterOS API timing trends, LibreQoS apply health, and internal notification candidates.</div>
+  </div>
+  <div class="btn-row">
+    <a class="btn" href="/api/health/trends" target="_blank"><i class="ti ti-code"></i> JSON</a>
+    <a class="btn" href="/services"><i class="ti ti-server"></i> Services</a>
+    <a class="btn" href="/"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+  </div>
+</div>
+
+<section class="health-grid">
+  <div class="stat"><div class="stat-label"><i class="ti ti-heartbeat"></i> Health Score</div><div class="stat-value {{ 'text-accent' if report.health_score >= 90 else ('text-warn' if report.health_score >= 50 else 'text-err') }}">{{ report.health_score }}%</div><div class="stat-sub">{{ report.health_level.replace('_',' ') }}</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-database-search"></i> Sources</div><div class="stat-value">{{ sources|length }}</div><div class="stat-sub">PPPoE / DHCP / Hotspot</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-bell"></i> Notifications</div><div class="stat-value {{ 'text-warn' if notifications else 'text-accent' }}">{{ notifications|length }}</div><div class="stat-sub">internal candidates</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-server"></i> Services</div><div class="stat-value {{ 'text-warn' if report.service_counts.failed else 'text-accent' }}">{{ report.service_counts.active }}/{{ report.service_counts.total }}</div><div class="stat-sub">active services</div></div>
+</section>
+
+<section class="source-health-grid">
+  {% for s in sources %}
+  <div class="health-card">
+    <div class="health-card-head">
+      <div><div class="card-title" style="margin:0"><i class="ti {{ s.icon }}"></i> {{ s.label }}</div><div class="mono text-xs" style="color:var(--muted);margin-top:4px">policy={{ s.cleanup_policy }}</div></div>
+      <span class="badge {{ 'b-ok' if s.status == 'ok' else ('b-warn' if s.status in ['warning','idle'] else 'b-err') }}">{{ s.status }}</span>
+    </div>
+    <div class="health-mini">
+      <div><b>{{ s.active }}</b><br>active rows</div>
+      <div><b>{{ s.stale }}</b><br>stale</div>
+      <div><b>{{ s.queued }}</b><br>queued</div>
+      <div><b>{{ s.zero_result_policy }}</b><br>zero-result</div>
+    </div>
+    {% if s.warnings %}<div style="margin-top:10px;display:grid;gap:6px">{% for w in s.warnings %}<div class="text-sm text-warn"><i class="ti ti-alert-triangle"></i> {{ w }}</div>{% endfor %}</div>{% endif %}
+    {% if s.metrics %}<details style="margin-top:10px"><summary class="mono text-xs text-dhcp" style="cursor:pointer">collector metrics</summary><pre class="mono" style="white-space:pre-wrap;font-size:10px;color:var(--muted);margin-top:8px">{{ s.metrics | tojson(indent=2) }}</pre></details>{% endif %}
+  </div>
+  {% endfor %}
+</section>
+
+<section class="health-two">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-chart-line"></i> Router API / Sync Timing Trends</div>
+    {% set router = trends.get('router_api', {}) %}{% set cycle = trends.get('cycle', {}) %}{% set apply_t = trends.get('libreqos_apply', {}) %}
+    <div style="display:grid;gap:8px">
+      {% for label,data in [('Router API', router), ('Full sync cycle', cycle), ('LibreQoS apply timing', apply_t)] %}
+      <div class="trend-row">
+        <span>{{ label }}</span>
+        <div><div class="trend-bar"><div class="trend-fill" style="width:{{ ((data.current_ms / data.max_ms) * 100)|round(1) if data.max_ms else 0 }}%"></div></div><div class="mono text-xs" style="color:var(--hint);margin-top:4px">avg={{ data.average_ms }}ms · max={{ data.max_ms }}ms</div></div>
+        <span class="badge {{ 'b-ok' if data.status == 'normal' else ('b-warn' if data.status in ['watch','slow'] else 'b-static') }}">{{ data.current_ms }}ms<br>{{ data.status }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-sm" style="color:var(--muted);margin-top:10px">Trend status compares the latest timing with recent audit timing samples. A slow status usually means RouterOS API latency, larger topology changes, host load, or LibreQoS apply pressure.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="ti ti-bolt"></i> LibreQoS Apply Health</div>
+    <div class="grid-stats" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+      <div class="stat"><div class="stat-label">Status</div><div class="stat-value {{ 'text-accent' if apply.status == 'ok' else ('text-warn' if apply.status in ['pending','warning'] else 'text-err') }}">{{ apply.status }}</div></div>
+      <div class="stat"><div class="stat-label">Recent OK / Failed</div><div class="stat-value">{{ apply.recent_ok }}/{{ apply.recent_failed }}</div></div>
+      <div class="stat"><div class="stat-label">Average Duration</div><div class="stat-value">{{ apply.average_duration_seconds }}s</div></div>
+      <div class="stat"><div class="stat-label">Repeated Failures</div><div class="stat-value {{ 'text-err' if apply.repeated_failures else 'text-accent' }}">{{ apply.repeated_failures }}</div></div>
+    </div>
+    {% if apply.warnings %}<div style="margin-top:10px;display:grid;gap:7px">{% for w in apply.warnings %}<div class="notification-item text-warn"><i class="ti ti-alert-triangle"></i> {{ w }}</div>{% endfor %}</div>{% endif %}
+    {% if apply.last_apply %}<details style="margin-top:10px"><summary class="mono text-xs text-dhcp" style="cursor:pointer">latest apply run</summary><pre class="mono" style="white-space:pre-wrap;font-size:10px;color:var(--muted);margin-top:8px">{{ apply.last_apply | tojson(indent=2) }}</pre></details>{% endif %}
+  </div>
+</section>
+
+<section class="health-two">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-bell-ringing"></i> Internal Notification Candidates</div>
+    <div class="text-sm" style="color:var(--muted);margin-top:0">v2.57 creates the internal notification foundation. Telegram delivery is planned for v2.58 and will use these kinds of events.</div>
+    {% if notifications %}<div style="display:grid;gap:8px;margin-top:10px">{% for n in notifications %}<div class="notification-item"><div style="display:flex;justify-content:space-between;gap:8px"><b>{{ n.title }}</b><span class="badge {{ 'b-err' if n.level == 'critical' else 'b-warn' }}">{{ n.level }}</span></div><div class="text-sm" style="color:var(--muted);margin-top:6px">{{ n.message }}</div>{% if n.target %}<a class="text-xs" href="{{ n.target }}" style="color:var(--c-accent);text-decoration:none">Open related page</a>{% endif %}</div>{% endfor %}</div>{% else %}<div class="mono text-sm" style="color:var(--muted);margin-top:10px">No notification-worthy conditions detected.</div>{% endif %}
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-history"></i> 24h Operational Snapshot</div>
+    <div class="grid-stats" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+      <div class="stat"><div class="stat-label">Audit events</div><div class="stat-value">{{ report.audit_24h.events }}</div></div>
+      <div class="stat"><div class="stat-label">Sync finished</div><div class="stat-value">{{ report.audit_24h.sync_finished }}</div></div>
+      <div class="stat"><div class="stat-label">Policy blocked</div><div class="stat-value {{ 'text-warn' if report.audit_24h.policy_blocked else 'text-accent' }}">{{ report.audit_24h.policy_blocked }}</div></div>
+      <div class="stat"><div class="stat-label">LibreQoS apply</div><div class="stat-value">{{ report.audit_24h.libreqos_apply }}</div></div>
+    </div>
+    <div class="text-sm" style="color:var(--muted);margin-top:10px">This page is read-only. It does not change config.json, generated files, policy state, scheduler behavior, or LibreQoS apply behavior.</div>
+  </div>
+</section>
+{% endblock %}

@@ -105,6 +105,28 @@ DEFAULT_CONFIG = {
         "show_warning_explanations": True,
         "fallback_speed_review_limit": 100,
     },
+    "monitoring": {
+        "enabled": True,
+        "source_health_enabled": True,
+        "performance_trends_enabled": True,
+        "slowdown_multiplier": 5,
+        "trend_sample_limit": 100,
+        "show_health_nav": True,
+    },
+    "notifications": {
+        "enabled": True,
+        "internal_center_enabled": True,
+        "telegram": {
+            "enabled": False,
+            "bot_token": "",
+            "chat_id": "",
+            "notify_levels": ["critical", "warning"],
+            "notify_on_apply_failed": True,
+            "notify_on_policy_block": True,
+            "notify_on_confirmation_required": True,
+            "notify_on_update_available": True
+        }
+    },
     "setup_repair": {
         "enabled": True,
         "read_only_by_default": True,

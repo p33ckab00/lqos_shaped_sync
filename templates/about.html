@@ -688,6 +688,18 @@ python3 -m json.tool network.json</div>
       </div>
     </section>
 
+
+    <section id="source-health-performance-trends" class="card about-section">
+      <h2><i class="ti ti-heartbeat"></i> v2.57 Source Health + Performance Trends</h2>
+      <p>LQoSync v2.57 adds a read-only Health Trends center for source health, RouterOS API timing, LibreQoS apply health, and internal notification candidates.</p>
+      <div class="note-grid">
+        <div class="note"><b>Source Health:</b> PPPoE, DHCP, and Hotspot cards show active rows, stale/queued state, cleanup policy, zero-result policy, collector-failed policy, and source warnings.</div>
+        <div class="note"><b>Performance Trends:</b> Router API, full sync cycle, and LibreQoS apply timing are compared with recent audit timing samples.</div>
+        <div class="note"><b>Apply Health:</b> recent successful/failed apply counts, repeated failures, pending apply state, and apply duration are visible from one page.</div>
+        <div class="note"><b>Notification foundation:</b> internal notification candidates are shown in WebUI. Telegram delivery is planned for v2.58.</div>
+      </div>
+    </section>
+
 {% endblock %}
 
 <section class="card" style="margin-top:12px">

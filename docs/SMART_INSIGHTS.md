@@ -35,3 +35,8 @@ Severity
 ```
 
 This keeps the UI focused on actionable operations rather than raw internal flags.
+
+
+## v2.57 Source Health + Performance Trends
+
+LQoSync v2.57 adds a read-only Health Trends center. It summarizes PPPoE/DHCP/Hotspot source health, RouterOS API timing, full sync timing, LibreQoS apply health, and internal notification candidates. The goal is to make operational health visible before problems become production-impacting. Telegram delivery is planned separately so credentials, testing, and alert rules can be handled safely.

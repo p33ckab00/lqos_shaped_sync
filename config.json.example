@@ -97,6 +97,31 @@
     "show_warning_explanations": true,
     "fallback_speed_review_limit": 100
   },
+  "monitoring": {
+    "enabled": true,
+    "source_health_enabled": true,
+    "performance_trends_enabled": true,
+    "slowdown_multiplier": 5,
+    "trend_sample_limit": 100,
+    "show_health_nav": true
+  },
+  "notifications": {
+    "enabled": true,
+    "internal_center_enabled": true,
+    "telegram": {
+      "enabled": false,
+      "bot_token": "",
+      "chat_id": "",
+      "notify_levels": [
+        "critical",
+        "warning"
+      ],
+      "notify_on_apply_failed": true,
+      "notify_on_policy_block": true,
+      "notify_on_confirmation_required": true,
+      "notify_on_update_available": true
+    }
+  },
   "setup_repair": {
     "enabled": true,
     "read_only_by_default": true,
@@ -111,6 +136,14 @@
     "simulate_before_save": true,
     "show_config_health": true,
     "block_save_on_schema_errors": true
+  },
+  "package_quality": {
+    "enabled": true,
+    "check_routes_templates": true,
+    "check_config_defaults": true,
+    "show_in_setup_repair": true,
+    "doctor_script": "/opt/lqosync/scripts/lqosync-doctor.sh",
+    "release_check_script": "/opt/lqosync/scripts/release_check.py"
   },
   "policies": {
     "mode": "balanced",
@@ -411,13 +444,5 @@
       },
       "parent_node": ""
     }
-  ],
-  "package_quality": {
-    "enabled": true,
-    "check_routes_templates": true,
-    "check_config_defaults": true,
-    "show_in_setup_repair": true,
-    "doctor_script": "/opt/lqosync/scripts/lqosync-doctor.sh",
-    "release_check_script": "/opt/lqosync/scripts/release_check.py"
-  }
+  ]
 }

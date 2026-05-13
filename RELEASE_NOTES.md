@@ -1,5 +1,19 @@
 # LQoSync Release Notes
 
+## v2.57.0 - Source Health + Performance Trends
+
+### Added
+
+- Added `engine/health_trends.py` for read-only source health, performance trend, LibreQoS apply health, and notification candidate reporting.
+- Added `/health` Health Trends center with PPPoE/DHCP/Hotspot source cards, Router API timing trends, sync cycle trends, LibreQoS apply health, and internal notification candidates.
+- Added `/api/health/trends` JSON endpoint for integrations and diagnostics.
+- Added monitoring and notification foundation defaults in `config.json.example`.
+- Added Health Trends navigation under Monitor.
+
+### Notes
+
+This release is read-only. Telegram delivery is planned for v2.58; v2.57 only creates internal notification candidates and monitoring summaries.
+
 ## v2.56.0 - Policy UX + Conflict Intelligence
 
 ### Added

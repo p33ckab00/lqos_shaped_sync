@@ -26,6 +26,7 @@ from engine.setup_repair import compute_setup_repair_report, apply_policy_preset
 from engine.setup_wizard import compute_setup_wizard, NETWORK_MODE_OPTIONS
 from engine.policy_schema import grouped_policy_schema, policy_diff_from_preset, closest_preset, parse_policy_form, normalize_policies, POLICY_SCHEMA, get_by_path
 from engine.policy_conflicts import evaluate_policy_conflicts, enhanced_preset_comparison, client_identity_report
+from engine.health_trends import compute_health_report
 from engine.config_simulator import simulate_config_change
 from engine.reports import compute_operator_report, report_to_csv, report_to_markdown
 from engine.config_schema import migrate_config_schema, validate_schema, CONFIG_SCHEMA_VERSION
@@ -872,6 +873,30 @@ def policy_dismiss_confirmation(confirmation_id):
     return redirect(url_for("policy_center"))
 
 
+
+
+
+
+@app.route("/health")
+@login_required
+def health_trends_center():
+    """Source Health and Performance Trends center."""
+    cfg, state = get_status()
+    policy_state = load_policy_state(cfg)
+    services = all_service_status(cfg)
+    apply_runs = list_apply_runs(cfg, limit=25)
+    report = compute_health_report(cfg, state, policy_state=policy_state, services=services, apply_runs=apply_runs)
+    return render_template("health.html", cfg=cfg, state=state, report=report, user=current_user())
+
+
+@app.route("/api/health/trends")
+@login_required
+def api_health_trends():
+    cfg, state = get_status()
+    policy_state = load_policy_state(cfg)
+    services = all_service_status(cfg)
+    apply_runs = list_apply_runs(cfg, limit=25)
+    return jsonify(compute_health_report(cfg, state, policy_state=policy_state, services=services, apply_runs=apply_runs))
 
 
 @app.route("/reports")

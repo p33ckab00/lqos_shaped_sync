@@ -35,6 +35,8 @@
   <p class="text-sm" style="color:var(--muted);margin-top:10px">Dry-run uses the same collection, speed resolver, node builder, diff, and preflight path as live sync, but it does not write files and does not run <code>LibreQoS.py --updateonly</code>. Use this before enabling scheduler auto-apply or after changing Config Center settings.</p>
 </section>
 
+{% include "dry_run_policy_verdict_fragment.html" %}
+
 <section class="two-grid" style="margin-top:10px">
   <div class="card">
     <div class="card-title"><i class="ti ti-device-desktop-analytics"></i> Circuit Diff</div>

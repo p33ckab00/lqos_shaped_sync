@@ -1404,3 +1404,12 @@ Update Center remains read-only. It displays safe SSH commands for updating, but
 ## v2.44 UI polish note
 
 LQoSync v2.44 refines the browser-only Privacy Mode icon and Services & Journals layout. Privacy Mode now uses a shield-and-eye redaction icon with a slash state when masking is disabled. Services & Journals now uses matching scroll-shell panels for Journal Viewer and LibreQoS Apply Logs so both areas line up visually and use the available card height consistently. These changes do not modify the core engine, generated files, or LibreQoS apply logic.
+
+
+## v2.45 Smart Policy Center
+
+LQoSync v2.45 introduces the Smart Policy Center. It adds policy-driven safety decisions before file writes and LibreQoS apply. Cleanup candidates are classified by reason such as normal inactive, source disabled, collector failed, source zero result, and mass removal. The policy engine then decides whether to preserve rows, warn only, clean immediately, queue cleanup for the next run, require confirmation, block cleanup, or block apply.
+
+The Dashboard and Dry Run pages now expose policy verdict, risk level, write/apply permission, pending confirmations, and recommendations. The Policy Center page shows current policy mode, source cleanup behavior, pending cleanup confirmations, apply guards, collector guards, runtime policy state, and last policy decision.
+
+This turns LQoSync into a policy-driven operator tool: config defines operator intent, policies define how safely it happens, the policy engine decides before write/apply, and the UI explains every decision.

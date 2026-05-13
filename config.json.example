@@ -20,7 +20,8 @@
     "lock_file": "/opt/lqosync/state/lqosync.lock",
     "audit_log": "/opt/lqosync/logs/audit.jsonl",
     "libreqos_apply_log_dir": "/opt/lqosync/logs/libreqos_apply",
-    "collector_cache": "/opt/lqosync/state/collector_cache.json"
+    "collector_cache": "/opt/lqosync/state/collector_cache.json",
+    "policy_state": "/opt/lqosync/state/policy_state.json"
   },
   "libreqos": {
     "cmd": "/opt/libreqos/src/LibreQoS.py",
@@ -78,6 +79,129 @@
     "show_raw_json_editor": true,
     "default_theme": "light",
     "privacy_mode_available": true
+  },
+  "topology": {
+    "allow_deep_hierarchy": true,
+    "allow_custom_edit": true,
+    "show_virtual_nodes": true,
+    "validate_before_save": true
+  },
+  "policies": {
+    "mode": "balanced",
+    "cleanup": {
+      "enabled": true,
+      "global_default_action": "require_confirm_next_run",
+      "confirmation_expires_hours": 24,
+      "apply_confirmed_cleanup": "next_run",
+      "normal_inactive_default_action": "cleanup_next_run",
+      "source_disabled_default_action": "require_confirm_next_run",
+      "collector_failed_default_action": "preserve_rows",
+      "source_zero_result_default_action": "block_cleanup",
+      "allow_immediate_cleanup": true
+    },
+    "cleanup_sources": {
+      "pppoe": {
+        "enabled": true,
+        "normal_inactive_action": "cleanup_next_run",
+        "source_disabled_action": "require_confirm_next_run",
+        "collector_failed_action": "preserve_rows",
+        "zero_result_action": "block_cleanup",
+        "mass_removal_action": "require_confirm_next_run",
+        "respect_percentage_guards": true
+      },
+      "dhcp": {
+        "enabled": true,
+        "normal_inactive_action": "cleanup_immediate",
+        "source_disabled_action": "require_confirm_next_run",
+        "collector_failed_action": "preserve_rows",
+        "zero_result_action": "block_cleanup",
+        "mass_removal_action": "require_confirm_next_run",
+        "respect_percentage_guards": false
+      },
+      "hotspot": {
+        "enabled": true,
+        "normal_inactive_action": "cleanup_immediate",
+        "source_disabled_action": "cleanup_next_run",
+        "collector_failed_action": "preserve_rows",
+        "zero_result_action": "warn_only",
+        "mass_removal_action": "require_confirm_next_run",
+        "respect_percentage_guards": false
+      },
+      "static": {
+        "enabled": true,
+        "normal_inactive_action": "preserve_rows",
+        "source_disabled_action": "preserve_rows",
+        "collector_failed_action": "preserve_rows",
+        "zero_result_action": "preserve_rows",
+        "mass_removal_action": "preserve_rows",
+        "respect_percentage_guards": true
+      }
+    },
+    "node_cleanup_guard": {
+      "enabled": true,
+      "threshold_percent": 30,
+      "min_node_size": 10,
+      "min_removed_count": 3,
+      "action": "require_confirm_next_run"
+    },
+    "small_node_guard": {
+      "enabled": true,
+      "max_node_size": 5,
+      "partial_removal_action": "cleanup_next_run",
+      "full_removal_action": "require_confirm_next_run"
+    },
+    "source_cleanup_guard": {
+      "enabled": true,
+      "threshold_percent": 30,
+      "min_removed_count": 5,
+      "action": "require_confirm_next_run"
+    },
+    "apply_guard": {
+      "block_apply_on_collector_failure": true,
+      "block_apply_on_missing_parent": true,
+      "block_apply_on_duplicate_ip": true,
+      "block_apply_on_invalid_speed": true,
+      "require_manual_confirm_on_medium_risk": true,
+      "allow_auto_apply_on_low_risk": true
+    },
+    "collector_guard": {
+      "block_cleanup_if_source_failed": true,
+      "block_cleanup_if_enabled_source_returns_zero": true,
+      "block_cleanup_if_source_returns_zero_after_previous_success": true,
+      "zero_source_drop_threshold_percent": 80,
+      "warn_if_router_api_slow_ms": 2000
+    },
+    "data_quality": {
+      "warn_on_fallback_speed": true,
+      "fallback_speed_warning_threshold_percent": 10,
+      "block_if_fallback_speed_threshold_percent": 50,
+      "warn_on_missing_mac": true,
+      "warn_on_missing_ip": true
+    },
+    "topology_guard": {
+      "block_missing_parent_nodes": true,
+      "block_duplicate_node_names": true,
+      "warn_on_virtual_node_promotion": true,
+      "warn_on_deep_hierarchy_depth": true,
+      "max_recommended_depth": 4
+    },
+    "backup_guard": {
+      "require_backup_before_apply": true,
+      "warn_if_backup_disabled_while_auto_apply_enabled": true,
+      "minimum_backup_retention": 30
+    },
+    "anomaly_detection": {
+      "enabled": true,
+      "compare_with_last_successful_run": true,
+      "warn_if_client_count_drops_percent": 30,
+      "warn_if_sync_duration_increases_multiplier": 5,
+      "warn_if_apply_duration_increases_multiplier": 5
+    },
+    "recommendations": {
+      "enabled": true,
+      "show_why_fix_messages": true,
+      "show_operator_next_action": true
+    }
   },
   "services": {
     "units": [
@@ -215,11 +339,5 @@
       },
       "parent_node": ""
     }
-  ],
-  "topology": {
-    "allow_deep_hierarchy": true,
-    "allow_custom_edit": true,
-    "show_virtual_nodes": true,
-    "validate_before_save": true
-  }
+  ]
 }

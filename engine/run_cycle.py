@@ -27,6 +27,11 @@ from engine.lockfile import InterProcessLock, LockBusy
 from engine.audit import write_audit
 from engine.change_summary import build_client_change_summary
 from engine.collector_cache import cache_path as collector_cache_path, load_cache as load_collector_cache, save_cache as save_collector_cache
+from engine.policy_state import load_policy_state, save_policy_state, prune_expired, cleanup_queue_remove
+from engine.policy_engine import (
+    build_cleanup_candidates, evaluate_cleanup_policy, evaluate_apply_guards,
+    existing_source_counts, update_successful_source_counts,
+)
 
 
 class Timeline:
@@ -151,6 +156,11 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
     collector_cache = load_collector_cache(cache_file)
     timeline.record("collector_cache_load", t, details={"path": cache_file})
 
+    t = time.perf_counter()
+    policy_state = load_policy_state(config)
+    prune_expired(policy_state)
+    timeline.record("policy_state_load", t, details={"pending_confirmations": len(policy_state.get("pending_confirmations", [])), "queued_cleanup": len(policy_state.get("cleanup_queue", []))})
+
     log_event(config, "info", f"Starting sync cycle mode={mode}")
     write_audit(config, "sync_started", details={"mode": mode})
     try:
@@ -256,19 +266,34 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
             for source in ("PPP", "DHCP", "HS"):
                 if all(source in ctx.source_success_by_router.get(name, set()) for name in enabled_names):
                     cleanup_sources.add(source)
-            if cleanup_sources:
-                cleanup_updated, cleanup_stats = remove_inactive_entries_by_source(ctx.existing_data, ctx.active_codes_by_source, cleanup_sources, config["defaults"].get("static_comment_value", "static"))
-                if cleanup_updated:
-                    result.files_changed = True
-                ctx.collector_metrics["cleanup"] = cleanup_stats
-                skipped_sources = sorted(set(["PPP", "DHCP", "HS"]) - cleanup_sources)
-                if skipped_sources:
-                    result.warnings.append(f"Source-aware cleanup skipped for: {', '.join(skipped_sources)} because not all enabled routers scanned those sources successfully.")
-            else:
-                result.warnings.append("Skipping inactive cleanup: no sources were scanned successfully across all enabled routers.")
         else:
             result.warnings.append("Skipping inactive cleanup: no enabled routers.")
-        timeline.record("cleanup_inactive", t, details={"cleanup_sources": sorted(cleanup_sources)})
+
+        active_counts_by_source = {src: len(ctx.active_codes_by_source.get(src, set())) for src in ("PPP", "DHCP", "HS")}
+        existing_counts_before_cleanup = existing_source_counts(ctx.existing_data, config["defaults"].get("static_comment_value", "static"))
+        cleanup_candidates = build_cleanup_candidates(ctx.existing_data, ctx.active_codes_by_source, cleanup_sources, config["defaults"].get("static_comment_value", "static"))
+        policy_decision = evaluate_cleanup_policy(config, policy_state, cleanup_candidates, cleanup_sources, active_counts_by_source, existing_counts_before_cleanup)
+        remove_codes = set(policy_decision.remove_codes)
+        if remove_codes:
+            for code in list(remove_codes):
+                if code in ctx.existing_data:
+                    del ctx.existing_data[code]
+            cleanup_queue_remove(policy_state, remove_codes)
+            result.files_changed = True
+        cleanup_stats = {
+            "sources": sorted(cleanup_sources),
+            "candidates": len(cleanup_candidates),
+            "removed": len(remove_codes),
+            "queued": len(policy_decision.queued_codes),
+            "preserved": len(policy_decision.preserve_codes),
+            "verdict": policy_decision.verdict,
+            "risk_level": policy_decision.risk_level,
+        }
+        ctx.collector_metrics["cleanup"] = cleanup_stats
+        skipped_sources = sorted(set(["PPP", "DHCP", "HS"]) - cleanup_sources)
+        if skipped_sources:
+            result.warnings.append(f"Source-aware cleanup skipped for: {', '.join(skipped_sources)} because not all enabled routers scanned those sources successfully.")
+        timeline.record("cleanup_policy", t, details=cleanup_stats)
 
         t = time.perf_counter()
         proposed_csv_text = render_shaped_devices_csv(ctx.existing_data)
@@ -327,12 +352,34 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
         result.errors.extend(preflight["errors"])
         timeline.record("preflight", t, status="failed" if result.errors else "ok", details={"warnings": len(preflight["warnings"]), "errors": len(preflight["errors"])})
 
+        t = time.perf_counter()
+        policy_decision = evaluate_apply_guards(config, policy_decision, preflight, result)
+        result.diff["policy_decision"] = policy_decision.to_dict()
+        policy_state["last_policy_decision"] = policy_decision.to_dict()
+        for w in policy_decision.warnings:
+            msg = w.get("message") or w.get("title")
+            if msg:
+                result.warnings.append(f"Policy: {msg}")
+        if policy_decision.blocked_reasons:
+            for b in policy_decision.blocked_reasons:
+                result.errors.append(f"Policy blocked: {b.get('message') or b.get('title')}")
+        save_policy_state(config, policy_state)
+        timeline.record("policy_evaluation", t, status="blocked" if not policy_decision.write_allowed else policy_decision.verdict, details={"verdict": policy_decision.verdict, "risk_level": policy_decision.risk_level, "risk_score": policy_decision.risk_score})
+
         if mode == "dry_run":
             result.finish("dry_run_complete")
             result.timings["cycle_total"] = round((time.perf_counter() - cycle_start) * 1000, 3)
-            log_event(config, "info", f"Dry-run complete: csv_changed={result.csv_changed} network_changed={result.network_changed}")
-            write_audit(config, "dry_run_complete", details={"csv_changed": result.csv_changed, "network_changed": result.network_changed, "status": result.status, "timings": result.timings})
+            log_event(config, "info", f"Dry-run complete: csv_changed={result.csv_changed} network_changed={result.network_changed} policy={policy_decision.verdict}")
+            write_audit(config, "dry_run_complete", details={"csv_changed": result.csv_changed, "network_changed": result.network_changed, "status": result.status, "policy_decision": policy_decision.to_dict(), "timings": result.timings})
             update_state(state_path, sync_running=False, scheduler_state="idle", last_dry_run=result.to_dict(), last_error=None)
+            return result
+
+        if not policy_decision.write_allowed:
+            result.finish("policy_blocked")
+            result.timings["cycle_total"] = round((time.perf_counter() - cycle_start) * 1000, 3)
+            log_event(config, "error", f"Policy blocked sync: {policy_decision.verdict} risk={policy_decision.risk_level}")
+            write_audit(config, "policy_blocked", details={"policy_decision": policy_decision.to_dict(), "timings": result.timings})
+            update_state(state_path, sync_running=False, scheduler_state="error", last_run=result.to_dict(), last_error="policy_blocked")
             return result
 
         if result.errors:
@@ -395,8 +442,13 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
 
         result.finish("success")
         result.timings["cycle_total"] = round((time.perf_counter() - cycle_start) * 1000, 3)
+        try:
+            update_successful_source_counts(policy_state, cleanup_sources, active_counts_by_source, {k: int(v.get("active_count", 0) or 0) for k, v in (ctx.node_math or {}).items() if isinstance(v, dict)})
+            save_policy_state(config, policy_state)
+        except Exception as policy_state_error:
+            result.warnings.append(f"Policy state save failed: {policy_state_error}")
         log_event(config, "info", f"Sync success: files_changed={result.files_changed} libreqos_triggered={result.libreqos_triggered} duration_ms={result.timings.get('cycle_total')}")
-        write_audit(config, "sync_finished", details={"status": result.status, "files_changed": result.files_changed, "libreqos_triggered": result.libreqos_triggered, "libreqos_exit_code": result.libreqos_exit_code, "client_change_summary": result.diff.get("client_change_summary"), "timings": result.timings})
+        write_audit(config, "sync_finished", details={"status": result.status, "files_changed": result.files_changed, "libreqos_triggered": result.libreqos_triggered, "libreqos_exit_code": result.libreqos_exit_code, "client_change_summary": result.diff.get("client_change_summary"), "policy_decision": result.diff.get("policy_decision"), "timings": result.timings})
         update_state(
             state_path,
             sync_running=False,

@@ -21,6 +21,7 @@ from applier.libreqos_runner import run_libreqos_update
 from applier.rollback import restore_backup
 from collectors.mikrotik_client import test_router_connection, connect_to_router, get_resource_data
 from engine.audit import write_audit, tail_audit
+from engine.policy_state import load_policy_state, save_policy_state, confirm_cleanup, dismiss_confirmation
 from applier.atomic_writer import atomic_write_text
 from monitoring.service_monitor import (
     all_service_status, service_status, restart_service as monitor_restart_service,
@@ -726,6 +727,46 @@ def discover_dhcp(router_idx):
 
 
 
+
+
+@app.route("/policy")
+@admin_required
+def policy_center():
+    cfg, state = get_status()
+    pstate = load_policy_state(cfg)
+    last = state.get("last_run") or state.get("last_dry_run") or {}
+    decision = (last.get("diff") or {}).get("policy_decision") or pstate.get("last_policy_decision") or {}
+    return render_template("policy_center.html", cfg=cfg, state=state, policy_state=pstate, decision=decision, user=current_user())
+
+
+@app.route("/policy/confirm/<path:confirmation_id>", methods=["POST"])
+@admin_required
+def policy_confirm_cleanup(confirmation_id):
+    cfg = load_config(CONFIG_PATH)
+    pstate = load_policy_state(cfg)
+    actor = (current_user() or {}).get("username", "admin")
+    if confirm_cleanup(pstate, confirmation_id, actor=actor):
+        save_policy_state(cfg, pstate)
+        write_audit(cfg, "cleanup_confirmed", actor=actor, details={"confirmation_id": confirmation_id})
+        flash("Cleanup confirmation saved. Confirmed cleanup can be applied on the next successful sync run.")
+    else:
+        flash("Cleanup confirmation was not found or already expired.")
+    return redirect(url_for("policy_center"))
+
+
+@app.route("/policy/dismiss/<path:confirmation_id>", methods=["POST"])
+@admin_required
+def policy_dismiss_confirmation(confirmation_id):
+    cfg = load_config(CONFIG_PATH)
+    pstate = load_policy_state(cfg)
+    actor = (current_user() or {}).get("username", "admin")
+    if dismiss_confirmation(pstate, confirmation_id):
+        save_policy_state(cfg, pstate)
+        write_audit(cfg, "cleanup_confirmation_dismissed", actor=actor, details={"confirmation_id": confirmation_id})
+        flash("Pending cleanup confirmation dismissed.")
+    else:
+        flash("Cleanup confirmation was not found.")
+    return redirect(url_for("policy_center"))
 
 
 @app.route("/updates")

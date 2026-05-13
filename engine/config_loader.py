@@ -6,6 +6,7 @@ from applier.atomic_writer import atomic_write_text
 from rules.network_mode import normalize_network_mode, VALID_NETWORK_MODES
 from datetime import datetime, timezone
 import shutil
+from engine.policy_defaults import smart_policy_defaults, CLEANUP_ACTIONS, POLICY_PRESETS
 
 DEFAULT_CONFIG = {
     "network_mode": "router_children",
@@ -30,6 +31,7 @@ DEFAULT_CONFIG = {
         "audit_log": "/opt/lqosync/logs/audit.jsonl",
         "libreqos_apply_log_dir": "/opt/lqosync/logs/libreqos_apply",
         "collector_cache": "/opt/lqosync/state/collector_cache.json",
+        "policy_state": "/opt/lqosync/state/policy_state.json",
     },
     "libreqos": {
         "cmd": "/opt/libreqos/src/LibreQoS.py",
@@ -92,6 +94,7 @@ DEFAULT_CONFIG = {
         "show_virtual_nodes": True,
         "validate_before_save": True,
     },
+    "policies": smart_policy_defaults(),
     "services": {
         # Required/current LibreQoS + LQoSync units. lqos_node_manager is not
         # required on newer LibreQoS installs and is tracked separately as a
@@ -203,6 +206,7 @@ def normalize_config(cfg):
     cfg.setdefault("collector", {})
     cfg.setdefault("topology", {})
     cfg.setdefault("preflight", {})
+    cfg.setdefault("policies", {})
     cfg.setdefault("routers", [])
 
     # Merge nested defaults without dropping user values.
@@ -353,6 +357,24 @@ def validate_config(cfg: dict):
     for key in ("shaped_devices_csv", "network_json"):
         if not paths.get(key):
             errors.append(f"paths.{key} is required")
+    policies = cfg.setdefault("policies", {})
+    policies.setdefault("mode", "balanced")
+    if policies.get("mode") not in POLICY_PRESETS:
+        errors.append(f"policies.mode invalid: {policies.get('mode')}")
+    cleanup_sources = policies.get("cleanup_sources", {}) if isinstance(policies, dict) else {}
+    for source_name, source_policy in cleanup_sources.items():
+        if not isinstance(source_policy, dict):
+            continue
+        for key, val in source_policy.items():
+            if key.endswith("_action") and val not in CLEANUP_ACTIONS:
+                errors.append(f"policies.cleanup_sources.{source_name}.{key} invalid: {val}")
+    for section in ("cleanup", "node_cleanup_guard", "small_node_guard", "source_cleanup_guard"):
+        section_data = policies.get(section, {}) if isinstance(policies, dict) else {}
+        if isinstance(section_data, dict):
+            for key, val in section_data.items():
+                if key.endswith("action") and val not in CLEANUP_ACTIONS:
+                    errors.append(f"policies.{section}.{key} invalid: {val}")
+
     topology = cfg.setdefault("topology", {})
     topology.setdefault("allow_deep_hierarchy", True)
     topology.setdefault("allow_custom_edit", True)

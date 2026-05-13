@@ -489,3 +489,18 @@ Update Center remains read-only. It displays safe SSH commands for updating, but
 ## v2.44 UI polish note
 
 LQoSync v2.44 refines the browser-only Privacy Mode icon and Services & Journals layout. Privacy Mode now uses a shield-and-eye redaction icon with a slash state when masking is disabled. Services & Journals now uses matching scroll-shell panels for Journal Viewer and LibreQoS Apply Logs so both areas line up visually and use the available card height consistently. These changes do not modify the core engine, generated files, or LibreQoS apply logic.
+
+## v2.45 Smart Policy Center
+
+LQoSync v2.45 adds a policy-driven safety layer before file writes and LibreQoS apply. The policy engine evaluates cleanup candidates, collector source health, preflight validation, backup readiness, and pending confirmations before allowing ShapedDevices.csv/network.json writes or `LibreQoS.py --updateonly`.
+
+Key behavior:
+
+- Config defines operator intent.
+- Policies define how safely that intent is applied.
+- The policy engine decides before write/apply.
+- Dashboard and Dry Run explain every decision.
+
+The Policy Center exposes policy mode, source cleanup behavior, pending cleanup confirmations, runtime policy state, apply guards, and collector guards. Normal inactive cleanup, source-disabled cleanup, collector failure, zero-result scans, and mass-removal events are treated differently so intentional operator actions are not confused with API failure or suspicious data loss.
+
+Recommended production default is balanced mode. In balanced mode, collector failures preserve rows, enabled sources returning zero rows are protected, source-disabled cleanup can require confirmation, and dangerous validation failures block file writes and LibreQoS apply.

@@ -1,0 +1,21 @@
+{% set decision = (last.get('diff', {}) if last else {}).get('policy_decision', {}) %}
+<div class="card">
+  <div class="card-title"><i class="ti ti-shield-cog"></i> Policy Decision</div>
+  {% if decision %}
+  {% set verdict = decision.get('verdict','unknown') %}
+  {% set risk = decision.get('risk_level','unknown') %}
+  <div style="display:grid;gap:8px">
+    <div class="op-line"><span>Verdict</span><strong class="{{ 'text-err' if verdict == 'blocked_by_policy' else ('text-warn' if verdict == 'requires_confirmation' else 'text-accent') }}">{{ verdict.replace('_',' ') }}</strong></div>
+    <div class="op-line"><span>Risk</span><strong class="{{ 'text-err' if risk in ['critical','high'] else ('text-warn' if risk == 'medium' else 'text-accent') }}">{{ risk }} · {{ decision.get('risk_score',0) }}</strong></div>
+    <div class="op-line"><span>Write allowed</span><strong>{{ decision.get('write_allowed') }}</strong></div>
+    <div class="op-line"><span>Apply allowed</span><strong>{{ decision.get('apply_allowed') }}</strong></div>
+  </div>
+  {% if decision.get('recommendations') %}
+  <div style="margin-top:10px" class="mono text-sm text-warn">{% for rec in decision.get('recommendations', [])[:3] %}• {{ rec.title }} — {{ rec.action }}<br>{% endfor %}</div>
+  {% endif %}
+  <div class="btn-row" style="margin-top:12px"><a class="btn" href="/policy"><i class="ti ti-shield-cog"></i> Policy Center</a></div>
+  {% else %}
+  <p class="text-sm" style="color:var(--muted)">No policy decision yet. Run a dry run or sync to generate a verdict.</p>
+  <div class="btn-row"><a class="btn" href="/policy"><i class="ti ti-shield-cog"></i> Policy Center</a></div>
+  {% endif %}
+</div>

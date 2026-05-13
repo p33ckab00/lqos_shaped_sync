@@ -1,0 +1,15 @@
+{% set decision = (result.diff or {}).get('policy_decision', {}) if result else {} %}
+{% if decision %}
+<section class="card" style="margin-top:10px;border-color:{{ 'rgba(239,68,68,.45)' if decision.get('verdict') == 'blocked_by_policy' else ('rgba(245,158,11,.45)' if decision.get('verdict') == 'requires_confirmation' else 'rgba(34,197,94,.35)') }}">
+  <div class="card-title"><i class="ti ti-shield-cog"></i> Dry Run Policy Verdict</div>
+  <div class="grid-stats" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+    <div class="stat"><div class="stat-label">Verdict</div><div class="stat-value {{ 'text-err' if decision.get('verdict') == 'blocked_by_policy' else ('text-warn' if decision.get('verdict') == 'requires_confirmation' else 'text-accent') }}">{{ (decision.get('verdict') or 'unknown').replace('_',' ') }}</div></div>
+    <div class="stat"><div class="stat-label">Risk</div><div class="stat-value {{ 'text-err' if decision.get('risk_level') in ['high','critical'] else ('text-warn' if decision.get('risk_level') == 'medium' else 'text-accent') }}">{{ decision.get('risk_level','low') }}</div><div class="stat-sub">{{ decision.get('risk_score',0) }}/100</div></div>
+    <div class="stat"><div class="stat-label">Write allowed</div><div class="stat-value">{{ decision.get('write_allowed') }}</div></div>
+    <div class="stat"><div class="stat-label">Apply allowed</div><div class="stat-value">{{ decision.get('apply_allowed') }}</div></div>
+  </div>
+  {% if decision.get('blocked_reasons') %}<div class="mono text-sm text-err" style="margin-top:10px">{% for b in decision.get('blocked_reasons') %}✖ {{ b.message or b.title }}<br>{% endfor %}</div>{% endif %}
+  {% if decision.get('confirmation_items') %}<div class="mono text-sm text-warn" style="margin-top:10px">{% for c in decision.get('confirmation_items') %}⚠ Confirmation required: {{ c.source_label or c.source }} · {{ c.affected_rows }} row(s) · {{ c.reason }}<br>{% endfor %}</div>{% endif %}
+  {% if decision.get('recommendations') %}<div class="mono text-sm" style="color:var(--muted);margin-top:10px">{% for rec in decision.get('recommendations')[:5] %}• {{ rec.title }} — {{ rec.action }}<br>{% endfor %}</div>{% endif %}
+</section>
+{% endif %}

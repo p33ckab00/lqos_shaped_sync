@@ -184,6 +184,7 @@
     {% if user and user.role == 'admin' %}
     <div class="nav-section">Configure</div>
     <a class="nav-item {{ 'active' if request.path.startswith('/config') else '' }}" href="/config"><i class="ti ti-adjustments-horizontal"></i><span>Config editor</span></a>
+    <a class="nav-item {{ 'active' if request.path.startswith('/policy') else '' }}" href="/policy"><i class="ti ti-shield-cog"></i><span>Policy Center</span></a>
     <a class="nav-item {{ 'active' if request.path.startswith('/settings') else '' }}" href="/settings/users"><i class="ti ti-users"></i><span>User settings</span></a>
     <a class="nav-item {{ 'active' if request.path.startswith('/updates') else '' }}" href="/updates"><i class="ti ti-cloud-download"></i><span>Update center</span></a>
     {% endif %}

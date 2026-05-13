@@ -573,6 +573,35 @@ python3 -m json.tool network.json</div>
       </details>
     </section>
 
+
+
+    <section id="smart-policy-center" class="card about-section">
+      <h2><i class="ti ti-shield-cog text-accent"></i> v2.45 Smart Policy Center</h2>
+      <p><b>Purpose:</b> LQoSync now evaluates policy before writing <code>ShapedDevices.csv</code>, writing <code>network.json</code>, or running <code>LibreQoS.py --updateonly</code>. This prevents blind cleanup and makes cleanup/apply decisions explainable in Dashboard and Dry Run.</p>
+      <div class="note"><b>Architecture:</b> Config defines operator intent. Policies define how safely that intent is applied. The policy engine decides before write/apply. Dashboard and Dry Run explain every decision.</div>
+      <h3>Policy decision flow</h3>
+      <div class="codebox">1. Load config and existing files
+2. Collect MikroTik PPP/DHCP/Hotspot data
+3. Build proposed output in memory
+4. Preview stale rows and cleanup candidates
+5. Evaluate cleanup/source/apply policies
+6. Run preflight validation
+7. Block / warn / require confirmation / allow
+8. Only then write files and optionally apply LibreQoS</div>
+      <h3>Cleanup actions</h3>
+      <p>Supported actions are <code>preserve_rows</code>, <code>warn_only</code>, <code>cleanup_immediate</code>, <code>cleanup_next_run</code>, <code>require_confirm_immediate</code>, <code>require_confirm_next_run</code>, <code>block_cleanup</code>, and <code>block_apply</code>.</p>
+      <h3>Important protections</h3>
+      <ul>
+        <li>Collector failure preserves rows by default.</li>
+        <li>Enabled source returning zero rows can block cleanup.</li>
+        <li>Source-disabled cleanup can require operator confirmation.</li>
+        <li>Duplicate IP, missing parent, invalid speed, and collector failure can block write/apply.</li>
+        <li>Queued cleanup and pending confirmations are stored in <code>/opt/lqosync/state/policy_state.json</code>.</li>
+      </ul>
+      <h3>Operator pages</h3>
+      <p>Use <b>Policy Center</b> to review pending confirmations, source cleanup policies, apply guards, collector guards, runtime policy state, and the last policy decision. Use <b>Dry Run</b> to see the same verdict without writing files or applying LibreQoS.</p>
+    </section>
+
     <section id="documentation-rule" class="card about-section">
       <h2><i class="ti ti-notes text-accent"></i> Documentation Rule</h2>
       <p>Every project change should update both repository documentation and this in-app About module. The About module is the operator's built-in manual, so it should stay aligned with the latest README, installation guide, GitHub update flow, uninstall guide, troubleshooting guide, release notes, and command reference.</p>

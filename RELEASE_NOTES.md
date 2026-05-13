@@ -1,5 +1,25 @@
 # LQoSync Release Notes
 
+## v2.45.0 - Smart Policy Center
+
+### Added
+
+- Added Smart Policy Center foundation with policy-driven cleanup and apply decisions.
+- Added default policies for cleanup behavior, source lifecycle, collector guards, apply guards, mass-removal protection, small-node handling, backup readiness, topology safety, anomaly basics, and recommendations.
+- Added runtime policy state at `/opt/lqosync/state/policy_state.json` for pending confirmations, cleanup queue, last successful source counts, and last policy decision.
+- Added policy evaluation before file write and LibreQoS apply so dangerous output can be blocked before touching `ShapedDevices.csv` or `network.json`.
+- Added Policy Center UI with current mode, last verdict, risk level, pending confirmations, source cleanup policy table, apply guards, collector guards, and runtime policy state viewer.
+- Added Dry Run Policy Verdict and Dashboard Policy Decision panels.
+- Added cleanup confirmation actions and audit events for confirmed/dismissed cleanup confirmations.
+
+### Safety behavior
+
+- Collector failures preserve rows and can block apply by policy.
+- Enabled sources returning zero after previous success are protected from accidental mass deletion.
+- Source-disabled cleanup can require confirmation before rows are removed.
+- Duplicate IP, missing parent node, invalid speed, and collector failure can block write/apply through apply guards.
+- Normal inactive cleanup can be immediate, queued for next run, confirmation-required, preserved, warn-only, blocked, or block apply depending on policy.
+
 ## v2.44.0 - Privacy Icon and Services Journal Layout Polish
 
 ### Improved

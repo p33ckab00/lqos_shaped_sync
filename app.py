@@ -28,6 +28,7 @@ from engine.policy_schema import grouped_policy_schema, policy_diff_from_preset,
 from engine.config_simulator import simulate_config_change
 from engine.reports import compute_operator_report, report_to_csv, report_to_markdown
 from engine.config_schema import migrate_config_schema, validate_schema, CONFIG_SCHEMA_VERSION
+from engine.release_integrity import compute_release_integrity, repair_config_defaults
 from engine.lifecycle import lifecycle_summary, client_event_timeline
 from engine.lifecycle_report import compute_lifecycle_report, lifecycle_report_to_csv, lifecycle_report_to_markdown
 from applier.atomic_writer import atomic_write_text
@@ -1113,6 +1114,25 @@ def setup_repair_policy_preset():
     except Exception as exc:
         flash(f"Policy preset update failed: {exc}")
     return redirect(url_for("setup_repair_center"))
+
+
+@app.route("/setup-repair/repair-defaults", methods=["POST"])
+@admin_required
+def setup_repair_repair_defaults():
+    cfg = load_config(CONFIG_PATH)
+    result = repair_config_defaults(CONFIG_PATH)
+    write_audit(cfg, "smart_defaults_repair", actor=(current_user() or {}).get("username"), details=result)
+    if result.get("ok"):
+        flash("Smart Defaults Repair completed. Missing safe defaults were merged and config.json was backed up first.")
+    else:
+        flash("Smart Defaults Repair completed with errors. Review Setup & Repair checks.")
+    return redirect(url_for("setup_repair_center"))
+
+
+@app.route("/api/release/integrity")
+@admin_required
+def api_release_integrity():
+    return jsonify(compute_release_integrity(Path(__file__).resolve().parent))
 
 
 @app.route("/updates")

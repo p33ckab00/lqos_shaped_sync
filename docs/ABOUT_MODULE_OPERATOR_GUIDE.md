@@ -623,3 +623,16 @@ Network Layout now supports desktop drag-and-drop. Operators can drag a node car
 ## v2.54.5 Privacy icon polish
 
 The Privacy Mode topbar control now uses an incognito-style icon to better represent screenshot-safe masking/redaction. Privacy OFF keeps the slash overlay, while Privacy ON highlights the incognito icon and continues to replace visible sensitive values with stable labels such as `Client-001`, `Node-001`, `IP-001`, and `MAC-001`. This is a UI-only polish change.
+
+
+## v2.55 Package Quality + Environment Doctor
+
+LQoSync v2.55 adds package integrity checks and a built-in Environment Doctor to make releases safer. It detects missing Flask routes for navigation links, missing templates, missing feature engine files, incomplete config defaults, and missing policy defaults before publishing or after updating. Setup & Repair also includes a Smart Defaults Repair button that backs up `config.json`, deep-merges missing safe defaults, preserves operator values, and validates the result.
+
+Commands:
+
+```bash
+cd /opt/lqosync
+python3 scripts/release_check.py
+sudo CONFIG_PATH=/opt/libreqos/src/config.json bash scripts/lqosync-doctor.sh
+```

@@ -120,6 +120,14 @@ DEFAULT_CONFIG = {
         "show_config_health": True,
         "block_save_on_schema_errors": True,
     },
+    "package_quality": {
+        "enabled": True,
+        "check_routes_templates": True,
+        "check_config_defaults": True,
+        "show_in_setup_repair": True,
+        "doctor_script": "/opt/lqosync/scripts/lqosync-doctor.sh",
+        "release_check_script": "/opt/lqosync/scripts/release_check.py"
+    },
     "policies": smart_policy_defaults(),
     "services": {
         # Required/current LibreQoS + LQoSync units. lqos_node_manager is not

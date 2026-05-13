@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from engine.config_loader import load_config, validate_config  # noqa: E402
+from engine.release_integrity import compute_release_integrity  # noqa: E402
 from collectors.mikrotik_client import test_router_connection  # noqa: E402
 
 
@@ -23,6 +24,14 @@ def fail(msg): print(f"[FAIL] {msg}")
 def main():
     config_path = os.getenv("CONFIG_PATH") or (sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else "/opt/libreqos/src/config.json")
     router_test = "--router-test" in sys.argv
+    release_report = compute_release_integrity(ROOT)
+    if release_report["summary"]["fail"]:
+        fail(f"release integrity failed: {release_report['summary']['fail']} issue(s)")
+    elif release_report["summary"]["warn"]:
+        warn(f"release integrity has {release_report['summary']['warn']} warning(s)")
+    else:
+        ok("release integrity passed")
+
     cfg = load_config(config_path)
     errors, warnings = validate_config(cfg)
     if errors:

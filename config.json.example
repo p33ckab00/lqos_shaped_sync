@@ -411,5 +411,13 @@
       },
       "parent_node": ""
     }
-  ]
+  ],
+  "package_quality": {
+    "enabled": true,
+    "check_routes_templates": true,
+    "check_config_defaults": true,
+    "show_in_setup_repair": true,
+    "doctor_script": "/opt/lqosync/scripts/lqosync-doctor.sh",
+    "release_check_script": "/opt/lqosync/scripts/release_check.py"
+  }
 }

@@ -1,5 +1,21 @@
 # LQoSync Release Notes
 
+## v2.55.0 - Package Quality + Environment Doctor
+
+### Added
+
+- Added `engine/release_integrity.py` for package integrity, route/template checks, feature wiring checks, config default completeness checks, and Smart Defaults Repair helpers.
+- Added `scripts/release_check.py` for pre-publish and post-upgrade release validation.
+- Added `scripts/lqosync-doctor.sh` as a full environment doctor wrapper that runs package integrity plus config/path/permission/LibreQoS diagnostics.
+- Added `/api/release/integrity` read-only endpoint for Setup & Repair and automation.
+- Added Setup & Repair Smart Defaults Repair action that backs up `config.json`, deep-merges missing safe defaults, preserves operator values, and validates the result.
+- Added Package Integrity Guard and Smart Defaults Repair cards in Setup & Repair.
+- Added package_quality config defaults and documentation.
+
+### Why
+
+This release prevents package gaps such as a navigation link pointing to a missing Flask route, templates without matching routes, missing feature engine files, or incomplete config defaults after upgrade/fresh install.
+
 ## v2.54.5 - Privacy Incognito Icon Polish
 
 ### Improved

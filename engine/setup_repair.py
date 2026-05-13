@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from engine.policy_defaults import smart_policy_defaults
+from engine.release_integrity import compute_release_integrity
 
 
 STATUS_RANK = {"ok": 0, "info": 0, "warn": 1, "fail": 2}
@@ -268,6 +269,20 @@ def compute_setup_repair_report(
         category="updates",
     )
 
+    release_report = compute_release_integrity()
+    rel_summary = release_report.get("summary", {})
+    _add_check(
+        checks,
+        key="release_integrity",
+        title="Package route/template integrity",
+        status="fail" if rel_summary.get("fail", 0) else ("warn" if rel_summary.get("warn", 0) else "ok"),
+        detail=f"OK={rel_summary.get('ok',0)} WARN={rel_summary.get('warn',0)} FAIL={rel_summary.get('fail',0)}",
+        why="Navigation links, Flask routes, templates, engine files, and config defaults must be internally consistent before production use.",
+        fix="Run python3 scripts/release_check.py and repair any missing routes/templates/defaults.",
+        command="cd /opt/lqosync && python3 scripts/release_check.py",
+        category="release",
+    )
+
     backup_enabled = bool((cfg.get("app") or {}).get("backup_before_apply", True))
     auto_apply = bool((cfg.get("app") or {}).get("auto_apply", True))
     _add_check(
@@ -296,6 +311,7 @@ def compute_setup_repair_report(
         "setup_steps": setup_steps(cfg),
         "repair_commands": repair_commands(),
         "recommended_next_action": _recommended_next_action(readiness, checks),
+        "release_integrity": release_report,
     }
 
 

@@ -29,6 +29,7 @@
     <a class="btn" href="/sync/dry-run"><i class="ti ti-eye"></i> Run Dry Run</a>
     <a class="btn" href="/updates"><i class="ti ti-cloud-download"></i> Update Center</a>
     <a class="btn" href="/config"><i class="ti ti-settings"></i> Config Center</a>
+    <a class="btn" href="/api/release/integrity" target="_blank"><i class="ti ti-package"></i> Integrity JSON</a>
   </div>
 </div>
 
@@ -36,6 +37,22 @@
   <div class="card-title"><i class="ti ti-book"></i> Diagnostics, not duplicate manual</div>
   <p class="text-sm" style="color:var(--muted)">Setup & Repair now focuses on live diagnostics, readiness score, repair commands, and next actions. Long explanations live in Documentation/About and docs/content as the source of truth, so instructions do not drift between pages.</p>
   <div class="btn-row" style="margin-top:10px"><a class="btn" href="/about"><i class="ti ti-book-2"></i> Open Documentation</a><a class="btn" href="/policy"><i class="ti ti-shield-cog"></i> Open Policy Center</a></div>
+</section>
+
+<section class="two-grid" style="margin-bottom:12px">
+  <div class="card" style="border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.06)">
+    <div class="card-title"><i class="ti ti-sparkles"></i> Smart Defaults Repair</div>
+    <p class="text-sm" style="color:var(--muted)">Deep-merges missing safe defaults into <code>config.json</code>, preserves operator values, backs up the current file first, normalizes policy aliases, and validates the result. Use this after upgrades or if Dashboard shows missing policy/default warnings.</p>
+    <form method="post" action="/setup-repair/repair-defaults" style="margin-top:10px">
+      {{ csrf_field()|safe }}
+      <button class="btn btn-primary" onclick="return confirm('Repair missing defaults? A config backup will be created first and existing operator values will be preserved.')"><i class="ti ti-tool"></i> Repair Missing Defaults</button>
+    </form>
+  </div>
+  <div class="card" style="border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.06)">
+    <div class="card-title"><i class="ti ti-package"></i> Package Integrity Guard</div>
+    <p class="text-sm" style="color:var(--muted)">Checks route/template wiring, high-value feature files, navigation links, and config default completeness. This prevents package gaps like a menu link pointing to a missing Flask route.</p>
+    <div class="btn-row" style="margin-top:10px"><a class="btn" href="/api/release/integrity" target="_blank"><i class="ti ti-json"></i> View Integrity JSON</a></div>
+  </div>
 </section>
 
 <section class="grid-stats">
@@ -48,6 +65,9 @@
 <section class="repair-grid" style="margin-top:12px">
   <div class="card">
     <div class="card-title"><i class="ti ti-clipboard-check"></i> Health Check Report</div>
+    {% if report.release_integrity %}
+    <div class="note" style="margin-bottom:10px"><b>Package integrity:</b> {{ report.release_integrity.verdict }} · OK={{ report.release_integrity.summary.ok }} WARN={{ report.release_integrity.summary.warn }} FAIL={{ report.release_integrity.summary.fail }}</div>
+    {% endif %}
     <div class="check-grid">
       {% for c in report.checks %}
       <div class="check-row">

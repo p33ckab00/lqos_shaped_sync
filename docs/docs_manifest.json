@@ -75,5 +75,11 @@
     "title": "Privacy Icon Polish",
     "file": "docs/content/privacy_icon_polish.md",
     "anchor": "v2545-privacy-icon-polish"
+  },
+  "package_quality.environment_doctor": {
+    "title": "Package Quality + Environment Doctor",
+    "file": "docs/content/package_quality_environment_doctor.md",
+    "anchor": "v255-package-quality--environment-doctor",
+    "summary": "v2.55 release integrity checks, environment doctor, route/template validation, and Smart Defaults Repair."
   }
 }

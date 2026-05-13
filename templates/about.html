@@ -664,6 +664,18 @@ python3 -m json.tool network.json</div>
       </div>
     </section>
 
+
+    <section id="package-quality-environment-doctor" class="card about-section">
+      <h2><i class="ti ti-package"></i> v2.55 Package Quality + Environment Doctor</h2>
+      <p>LQoSync v2.55 adds release integrity checks, a full environment doctor wrapper, route/template validation, config default completeness checks, and Smart Defaults Repair for safer upgrades and fresh installs.</p>
+      <div class="note-grid">
+        <div class="note"><b>Release integrity:</b> detects missing routes, stale navigation links, missing templates, missing feature engine files, and incomplete config defaults.</div>
+        <div class="note"><b>Environment Doctor:</b> <code>scripts/lqosync-doctor.sh</code> runs package integrity plus config/path/permission/LibreQoS diagnostics.</div>
+        <div class="note"><b>Smart Defaults Repair:</b> Setup & Repair can backup config.json, deep-merge missing defaults, preserve operator values, and validate the result.</div>
+        <div class="note"><b>Fresh install safety:</b> package defaults are checked so new installs should not show missing policy setting warnings.</div>
+      </div>
+    </section>
+
 {% endblock %}
 
 <section class="card" style="margin-top:12px">

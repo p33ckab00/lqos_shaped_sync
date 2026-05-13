@@ -1,3 +1,7 @@
+# Source Health & Performance Trends
+
+> v2.57.1 update: Source Health and Performance Trends are now consolidated into the main Dashboard. The standalone `/health` page redirects to the Dashboard health section, while `/api/health/trends` remains available for JSON diagnostics and integrations.
+
 # v2.57 Source Health + Performance Trends
 
 LQoSync v2.57 adds a read-only Health Trends center for operational monitoring.

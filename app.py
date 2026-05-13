@@ -348,7 +348,20 @@ def dashboard():
     cfg, state = get_status()
     services = all_service_status(cfg)
     errors, warnings = validate_config(cfg)
-    return render_template("dashboard.html", cfg=cfg, state=state, services=services, git_status=_git_status(), config_errors=errors, config_warnings=warnings, user=current_user())
+    policy_state = load_policy_state(cfg)
+    apply_runs = list_apply_runs(cfg, limit=25)
+    health_report = compute_health_report(cfg, state, policy_state=policy_state, services=services, apply_runs=apply_runs)
+    return render_template(
+        "dashboard.html",
+        cfg=cfg,
+        state=state,
+        services=services,
+        git_status=_git_status(),
+        config_errors=errors,
+        config_warnings=warnings,
+        health_report=health_report,
+        user=current_user(),
+    )
 
 
 @app.route("/sync/run", methods=["POST"])
@@ -880,13 +893,8 @@ def policy_dismiss_confirmation(confirmation_id):
 @app.route("/health")
 @login_required
 def health_trends_center():
-    """Source Health and Performance Trends center."""
-    cfg, state = get_status()
-    policy_state = load_policy_state(cfg)
-    services = all_service_status(cfg)
-    apply_runs = list_apply_runs(cfg, limit=25)
-    report = compute_health_report(cfg, state, policy_state=policy_state, services=services, apply_runs=apply_runs)
-    return render_template("health.html", cfg=cfg, state=state, report=report, user=current_user())
+    """Compatibility redirect: health trends are now consolidated into Dashboard."""
+    return redirect(url_for("dashboard") + "#source-health-performance")
 
 
 @app.route("/api/health/trends")

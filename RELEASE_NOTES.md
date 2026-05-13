@@ -1,5 +1,19 @@
 # LQoSync Release Notes
 
+## v2.57.1 - Dashboard Health Consolidation
+
+### Improved
+
+- Consolidated Source Health and Performance Trends into the main Dashboard to avoid duplicate monitoring pages with similar operational information.
+- Added Dashboard Source Health & Performance section with health score, source cards, timing trends, LibreQoS apply health, and internal notification candidates.
+- Removed the separate Health Trends navigation item from the sidebar so the Dashboard is the single operator landing page for health/status monitoring.
+- Kept `/api/health/trends` as the read-only JSON endpoint for integrations and diagnostics.
+- Kept `/health` as a compatibility redirect to the Dashboard health section so old bookmarks do not break.
+
+### Notes
+
+This is a UI/UX consolidation update. It does not change collection, policy decisions, generated files, scheduler behavior, or LibreQoS apply logic.
+
 ## v2.57.0 - Source Health + Performance Trends
 
 ### Added

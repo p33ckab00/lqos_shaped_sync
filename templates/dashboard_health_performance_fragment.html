@@ -1,0 +1,71 @@
+{% set hr = health_report or {} %}
+{% set sources = hr.get('source_health', []) %}
+{% set trends = hr.get('performance_trends', {}) %}
+{% set apply = hr.get('libreqos_apply_health', {}) %}
+{% set notifications = hr.get('notifications', []) %}
+<section id="source-health-performance" class="card" style="margin-top:10px">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <div>
+      <div class="card-title"><i class="ti ti-heartbeat"></i> Source Health & Performance</div>
+      <div class="text-sm" style="color:var(--muted)">Consolidated from the old Health Trends page. This keeps source health, RouterOS API timing, LibreQoS apply health, and notification candidates directly on the Dashboard.</div>
+    </div>
+    <div class="btn-row">
+      <a class="btn" href="/api/health/trends" target="_blank"><i class="ti ti-code"></i> JSON</a>
+      <a class="btn" href="/services"><i class="ti ti-terminal-2"></i> Apply logs</a>
+    </div>
+  </div>
+
+  <style>
+    .dash-health-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}.dash-source-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}.dash-source-card{border:1px solid var(--br0);border-radius:12px;padding:10px;background:rgba(2,6,23,.18)}.dash-source-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.dash-mini{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.dash-mini div{border:1px solid var(--br0);border-radius:8px;padding:6px 7px;font-family:var(--font-mono);font-size:10px;color:var(--muted)}.dash-trend-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.dash-trend-row{display:grid;grid-template-columns:125px 1fr 86px;gap:8px;align-items:center;border:1px solid var(--br0);border-radius:9px;padding:8px 9px;font-family:var(--font-mono);font-size:10.5px;color:var(--muted)}.dash-trend-bar{height:7px;background:rgba(148,163,184,.18);border-radius:999px;overflow:hidden}.dash-trend-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--c-accent),var(--c-accent2))}.dash-note-item{border:1px solid var(--br0);border-radius:9px;padding:8px;background:rgba(2,6,23,.16)}:root[data-theme=light] .dash-source-card,:root[data-theme=light] .dash-note-item{background:#fff}@media(max-width:1100px){.dash-health-kpis,.dash-source-grid,.dash-trend-grid{grid-template-columns:1fr}.dash-trend-row{grid-template-columns:1fr}.dash-mini{grid-template-columns:1fr}}
+  </style>
+
+  <div class="dash-health-kpis">
+    <div class="stat"><div class="stat-label"><i class="ti ti-heartbeat"></i> Health Score</div><div class="stat-value {{ 'text-accent' if hr.get('health_score',0) >= 90 else ('text-warn' if hr.get('health_score',0) >= 50 else 'text-err') }}">{{ hr.get('health_score', 0) }}%</div><div class="stat-sub">{{ (hr.get('health_level','unknown')).replace('_',' ') }}</div></div>
+    <div class="stat"><div class="stat-label"><i class="ti ti-database-search"></i> Sources</div><div class="stat-value">{{ sources|length }}</div><div class="stat-sub">PPPoE / DHCP / Hotspot</div></div>
+    <div class="stat"><div class="stat-label"><i class="ti ti-bell"></i> Notifications</div><div class="stat-value {{ 'text-warn' if notifications else 'text-accent' }}">{{ notifications|length }}</div><div class="stat-sub">internal candidates</div></div>
+    <div class="stat"><div class="stat-label"><i class="ti ti-bolt"></i> Apply Health</div><div class="stat-value {{ 'text-accent' if apply.get('status') == 'ok' else ('text-warn' if apply.get('status') in ['pending','warning'] else 'text-err') }}">{{ apply.get('status','unknown') }}</div><div class="stat-sub">OK={{ apply.get('recent_ok',0) }} · Failed={{ apply.get('recent_failed',0) }}</div></div>
+  </div>
+
+  <div class="dash-source-grid">
+    {% for s in sources %}
+    <div class="dash-source-card">
+      <div class="dash-source-head">
+        <div><div style="font-weight:700;color:var(--txt)"><i class="ti {{ s.icon }}"></i> {{ s.label }}</div><div class="mono text-xs" style="color:var(--muted);margin-top:3px">cleanup={{ s.cleanup_policy }}</div></div>
+        <span class="badge {{ 'b-ok' if s.status == 'ok' else ('b-warn' if s.status in ['warning','idle'] else 'b-err') }}">{{ s.status }}</span>
+      </div>
+      <div class="dash-mini">
+        <div><b>{{ s.active }}</b><br>active</div>
+        <div><b>{{ s.stale }}</b><br>stale</div>
+        <div><b>{{ s.queued }}</b><br>queued</div>
+        <div><b>{{ s.zero_result_policy }}</b><br>zero-result</div>
+      </div>
+      {% if s.warnings %}<div style="margin-top:8px;display:grid;gap:5px">{% for w in s.warnings[:2] %}<div class="text-xs text-warn"><i class="ti ti-alert-triangle"></i> {{ w }}</div>{% endfor %}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="dash-trend-grid">
+    <div>
+      <div class="card-title" style="margin-top:10px"><i class="ti ti-chart-line"></i> Timing Trends</div>
+      {% set router = trends.get('router_api', {}) %}{% set cycle = trends.get('cycle', {}) %}{% set apply_t = trends.get('libreqos_apply', {}) %}
+      <div style="display:grid;gap:7px">
+        {% for label,data in [('Router API', router), ('Full sync cycle', cycle), ('LibreQoS apply', apply_t)] %}
+        <div class="dash-trend-row">
+          <span>{{ label }}</span>
+          <div><div class="dash-trend-bar"><div class="dash-trend-fill" style="width:{{ ((data.current_ms / data.max_ms) * 100)|round(1) if data.max_ms else 0 }}%"></div></div><div class="mono text-xs" style="color:var(--hint);margin-top:3px">avg={{ data.average_ms }}ms · max={{ data.max_ms }}ms</div></div>
+          <span class="badge {{ 'b-ok' if data.status == 'normal' else ('b-warn' if data.status in ['watch','slow'] else 'b-static') }}">{{ data.current_ms }}ms<br>{{ data.status }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div>
+      <div class="card-title" style="margin-top:10px"><i class="ti ti-bell-ringing"></i> Notifications / Apply Attention</div>
+      <div class="grid-stats" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:7px">
+        <div class="stat"><div class="stat-label">Average Apply</div><div class="stat-value">{{ apply.get('average_duration_seconds',0) }}s</div></div>
+        <div class="stat"><div class="stat-label">Repeated Failures</div><div class="stat-value {{ 'text-err' if apply.get('repeated_failures') else 'text-accent' }}">{{ apply.get('repeated_failures',0) }}</div></div>
+      </div>
+      {% set apply_warnings = apply.get('warnings', []) %}
+      {% if notifications or apply_warnings %}<div style="display:grid;gap:7px;margin-top:8px">{% for w in apply_warnings[:2] %}<div class="dash-note-item text-warn"><i class="ti ti-alert-triangle"></i> {{ w }}</div>{% endfor %}{% for n in notifications[:4] %}<div class="dash-note-item"><div style="display:flex;justify-content:space-between;gap:8px"><b>{{ n.title }}</b><span class="badge {{ 'b-err' if n.level == 'critical' else 'b-warn' }}">{{ n.level }}</span></div><div class="text-sm" style="color:var(--muted);margin-top:4px">{{ n.message }}</div></div>{% endfor %}</div>{% else %}<div class="mono text-sm" style="color:var(--muted);margin-top:8px">No notification-worthy health conditions detected.</div>{% endif %}
+    </div>
+  </div>
+</section>

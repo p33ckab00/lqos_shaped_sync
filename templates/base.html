@@ -182,7 +182,6 @@
     <a class="nav-item {{ 'active' if request.path == '/' else '' }}" href="/"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></a>
     <a class="nav-item {{ 'active' if request.path.startswith('/network') else '' }}" href="/network"><i class="ti ti-topology-star-3"></i><span>Network layout</span></a>
     <a class="nav-item {{ 'active' if request.path.startswith('/devices') else '' }}" href="/devices"><i class="ti ti-device-desktop-analytics"></i><span>Shaped devices</span></a>
-    <a class="nav-item {{ 'active' if request.path.startswith('/health') else '' }}" href="/health"><i class="ti ti-heartbeat"></i><span>Health trends</span></a>
     <a class="nav-item {{ 'active' if request.path.startswith('/sync/dry-run') else '' }}" href="/sync/dry-run"><i class="ti ti-eye"></i><span>Dry-run preview</span></a>
     {% if user and user.role == 'admin' %}
     <div class="nav-section">Configure</div>

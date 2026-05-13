@@ -261,11 +261,11 @@ def notification_candidates(config: dict, state: dict[str, Any], source_cards: l
                 "level": "critical" if s.get("status") == "error" else "warning",
                 "title": f"{s.get('label')} source health: {s.get('status')}",
                 "message": "; ".join(s.get("warnings") or []) or "Source requires review.",
-                "target": "/health",
+                "target": "/#source-health-performance",
             })
     for name, data in [("Router API", trends.get("router_api") or {}), ("Sync cycle", trends.get("cycle") or {}), ("LibreQoS apply", trends.get("libreqos_apply") or {})]:
         if data.get("status") == "slow":
-            items.append({"level": "warning", "title": f"{name} slower than baseline", "message": f"Current {data.get('current_ms')}ms vs average {data.get('average_ms')}ms.", "target": "/health"})
+            items.append({"level": "warning", "title": f"{name} slower than baseline", "message": f"Current {data.get('current_ms')}ms vs average {data.get('average_ms')}ms.", "target": "/#source-health-performance"})
     if apply_health.get("status") in {"pending", "warning", "error"}:
         items.append({"level": "critical" if apply_health.get("status") == "error" else "warning", "title": "LibreQoS apply needs attention", "message": "; ".join(apply_health.get("warnings") or []) or "Review apply health.", "target": "/services"})
     return items[:25]

@@ -1559,3 +1559,8 @@ Client Identity Handling explains that PPPoE usernames are usually stable, DHCP 
 ## v2.57 Source Health + Performance Trends
 
 LQoSync v2.57 adds a read-only Health Trends center. It summarizes PPPoE/DHCP/Hotspot source health, RouterOS API timing, full sync timing, LibreQoS apply health, and internal notification candidates. The goal is to make operational health visible before problems become production-impacting. Telegram delivery is planned separately so credentials, testing, and alert rules can be handled safely.
+
+
+## v2.57.1 Dashboard Health Consolidation
+
+Source Health and Performance Trends are now shown directly on the Dashboard instead of a separate sidebar page. This avoids duplicate monitoring surfaces and keeps the Dashboard as the single operator landing page for source health, RouterOS API timing, LibreQoS apply health, and internal notification candidates. The `/api/health/trends` endpoint remains available for JSON diagnostics, and `/health` redirects to the Dashboard health section for compatibility.

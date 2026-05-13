@@ -93,5 +93,10 @@
     "file": "docs/content/source_health_performance_trends.md",
     "anchor": "v257-source-health--performance-trends",
     "summary": "v2.57 source health dashboard, RouterOS API timing trends, LibreQoS apply health, and internal notification candidates."
+  },
+  "source_health_performance_trends": {
+    "title": "Source Health & Performance Trends",
+    "file": "docs/content/source_health_performance_trends.md",
+    "description": "Dashboard-consolidated source health, RouterOS API timing, LibreQoS apply health, and internal notification candidates."
   }
 }

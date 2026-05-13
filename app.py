@@ -22,6 +22,7 @@ from applier.rollback import restore_backup
 from collectors.mikrotik_client import test_router_connection, connect_to_router, get_resource_data
 from engine.audit import write_audit, tail_audit
 from engine.policy_state import load_policy_state, save_policy_state, confirm_cleanup, dismiss_confirmation
+from engine.lifecycle import lifecycle_summary, client_event_timeline
 from applier.atomic_writer import atomic_write_text
 from monitoring.service_monitor import (
     all_service_status, service_status, restart_service as monitor_restart_service,
@@ -760,13 +761,42 @@ def policy_dismiss_confirmation(confirmation_id):
     cfg = load_config(CONFIG_PATH)
     pstate = load_policy_state(cfg)
     actor = (current_user() or {}).get("username", "admin")
-    if dismiss_confirmation(pstate, confirmation_id):
+    if dismiss_confirmation(pstate, confirmation_id, actor=actor):
         save_policy_state(cfg, pstate)
         write_audit(cfg, "cleanup_confirmation_dismissed", actor=actor, details={"confirmation_id": confirmation_id})
         flash("Pending cleanup confirmation dismissed.")
     else:
         flash("Cleanup confirmation was not found.")
     return redirect(url_for("policy_center"))
+
+
+@app.route("/lifecycle")
+@admin_required
+def lifecycle_center():
+    """Smart Lifecycle Center: read-only view of stale clients, cleanup queue, source lifecycle, and client events."""
+    cfg, state = get_status()
+    pstate = load_policy_state(cfg)
+    summary = lifecycle_summary(pstate)
+    code = request.args.get("code") or ""
+    events = client_event_timeline(pstate, code=code or None, limit=int(request.args.get("limit", 150)))
+    clients = pstate.get("client_lifecycle", {}) or {}
+    # Stable ordering: active first, then queued/stale/removed by most recent event.
+    client_items = sorted(
+        clients.items(),
+        key=lambda kv: (str(kv[1].get("status") or ""), str(kv[1].get("last_event_at") or kv[1].get("last_seen_at") or "")),
+        reverse=True,
+    )[:500]
+    return render_template(
+        "lifecycle.html",
+        cfg=cfg,
+        state=state,
+        policy_state=pstate,
+        summary=summary,
+        events=events,
+        client_items=client_items,
+        selected_code=code,
+        user=current_user(),
+    )
 
 
 @app.route("/updates")

@@ -78,7 +78,8 @@
     "refresh_seconds": 5,
     "show_raw_json_editor": true,
     "default_theme": "light",
-    "privacy_mode_available": true
+    "privacy_mode_available": true,
+    "show_lifecycle_center": true
   },
   "topology": {
     "allow_deep_hierarchy": true,

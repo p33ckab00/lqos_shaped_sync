@@ -1,0 +1,19 @@
+{% set lifecycle = (last.get('diff', {}) if last else {}).get('lifecycle_summary', {}) %}
+{% if lifecycle %}
+<section class="card" style="margin-top:10px">
+  <div class="card-title"><i class="ti ti-history-toggle"></i> Smart Lifecycle</div>
+  <div class="grid-stats">
+    <div class="stat"><div class="stat-label">Tracked</div><div class="stat-value text-accent">{{ lifecycle.get('total_tracked_clients', 0) }}</div><div class="stat-sub">known clients</div></div>
+    <div class="stat"><div class="stat-label">Added / Updated</div><div class="stat-value text-accent">{{ lifecycle.get('added', 0) }}/{{ lifecycle.get('updated', 0) }}</div><div class="stat-sub">latest lifecycle update</div></div>
+    <div class="stat"><div class="stat-label">Queued/Stale</div><div class="stat-value text-warn">{{ lifecycle.get('queued_cleanup', 0) + lifecycle.get('preserved_stale', 0) }}</div><div class="stat-sub">policy-controlled cleanup</div></div>
+    <div class="stat"><div class="stat-label">Returned</div><div class="stat-value text-accent">{{ lifecycle.get('returned', 0) }}</div><div class="stat-sub">came back before cleanup</div></div>
+  </div>
+  {% if (last.get('diff', {}) if last else {}).get('returned_clients') %}
+  <div class="note" style="margin-top:10px"><b>Returned clients:</b>
+    {% for item in (last.get('diff', {}) if last else {}).get('returned_clients', [])[:5] %}
+      <span class="small-pill"><span class="redact" data-redact-type="client">{{ item.get('circuit_name') or item.get('code') }}</span></span>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endif %}

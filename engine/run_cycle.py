@@ -33,6 +33,7 @@ from engine.policy_engine import (
     existing_source_counts, update_successful_source_counts,
 )
 from engine.insights import compute_smart_insights
+from engine.lifecycle import update_lifecycle_state
 
 
 class Timeline:
@@ -366,6 +367,24 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
                 result.errors.append(f"Policy blocked: {b.get('message') or b.get('title')}")
         save_policy_state(config, policy_state)
         try:
+            lifecycle_summary = update_lifecycle_state(
+                config,
+                policy_state,
+                current_rows,
+                ctx.existing_data,
+                cleanup_candidates,
+                policy_decision.to_dict(),
+                cleanup_sources,
+                active_counts_by_source,
+                mode=mode,
+            )
+            result.diff["lifecycle_summary"] = lifecycle_summary
+            result.diff["returned_clients"] = policy_state.get("returned_clients", [])
+        except Exception as lifecycle_error:
+            result.warnings.append(f"Smart lifecycle update failed: {lifecycle_error}")
+            result.diff["lifecycle_summary"] = {"error": str(lifecycle_error)}
+        save_policy_state(config, policy_state)
+        try:
             result.diff["smart_insights"] = compute_smart_insights(
                 config,
                 result,
@@ -377,7 +396,7 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
         except Exception as insights_error:
             result.warnings.append(f"Smart insights failed: {insights_error}")
             result.diff["smart_insights"] = {"summary": "Smart insights failed", "error": str(insights_error), "recommendations": []}
-        timeline.record("policy_evaluation", t, status="blocked" if not policy_decision.write_allowed else policy_decision.verdict, details={"verdict": policy_decision.verdict, "risk_level": policy_decision.risk_level, "risk_score": policy_decision.risk_score})
+        timeline.record("policy_evaluation", t, status="blocked" if not policy_decision.write_allowed else policy_decision.verdict, details={"verdict": policy_decision.verdict, "risk_level": policy_decision.risk_level, "risk_score": policy_decision.risk_score, "lifecycle": result.diff.get("lifecycle_summary", {})})
 
         if mode == "dry_run":
             result.finish("dry_run_complete")
@@ -461,7 +480,7 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
         except Exception as policy_state_error:
             result.warnings.append(f"Policy state save failed: {policy_state_error}")
         log_event(config, "info", f"Sync success: files_changed={result.files_changed} libreqos_triggered={result.libreqos_triggered} duration_ms={result.timings.get('cycle_total')}")
-        write_audit(config, "sync_finished", details={"status": result.status, "files_changed": result.files_changed, "libreqos_triggered": result.libreqos_triggered, "libreqos_exit_code": result.libreqos_exit_code, "client_change_summary": result.diff.get("client_change_summary"), "policy_decision": result.diff.get("policy_decision"), "timings": result.timings})
+        write_audit(config, "sync_finished", details={"status": result.status, "files_changed": result.files_changed, "libreqos_triggered": result.libreqos_triggered, "libreqos_exit_code": result.libreqos_exit_code, "client_change_summary": result.diff.get("client_change_summary"), "policy_decision": result.diff.get("policy_decision"), "lifecycle_summary": result.diff.get("lifecycle_summary"), "timings": result.timings})
         update_state(
             state_path,
             sync_running=False,

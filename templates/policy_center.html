@@ -22,6 +22,18 @@
   <div class="stat"><div class="stat-label"><i class="ti ti-clock"></i> Cleanup Queue</div><div class="stat-value {{ 'text-warn' if queue else 'text-accent' }}">{{ queue|length }}</div><div class="stat-sub">next-run candidates</div></div>
 </section>
 
+<section class="card" style="margin-top:10px">
+  <div class="card-title"><i class="ti ti-history-toggle"></i> Smart Lifecycle Snapshot</div>
+  {% set lifecycle = policy_state.get('last_lifecycle_summary', {}) %}
+  <div class="grid-stats">
+    <div class="stat"><div class="stat-label">Tracked</div><div class="stat-value text-accent">{{ lifecycle.get('total_tracked_clients', 0) }}</div><div class="stat-sub">client lifecycle rows</div></div>
+    <div class="stat"><div class="stat-label">Queued</div><div class="stat-value text-warn">{{ lifecycle.get('cleanup_queue', 0) }}</div><div class="stat-sub">next-run cleanup</div></div>
+    <div class="stat"><div class="stat-label">Events</div><div class="stat-value text-accent">{{ lifecycle.get('client_events', 0) }}</div><div class="stat-sub">bounded timeline</div></div>
+    <div class="stat"><div class="stat-label">Returned</div><div class="stat-value text-accent">{{ lifecycle.get('returned', 0) }}</div><div class="stat-sub">latest run</div></div>
+  </div>
+  <div class="btn-row" style="margin-top:10px"><a class="btn" href="/lifecycle"><i class="ti ti-timeline-event"></i> Open Lifecycle Center</a></div>
+</section>
+
 <section class="two-grid" style="margin-top:10px">
   <div class="card">
     <div class="card-title"><i class="ti ti-scale"></i> Last Policy Decision</div>

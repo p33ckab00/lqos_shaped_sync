@@ -1,5 +1,20 @@
 # LQoSync Release Notes
 
+## v2.47.0 - Smart Lifecycle
+
+### Added
+
+- Added Smart Lifecycle state tracking for active, stale, queued cleanup, removed, and returned clients.
+- Added per-client event timeline stored in bounded runtime state.
+- Added cleanup history and confirmation history for Smart Policy Center decisions.
+- Added source lifecycle snapshots for PPP, DHCP, and Hotspot collectors.
+- Added returned-client detection when a stale/queued client appears again before cleanup is applied.
+- Added Lifecycle Center UI and Dashboard lifecycle summary.
+
+### Notes
+
+Smart Lifecycle uses `/opt/lqosync/state/policy_state.json`. It is runtime state and does not change operator config.
+
 ## v2.46.0 - Smart Insights
 
 ### Added

@@ -1,0 +1,96 @@
+{% extends "base.html" %}{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Smart Lifecycle Center</div>
+    <div class="page-subtitle">Stale-client lifecycle, cleanup queue, confirmation history, source lifecycle state, and per-client timeline.</div>
+  </div>
+  <div class="btn-row">
+    <a class="btn" href="/policy"><i class="ti ti-shield-cog"></i> Policy Center</a>
+    <a class="btn" href="/sync/dry-run"><i class="ti ti-eye"></i> Dry Run</a>
+  </div>
+</div>
+
+{% set status_counts = summary.get('status_counts', {}) %}
+<section class="grid-stats">
+  <div class="stat"><div class="stat-label"><i class="ti ti-users"></i> Tracked Clients</div><div class="stat-value text-accent">{{ summary.get('total_tracked_clients', 0) }}</div><div class="stat-sub">bounded lifecycle state</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-activity"></i> Active</div><div class="stat-value text-accent">{{ status_counts.get('active', 0) }}</div><div class="stat-sub">present in latest output</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-clock-pause"></i> Queued/Stale</div><div class="stat-value text-warn">{{ status_counts.get('queued_cleanup', 0) + status_counts.get('stale', 0) }}</div><div class="stat-sub">waiting policy/next-run</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-trash"></i> Removed</div><div class="stat-value {{ 'text-warn' if status_counts.get('removed', 0) else 'text-accent' }}">{{ status_counts.get('removed', 0) }}</div><div class="stat-sub">cleanup applied/history</div></div>
+</section>
+
+<section class="two-grid" style="margin-top:10px">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-database"></i> Source Lifecycle</div>
+    <div class="table-wrap"><table class="table"><thead><tr><th>Source</th><th>Status</th><th>Last count</th><th>Last successful</th><th>Cleanup</th></tr></thead><tbody>
+      {% for src, item in (policy_state.get('source_lifecycle', {}) or {}).items() %}
+      <tr>
+        <td><span class="badge {{ 'b-ppp' if src == 'PPP' else ('b-dhcp' if src == 'DHCP' else 'b-hs') }}">{{ src }}</span></td>
+        <td>{{ item.get('last_status') }}</td>
+        <td>{{ item.get('last_count', 0) }}</td>
+        <td>{{ item.get('last_successful_count', 0) }} · {{ item.get('last_successful_at','-') }}</td>
+        <td>{{ 'allowed' if item.get('cleanup_allowed') else 'blocked/skipped' }}</td>
+      </tr>
+      {% else %}<tr><td colspan="5" style="color:var(--muted)">No source lifecycle state yet. Run a sync or dry-run.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-arrow-back-up"></i> Returned Clients</div>
+    <div class="note">Returned-client detection is useful when a stale/queued client comes back before cleanup is applied. LQoSync marks it active again and records a lifecycle event.</div>
+    <div style="margin-top:10px;display:grid;gap:7px;max-height:260px;overflow:auto">
+      {% for item in policy_state.get('returned_clients', []) %}
+      <div class="op-line"><span><b>{{ item.get('circuit_name') or item.get('code') }}</b><br><small>{{ item.get('source') }} · {{ item.get('ipv4') }}</small></span><strong>{{ item.get('parent_node') }}</strong></div>
+      {% else %}<div class="mono text-sm" style="color:var(--muted)">No returned clients recorded in the latest lifecycle update.</div>{% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="card" style="margin-top:10px">
+  <div class="card-title"><i class="ti ti-list-details"></i> Client Lifecycle Table</div>
+  <div class="table-wrap"><table class="table"><thead><tr><th>Client</th><th>Status</th><th>Source</th><th>Speed</th><th>Parent</th><th>IP/MAC</th><th>Last seen/event</th><th>Timeline</th></tr></thead><tbody>
+    {% for code, item in client_items %}
+    <tr>
+      <td><span class="redact" data-redact-type="client">{{ item.get('circuit_name') or code }}</span></td>
+      <td><span class="badge {{ 'b-ok' if item.get('status') == 'active' else ('b-warn' if item.get('status') in ['queued_cleanup','stale'] else 'b-err') }}">{{ item.get('status') }}</span></td>
+      <td>{{ item.get('source') }}</td>
+      <td>{{ item.get('download_mbps') }}/{{ item.get('upload_mbps') }}</td>
+      <td><span class="redact" data-redact-type="node">{{ item.get('parent_node') }}</span></td>
+      <td><span class="redact" data-redact-type="ip">{{ item.get('ipv4') }}</span><br><span class="redact" data-redact-type="mac">{{ item.get('mac') }}</span></td>
+      <td>{{ item.get('last_seen_at','-') }}<br>{{ item.get('last_event_at','-') }}</td>
+      <td><a class="btn" href="/lifecycle?code={{ code }}"><i class="ti ti-timeline"></i> View</a></td>
+    </tr>
+    {% else %}<tr><td colspan="8" style="color:var(--muted)">No tracked clients yet.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+
+<section class="two-grid" style="margin-top:10px">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-timeline"></i> {% if selected_code %}Client Timeline: {{ selected_code }}{% else %}Recent Client Events{% endif %}</div>
+    <div style="display:grid;gap:8px;max-height:520px;overflow:auto">
+      {% for e in events %}
+      <div class="note">
+        <div class="mono"><b>{{ e.get('event') }}</b> · {{ e.get('ts') }}</div>
+        <div><span class="redact" data-redact-type="client">{{ e.get('circuit_name') or e.get('code') }}</span> · {{ e.get('source') }} · {{ e.get('reason','') }}</div>
+        <div class="mono text-sm" style="color:var(--muted)">{{ e.get('parent_node','') }} {{ e.get('ipv4','') }} {{ e.get('mac','') }}</div>
+      </div>
+      {% else %}<div class="mono text-sm" style="color:var(--muted)">No lifecycle events yet.</div>{% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-checkup-list"></i> Cleanup / Confirmation History</div>
+    <div style="display:grid;gap:10px;max-height:520px;overflow:auto">
+      <div>
+        <div class="mono text-sm" style="color:var(--muted);margin-bottom:6px">Cleanup history</div>
+        {% for item in (policy_state.get('cleanup_history', []) or [])[-20:]|reverse %}
+        <div class="op-line"><span>{{ item.get('source') }} · {{ item.get('reason') }} · {{ item.get('decision') }}</span><strong>{{ item.get('affected_rows', item.get('removed', '')) }}</strong></div>
+        {% else %}<div class="mono text-sm" style="color:var(--muted)">No cleanup history yet.</div>{% endfor %}
+      </div>
+      <div>
+        <div class="mono text-sm" style="color:var(--muted);margin:10px 0 6px">Confirmation history</div>
+        {% for item in (policy_state.get('confirmation_history', []) or [])[-20:]|reverse %}
+        <div class="op-line"><span>{{ item.get('action') }} · {{ item.get('source') }} · {{ item.get('reason') }}</span><strong>{{ item.get('actor') }}</strong></div>
+        {% else %}<div class="mono text-sm" style="color:var(--muted)">No confirmation history yet.</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

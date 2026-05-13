@@ -24,6 +24,13 @@ def default_policy_state() -> dict[str, Any]:
         "last_successful_source_counts": {},
         "last_successful_node_counts": {},
         "last_policy_decision": {},
+        "client_lifecycle": {},
+        "client_events": [],
+        "cleanup_history": [],
+        "confirmation_history": [],
+        "source_lifecycle": {},
+        "last_lifecycle_summary": {},
+        "returned_clients": [],
     }
 
 
@@ -128,19 +135,48 @@ def is_confirmation_confirmed(state: dict[str, Any], cid: str, expected_scope_ha
 def confirm_cleanup(state: dict[str, Any], confirmation_id: str, actor: str = "admin") -> bool:
     found = False
     now = utcnow().isoformat()
+    state.setdefault("confirmation_history", [])
     for item in state.get("pending_confirmations", []):
         if item.get("id") == confirmation_id:
             item["confirmed"] = True
             item["confirmed_by"] = actor
             item["confirmed_at"] = now
+            state["confirmation_history"].append({
+                "ts": now,
+                "action": "confirmed",
+                "confirmation_id": confirmation_id,
+                "actor": actor,
+                "source": item.get("source"),
+                "reason": item.get("reason"),
+                "affected_rows": item.get("affected_rows"),
+                "apply_mode": item.get("apply_mode"),
+            })
+            state["confirmation_history"] = state["confirmation_history"][-500:]
             found = True
     return found
 
 
-def dismiss_confirmation(state: dict[str, Any], confirmation_id: str) -> bool:
-    before = len(state.get("pending_confirmations", []))
-    state["pending_confirmations"] = [item for item in state.get("pending_confirmations", []) if item.get("id") != confirmation_id]
-    return len(state.get("pending_confirmations", [])) != before
+def dismiss_confirmation(state: dict[str, Any], confirmation_id: str, actor: str = "admin") -> bool:
+    before_items = list(state.get("pending_confirmations", []))
+    before = len(before_items)
+    removed = [item for item in before_items if item.get("id") == confirmation_id]
+    state["pending_confirmations"] = [item for item in before_items if item.get("id") != confirmation_id]
+    changed = len(state.get("pending_confirmations", [])) != before
+    if changed:
+        state.setdefault("confirmation_history", [])
+        now = utcnow().isoformat()
+        for item in removed or [{"id": confirmation_id}]:
+            state["confirmation_history"].append({
+                "ts": now,
+                "action": "dismissed",
+                "confirmation_id": confirmation_id,
+                "actor": actor,
+                "source": item.get("source"),
+                "reason": item.get("reason"),
+                "affected_rows": item.get("affected_rows"),
+            })
+        state["confirmation_history"] = state["confirmation_history"][-500:]
+    return changed
 
 
 def prune_expired(state: dict[str, Any]) -> None:

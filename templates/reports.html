@@ -1,0 +1,95 @@
+{% extends "base.html" %}{% block content %}
+{% set summary = report.get('summary', {}) %}
+{% set last = report.get('last_run', {}) %}
+{% set policy = report.get('policy_report', {}) %}
+{% set cleanup = report.get('cleanup_report', {}) %}
+{% set client_report = report.get('client_change_report', {}) %}
+{% set client_rows = client_report.get('rows', []) %}
+{% set smart = report.get('smart_insights', {}) %}
+{% set config_changes = report.get('config_change_report', {}) %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Smart Reports</div>
+    <div class="page-subtitle">Operator audit, policy decision report, cleanup report, client changes, config changes, and exportable summaries.</div>
+  </div>
+  <div class="btn-row">
+    <a class="btn" href="/reports/export/json"><i class="ti ti-download"></i> JSON</a>
+    <a class="btn" href="/reports/export/csv"><i class="ti ti-table-export"></i> CSV</a>
+    <a class="btn" href="/reports/export/markdown"><i class="ti ti-markdown"></i> Markdown</a>
+    <button class="btn" onclick="window.print()"><i class="ti ti-printer"></i> Print</button>
+  </div>
+</div>
+
+<style>
+  .report-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.report-card{border:1px solid var(--br0);border-radius:14px;background:var(--bg1);padding:13px}.report-title{font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.report-value{font-size:28px;font-weight:800;color:var(--txt);margin-top:4px}.report-sub{font-family:var(--font-mono);font-size:11px;color:var(--hint);margin-top:3px}.report-section{margin-top:12px}.report-list{display:grid;gap:8px}.report-item{border:1px solid var(--br0);border-radius:12px;padding:10px;background:rgba(15,23,42,.22)}.report-item-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.report-meta{font-family:var(--font-mono);font-size:11px;color:var(--muted);line-height:1.45;margin-top:6px}.report-table{width:100%;border-collapse:collapse;min-width:900px}.report-table th,.report-table td{border-bottom:1px solid var(--br0);padding:9px 10px;text-align:left;font-size:12px;vertical-align:top}.report-table th{color:var(--muted);font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;background:var(--bg2)}.print-note{display:none}@media(max-width:1100px){.report-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:760px){.report-grid{grid-template-columns:1fr}.report-value{font-size:24px}}@media print{.sidebar,.topbar,.btn-row,.mobile-backdrop{display:none!important}.main{padding:0!important}.app-shell{display:block!important}.card,.report-card,.report-item{break-inside:avoid}.print-note{display:block}.privacy-banner{display:none!important}}
+  :root[data-theme=light] .report-item{background:#fff}
+</style>
+
+<div class="print-note mono text-xs" style="margin-bottom:10px;color:var(--muted)">Generated at {{ report.get('generated_at') }} · Print/export copy.</div>
+
+<section class="report-grid">
+  <div class="report-card"><div class="report-title">Sync cycles 24h</div><div class="report-value text-accent">{{ summary.get('sync_finished_24h', 0) }}</div><div class="report-sub">dry-runs {{ summary.get('dry_runs_24h', 0) }}</div></div>
+  <div class="report-card"><div class="report-title">Failed sync 24h</div><div class="report-value {{ 'text-err' if summary.get('failed_sync_24h', 0) else 'text-accent' }}">{{ summary.get('failed_sync_24h', 0) }}</div><div class="report-sub">audit window 24h</div></div>
+  <div class="report-card"><div class="report-title">Policy blocked</div><div class="report-value {{ 'text-warn' if summary.get('policy_blocked_24h', 0) else 'text-accent' }}">{{ summary.get('policy_blocked_24h', 0) }}</div><div class="report-sub">last 24h</div></div>
+  <div class="report-card"><div class="report-title">Config changes</div><div class="report-value">{{ summary.get('config_changes_recorded', 0) }}</div><div class="report-sub">recorded audit items</div></div>
+</section>
+
+<section class="layout-grid report-section">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-activity"></i> Last Run Summary</div>
+    <div class="report-list">
+      <div class="op-line"><span>Status</span><strong class="{{ 'text-accent' if last.get('status') == 'success' else 'text-warn' }}">{{ last.get('status','unknown') }}</strong></div>
+      <div class="op-line"><span>Duration</span><strong>{{ last.get('duration_seconds','—') }}s</strong></div>
+      <div class="op-line"><span>Files changed</span><strong>{{ last.get('files_changed') }}</strong></div>
+      <div class="op-line"><span>LibreQoS apply</span><strong>{{ last.get('libreqos_triggered') }} · exit={{ last.get('libreqos_exit_code') }}</strong></div>
+      <div class="op-line"><span>Counts</span><strong>PPP {{ last.get('counts',{}).get('pppoe',0) }} · DHCP {{ last.get('counts',{}).get('dhcp',0) }} · HS {{ last.get('counts',{}).get('hotspot',0) }}</strong></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-shield-check"></i> Policy Decision Report</div>
+    <div class="grid-stats" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+      <div class="stat"><div class="stat-label">Verdict</div><div class="stat-value {{ 'text-err' if policy.get('verdict') == 'blocked_by_policy' else ('text-warn' if policy.get('verdict') == 'requires_confirmation' else 'text-accent') }}" style="font-size:18px">{{ policy.get('verdict','unknown') }}</div></div>
+      <div class="stat"><div class="stat-label">Risk</div><div class="stat-value {{ 'text-err' if policy.get('risk_level') in ['high','critical'] else ('text-warn' if policy.get('risk_level') == 'medium' else 'text-accent') }}">{{ policy.get('risk_score',0) }}</div><div class="stat-sub">{{ policy.get('risk_level','unknown') }}</div></div>
+      <div class="stat"><div class="stat-label">Write allowed</div><div class="stat-value">{{ policy.get('write_allowed') }}</div></div>
+      <div class="stat"><div class="stat-label">Apply allowed</div><div class="stat-value">{{ policy.get('apply_allowed') }}</div></div>
+    </div>
+    {% if policy.get('blocked_reasons') %}<div class="report-list" style="margin-top:10px">{% for b in policy.get('blocked_reasons')[:5] %}<div class="report-item"><div class="report-item-head"><b>{{ b.title or 'Blocked reason' }}</b><span class="badge b-err">blocked</span></div><div class="report-meta">{{ b.message or b }}</div></div>{% endfor %}</div>{% endif %}
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-recycle"></i> Cleanup Report</div>
+    {% set cc = cleanup.get('counts', {}) %}
+    <div class="grid-stats" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+      <div class="stat"><div class="stat-label">Remove</div><div class="stat-value text-warn">{{ cc.get('remove',0) }}</div></div>
+      <div class="stat"><div class="stat-label">Queued</div><div class="stat-value text-dhcp">{{ cc.get('queued',0) }}</div></div>
+      <div class="stat"><div class="stat-label">Preserved</div><div class="stat-value">{{ cc.get('preserve',0) }}</div></div>
+      <div class="stat"><div class="stat-label">Pending Confirm</div><div class="stat-value {{ 'text-warn' if cc.get('pending_confirmations',0) else 'text-accent' }}">{{ cc.get('pending_confirmations',0) }}</div></div>
+    </div>
+    {% if cleanup.get('pending_confirmations') %}<div class="report-list" style="margin-top:10px">{% for c in cleanup.get('pending_confirmations')[:4] %}<div class="report-item"><div class="report-item-head"><b>{{ c.source or 'source' }} cleanup</b><span class="badge b-warn">pending</span></div><div class="report-meta">{{ c.reason }} · affected={{ c.affected_rows }} · expires={{ c.expires_at }}</div></div>{% endfor %}</div>{% endif %}
+  </div>
+</section>
+
+<section class="layout-grid report-section">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-bulb"></i> Recommendations</div>
+    {% set recs = smart.get('recommendations', []) if smart else [] %}
+    {% if recs %}<div class="report-list">{% for r in recs[:8] %}<div class="report-item"><div class="report-item-head"><b>{{ r.title }}</b><span class="badge {{ 'b-err' if r.severity in ['critical','high'] else ('b-warn' if r.severity == 'warning' else 'b-static') }}">{{ r.severity }}</span></div><div class="report-meta"><b>Reason:</b> {{ r.reason }}<br><b>Next:</b> {{ r.action }}</div></div>{% endfor %}</div>{% else %}<p class="mono text-sm" style="color:var(--muted)">No recommendations recorded in the last smart-insights report.</p>{% endif %}
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-users"></i> Client Change Report</div>
+    {% if client_rows %}
+    <div class="table-wrap"><table class="report-table"><thead><tr><th>Client</th><th>Change</th><th>Speed</th><th>Parent Node</th><th>Fields</th></tr></thead><tbody>{% for row in client_rows[:100] %}<tr><td><span class="redact" data-redact-type="client">{{ row.client }}</span></td><td>{{ row.change_type }}</td><td>{{ row.speed }}</td><td><span class="redact" data-redact-type="node">{{ row.parent_node }}</span></td><td>{{ row.fields }}</td></tr>{% endfor %}</tbody></table></div>
+    {% else %}<p class="mono text-sm" style="color:var(--muted)">No client-level changes recorded in the last run.</p>{% endif %}
+  </div>
+</section>
+
+<section class="card report-section" style="padding:0;overflow:hidden">
+  <div style="padding:14px 16px;border-bottom:1px solid var(--br0);display:flex;justify-content:space-between;gap:10px;align-items:center"><div><div class="card-title" style="margin:0"><i class="ti ti-history"></i> Config / Operator Audit</div><div class="mono text-xs" style="color:var(--muted);margin-top:4px">Recent settings, policy, scheduler, DHCP toggle, and topology changes.</div></div><a class="btn" href="/logs"><i class="ti ti-file-text"></i> Open audit table</a></div>
+  <div class="table-wrap"><table class="report-table"><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Details</th></tr></thead><tbody>{% for ev in config_changes.get('events', [])[-50:]|reverse %}<tr><td class="mono text-xs">{{ ev.ts }}</td><td>{{ ev.actor }}</td><td><span class="badge">{{ ev.action }}</span></td><td><pre class="mono text-xs" style="white-space:pre-wrap;margin:0;color:var(--muted)">{{ ev.details | tojson }}</pre></td></tr>{% else %}<tr><td colspan="4" style="color:var(--muted)">No config/operator audit events recorded yet.</td></tr>{% endfor %}</tbody></table></div>
+</section>
+
+<section class="card report-section">
+  <div class="card-title"><i class="ti ti-code"></i> Report JSON Preview</div>
+  <details><summary class="mono text-sm text-dhcp" style="cursor:pointer">Show JSON</summary><pre class="mono text-xs scroll-panel" style="white-space:pre-wrap;max-height:420px;background:var(--bg0);border:1px solid var(--br0);border-radius:10px;padding:12px;margin-top:10px">{{ report | tojson(indent=2) }}</pre></details>
+</section>
+<script>document.addEventListener('DOMContentLoaded',()=>{ if(window.refreshPrivacyMode) refreshPrivacyMode(); });</script>
+{% endblock %}

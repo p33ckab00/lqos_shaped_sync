@@ -1,5 +1,15 @@
 # Release Notes
 
+## v2.52.0 - Smart Reports + Operator Audit FULL
+
+- Adds `engine/reports.py` for read-only operator report generation from runtime state, policy state, audit events, services, backups, smart insights, policy decisions, cleanup decisions, and client changes.
+- Adds `/reports` Smart Reports page with 24h summary cards, last run summary, policy decision report, cleanup report, recommendations, client change table, config/operator audit table, and JSON preview.
+- Adds `/reports/export/json`, `/reports/export/csv`, and `/reports/export/markdown` for copy-ready operator reports.
+- Adds `/api/reports/operator` for structured report consumption by UI/integrations.
+- Adds Smart Reports navigation entry under History.
+- Adds documentation source `docs/content/smart_reports_operator_audit.md` and updates docs manifest, About module, README, full documentation, operator guide, release notes, and version metadata for v2.52.
+
+
 ## v2.51.0 - Config Schema + Policy Simulation Engine FULL
 
 - Adds `config_schema_version` and `config_validation` defaults to `config.json`.

@@ -30,5 +30,11 @@
     "file": "docs/content/config_schema_policy_simulation.md",
     "anchor": "config-schema--policy-simulation-engine",
     "summary": "v2.51 config_schema_version, config health, unsaved config preview, policy simulation, and impact verdicts."
+  },
+  "reports.smart_operator_audit": {
+    "title": "Smart Reports + Operator Audit",
+    "file": "docs/content/smart_reports_operator_audit.md",
+    "anchor": "smart-reports--operator-audit",
+    "summary": "v2.52 operator report page with 24h summary, policy decision report, cleanup report, client changes, config audit, and exports."
   }
 }

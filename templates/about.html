@@ -602,6 +602,21 @@ python3 -m json.tool network.json</div>
       <p>Use <b>Policy Center</b> to review pending confirmations, source cleanup policies, apply guards, collector guards, runtime policy state, and the last policy decision. Use <b>Dry Run</b> to see the same verdict without writing files or applying LibreQoS.</p>
     </section>
 
+
+    <section id="smart-reports-operator-audit" class="card about-section">
+      <h2><i class="ti ti-report-analytics text-accent"></i> v2.52 Smart Reports + Operator Audit</h2>
+      <p><b>Purpose:</b> LQoSync now has a read-only Smart Reports center for operator audit, policy decisions, cleanup status, client changes, config changes, and exportable summaries.</p>
+      <ul>
+        <li><b>24h Summary:</b> sync cycles, dry-runs, failed syncs, policy blocks, confirmations, config changes, and backups.</li>
+        <li><b>Policy Decision Report:</b> verdict, risk level, risk score, write/apply allowance, blocked reasons, and recommendations.</li>
+        <li><b>Cleanup Report:</b> remove, queued, preserved, pending confirmations, lifecycle summary, and cleanup decisions.</li>
+        <li><b>Client Change Report:</b> changed clients, speed, parent node, and changed fields from the latest run.</li>
+        <li><b>Operator Audit:</b> recent config, policy, scheduler, DHCP toggle, and topology change events.</li>
+        <li><b>Exports:</b> JSON, CSV, Markdown, plus print-friendly browser output.</li>
+      </ul>
+      <div class="note"><b>Safety:</b> reports are read-only. They do not write config.json, generated files, policy state, or run LibreQoS.</div>
+    </section>
+
     <section id="documentation-rule" class="card about-section">
       <h2><i class="ti ti-notes text-accent"></i> Documentation Rule</h2>
       <p>Every project change should update both repository documentation and this in-app About module. The About module is the operator's built-in manual, so it should stay aligned with the latest README, installation guide, GitHub update flow, uninstall guide, troubleshooting guide, release notes, and command reference.</p>

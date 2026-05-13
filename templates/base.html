@@ -192,6 +192,7 @@
     {% endif %}
     <div class="nav-section">History</div>
     <a class="nav-item {{ 'active' if request.path.startswith('/services') else '' }}" href="/services"><i class="ti ti-server"></i><span>Services & journals</span></a>
+    <a class="nav-item {{ 'active' if request.path.startswith('/reports') else '' }}" href="/reports"><i class="ti ti-report-analytics"></i><span>Smart reports</span></a>
     <a class="nav-item {{ 'active' if request.path.startswith('/logs') else '' }}" href="/logs"><i class="ti ti-file-text"></i><span>Logs & backups</span></a>
     <div class="nav-section">Help</div>
     <a class="nav-item {{ 'active' if request.path.startswith('/about') else '' }}" href="/about"><i class="ti ti-info-circle"></i><span>About</span></a>

@@ -25,6 +25,7 @@ from engine.policy_state import load_policy_state, save_policy_state, confirm_cl
 from engine.setup_repair import compute_setup_repair_report, apply_policy_preset
 from engine.policy_schema import grouped_policy_schema, policy_diff_from_preset, closest_preset, parse_policy_form, normalize_policies, POLICY_SCHEMA, get_by_path
 from engine.config_simulator import simulate_config_change
+from engine.reports import compute_operator_report, report_to_csv, report_to_markdown
 from engine.config_schema import migrate_config_schema, validate_schema, CONFIG_SCHEMA_VERSION
 from engine.lifecycle import lifecycle_summary, client_event_timeline
 from applier.atomic_writer import atomic_write_text

@@ -1,0 +1,55 @@
+{% extends "base.html" %}{% block content %}
+<style>
+  .docs-search-shell{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(260px,.55fr);gap:12px;align-items:start}.docs-result{border:1px solid var(--br0);border-radius:14px;background:var(--bg1);padding:13px;display:grid;gap:7px}.docs-result-title{font-weight:700;color:var(--txt);display:flex;gap:8px;align-items:center;justify-content:space-between}.docs-result-meta{font-family:var(--font-mono);font-size:10px;color:var(--hint)}.docs-result-excerpt{font-size:12px;color:var(--muted);line-height:1.5}.docs-chip-grid{display:flex;flex-wrap:wrap;gap:7px}.docs-search-input{width:100%;border:1px solid var(--br1);border-radius:13px;background:var(--bg2);color:var(--txt);padding:12px 13px;font-family:var(--font-mono);font-size:13px}.docs-search-input:focus{outline:2px solid rgba(0,200,150,.28);border-color:var(--c-accent)}@media(max-width:900px){.docs-search-shell{grid-template-columns:1fr}.docs-result-title{display:block}.docs-result-title .btn{margin-top:8px;width:100%;justify-content:center}}
+</style>
+<div class="page-header">
+  <div>
+    <div class="page-title">Documentation search</div>
+    <div class="page-subtitle">Search centralized LQoSync docs, setup guides, troubleshooting, policy explanations, and release documentation.</div>
+  </div>
+  <div class="btn-row">
+    <a class="btn" href="/about"><i class="ti ti-book"></i> Documentation center</a>
+    <a class="btn" href="/setup-repair"><i class="ti ti-tool"></i> Setup / repair</a>
+  </div>
+</div>
+
+<section class="docs-search-shell">
+  <div class="card">
+    <div class="card-title"><i class="ti ti-search"></i> Search documentation</div>
+    <form method="get" action="/docs/search" class="btn-row" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-bottom:10px">
+      <input class="docs-search-input" type="search" name="q" value="{{ query }}" placeholder="Try: policy cleanup, working_dir, Telegram, fresh install, route check, DHCP identity…" autofocus>
+      <button class="btn btn-primary"><i class="ti ti-search"></i> Search</button>
+    </form>
+    <div class="docs-chip-grid" style="margin-bottom:12px">
+      {% for chip in ['policy cleanup','working_dir','fresh install','Telegram','MikroTik API','backup_before_apply','network layout','Smart Defaults Repair','DHCP identity','LibreQoS apply'] %}
+      <a class="filter-pill" href="/docs/search?q={{ chip|urlencode }}">{{ chip }}</a>
+      {% endfor %}
+    </div>
+    <div class="page-subtitle" style="margin-bottom:10px">{{ results.total }} result{{ '' if results.total == 1 else 's' }}{% if query %} for <b>{{ query }}</b>{% endif %}</div>
+    <div style="display:grid;gap:9px">
+      {% for item in results.results %}
+      <article class="docs-result">
+        <div class="docs-result-title">
+          <span><i class="ti ti-file-search"></i> {{ item.title }}</span>
+          <span class="btn-row">
+            <a class="btn" href="/docs/view/{{ item.id }}{% if query %}?q={{ query|urlencode }}{% endif %}"><i class="ti ti-eye"></i> Open</a>
+            {% if item.anchor %}<a class="btn" href="/about#{{ item.anchor }}"><i class="ti ti-link"></i> About anchor</a>{% endif %}
+          </span>
+        </div>
+        <div class="docs-result-meta">{{ item.path }} · score={{ item.score }}</div>
+        <div class="docs-result-excerpt">{{ item.excerpt }}</div>
+      </article>
+      {% else %}
+      <div class="note"><b>No documentation result found.</b> Try a shorter keyword such as <code>policy</code>, <code>install</code>, <code>backup</code>, or <code>LibreQoS</code>.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <aside class="card">
+    <div class="card-title"><i class="ti ti-info-circle"></i> Search guide</div>
+    <div class="note" style="margin-bottom:10px"><b>Best for:</b> quickly finding setup steps, policy meanings, troubleshooting commands, route/template checks, Telegram settings, and update procedures.</div>
+    <div class="note" style="margin-bottom:10px"><b>Source of truth:</b> this searches local Markdown documentation bundled with the package. Setup & Repair links back to these docs instead of duplicating long manuals.</div>
+    <div class="note"><b>Privacy:</b> documentation search is local and read-only. It does not send queries outside the LQoSync WebUI.</div>
+  </aside>
+</section>
+{% endblock %}

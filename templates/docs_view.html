@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% block content %}
+<style>
+  .doc-view-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:12px;align-items:start}.doc-pre{white-space:pre-wrap;line-height:1.55;font-size:12px;max-height:none}@media(max-width:900px){.doc-view-grid{grid-template-columns:1fr}.doc-pre{font-size:11px}}
+</style>
+<div class="page-header">
+  <div>
+    <div class="page-title">{{ doc.title }}</div>
+    <div class="page-subtitle">{{ doc.path }}</div>
+  </div>
+  <div class="btn-row">
+    <a class="btn" href="/docs/search{% if query %}?q={{ query|urlencode }}{% endif %}"><i class="ti ti-arrow-left"></i> Back to search</a>
+    {% if doc.anchor %}<a class="btn" href="/about#{{ doc.anchor }}"><i class="ti ti-link"></i> Open in About</a>{% endif %}
+  </div>
+</div>
+<section class="doc-view-grid">
+  <article class="card">
+    <div class="card-title"><i class="ti ti-file-text"></i> Markdown source</div>
+    <pre class="doc-pre">{{ doc.text }}</pre>
+  </article>
+  <aside class="card">
+    <div class="card-title"><i class="ti ti-map-pin"></i> Document details</div>
+    <div class="op-line"><strong>ID</strong><span>{{ doc.id }}</span></div>
+    <div class="op-line"><strong>Path</strong><span>{{ doc.path }}</span></div>
+    <div class="op-line"><strong>Section</strong><span>{{ doc.section }}</span></div>
+    {% if doc.summary %}<div class="note" style="margin-top:10px"><b>Summary:</b> {{ doc.summary }}</div>{% endif %}
+  </aside>
+</section>
+{% endblock %}

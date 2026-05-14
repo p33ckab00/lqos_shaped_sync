@@ -104,5 +104,11 @@
     "file": "docs/content/telegram_notifications.md",
     "anchor": "v258-telegram-notifications",
     "summary": "v2.58 optional Telegram delivery for internal health, policy, apply, and source notification candidates."
+  },
+  "docs.search_ui_polish": {
+    "title": "Documentation Search + UI/Mobile Polish",
+    "file": "docs/content/documentation_search_ui_polish.md",
+    "anchor": "v259-documentation-search--uimobile-polish",
+    "summary": "v2.59 local documentation search, docs view pages, read-only docs API, and reusable UI/mobile consistency helpers."
   }
 }

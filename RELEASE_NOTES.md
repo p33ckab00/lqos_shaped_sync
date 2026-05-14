@@ -1,5 +1,19 @@
 # LQoSync Release Notes
 
+## v2.59.0 - Documentation Search and UI Mobile Polish
+
+### Added
+
+- Added `engine/docs_search.py` for local, read-only documentation indexing and search over bundled Markdown docs and docs manifest entries.
+- Added `/docs/search`, `/docs/view/<doc_id>`, `/api/docs/search`, and `/api/docs/index`.
+- Added a Documentation Search page with quick topic chips, result excerpts, docs source paths, and links back to About anchors when available.
+- Added Docs Search to the Help navigation section.
+- Added reusable UI consistency helpers for responsive grids, empty states, section cards, action strips, mobile sticky actions, and keyboard hints.
+
+### Notes
+
+Documentation Search is local to the LQoSync WebUI. It does not call external services and does not modify config, state, generated files, or LibreQoS.
+
 ## v2.58.0 - Telegram Notifications
 
 ### Added

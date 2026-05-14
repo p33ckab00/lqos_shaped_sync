@@ -95,3 +95,10 @@ docs/content/*.md              documentation source blocks
 LQoSync v2.54 adds a guided First Run Setup Wizard. The wizard computes readiness from config, runtime state, setup/repair checks, source configuration, Network Layout mode, Smart Policy preset, Dry Run status, and scheduler state. It gives the operator a clean onboarding path: confirm LibreQoS paths, configure MikroTik routers, enable PPPoE/DHCP/Hotspot sources, choose Network Layout, choose policy preset, run Dry Run, and enable scheduler only after results are clean and expected.
 
 The wizard is read-only while loading. It does not contact routers or write generated LibreQoS files automatically. Policy preset and layout-mode changes are explicit form actions and are followed by a reminder to run Dry Run.
+
+
+## v2.59 Documentation Search + UI/Mobile Polish
+
+LQoSync v2.59 adds a local Documentation Search Center at `/docs/search`. It indexes bundled Markdown documentation and docs manifest entries so operators can quickly find policy, setup, troubleshooting, update, Telegram, MikroTik, and LibreQoS guidance. Search is local/read-only and does not send queries outside the WebUI.
+
+This release also adds reusable UI/mobile consistency helpers for cleaner responsive grids, action strips, empty states, section cards, and mobile sticky action areas.

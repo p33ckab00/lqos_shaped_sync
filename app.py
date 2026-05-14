@@ -28,6 +28,7 @@ from engine.policy_schema import grouped_policy_schema, policy_diff_from_preset,
 from engine.policy_conflicts import evaluate_policy_conflicts, enhanced_preset_comparison, client_identity_report
 from engine.health_trends import compute_health_report
 from engine.notifications import telegram_settings_summary, send_test_message, dispatch_telegram_notifications
+from engine.docs_search import search_docs, build_docs_index, get_doc
 from engine.config_simulator import simulate_config_change
 from engine.reports import compute_operator_report, report_to_csv, report_to_markdown
 from engine.config_schema import migrate_config_schema, validate_schema, CONFIG_SCHEMA_VERSION
@@ -1285,6 +1286,52 @@ def update_center():
         git_status=_git_status(fetch_remote=True),
         user=current_user(),
     )
+
+
+@app.route("/docs")
+@login_required
+def docs_home():
+    return redirect(url_for("docs_search_page"))
+
+
+@app.route("/docs/search")
+@login_required
+def docs_search_page():
+    query = request.args.get("q", "").strip()
+    try:
+        limit = max(1, min(int(request.args.get("limit", 25)), 100))
+    except Exception:
+        limit = 25
+    results = search_docs(query, Path(__file__).resolve().parent, limit=limit)
+    return render_template("docs_search.html", query=query, results=results, user=current_user())
+
+
+@app.route("/docs/view/<doc_id>")
+@login_required
+def docs_view_page(doc_id):
+    doc = get_doc(doc_id, Path(__file__).resolve().parent)
+    if not doc:
+        abort(404)
+    query = request.args.get("q", "").strip()
+    return render_template("docs_view.html", doc=doc, query=query, user=current_user())
+
+
+@app.route("/api/docs/search")
+@login_required
+def api_docs_search():
+    query = request.args.get("q", "").strip()
+    try:
+        limit = max(1, min(int(request.args.get("limit", 25)), 100))
+    except Exception:
+        limit = 25
+    return jsonify(search_docs(query, Path(__file__).resolve().parent, limit=limit))
+
+
+@app.route("/api/docs/index")
+@login_required
+def api_docs_index():
+    entries = [entry.public_dict() for entry in build_docs_index(Path(__file__).resolve().parent)]
+    return jsonify({"total": len(entries), "docs": entries})
 
 
 @app.route("/about")

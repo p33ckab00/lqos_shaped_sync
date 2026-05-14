@@ -146,6 +146,11 @@
     .json-view-panel pre{max-height:520px;overflow:auto;font-family:var(--font-mono);font-size:11px;line-height:1.45;padding:14px;border:1px solid var(--br0);border-radius:var(--radius);background:rgba(2,6,23,.74);color:var(--txt);}
 
 
+    /* v2.59 UI consistency helpers */
+    .responsive-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}.content-stack{display:grid;gap:10px}.empty-state{border:1px dashed var(--br1);border-radius:14px;padding:18px;text-align:center;color:var(--muted);background:rgba(15,23,42,.24)}.section-card{border:1px solid var(--br0);border-radius:14px;background:var(--bg1);padding:14px}.action-strip{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.kbd-hint{font-family:var(--font-mono);font-size:10px;color:var(--hint);border:1px solid var(--br0);border-radius:6px;padding:2px 6px;background:var(--bg2)}
+    @media(max-width:760px){.responsive-grid{grid-template-columns:1fr}.action-strip{display:grid;grid-template-columns:1fr}.action-strip .btn,.action-strip form,.action-strip button{width:100%;justify-content:center}.mobile-sticky-actions{position:sticky;bottom:10px;z-index:20;border:1px solid var(--br1);border-radius:14px;background:rgba(11,18,32,.94);backdrop-filter:blur(12px);padding:8px;box-shadow:0 16px 50px rgba(0,0,0,.28)}:root[data-theme=light] .mobile-sticky-actions{background:rgba(255,255,255,.94)}.page-header .btn-row{display:grid;grid-template-columns:1fr}.page-header .btn-row .btn{width:100%;justify-content:center}}
+
+
     body.privacy-mode .privacy-banner{display:block}.privacy-banner{display:none;margin-bottom:12px;border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.10);color:var(--txt);border-radius:12px;padding:10px 12px;font-size:12px}.privacy-toggle.active{border-color:rgba(245,158,11,.55);background:rgba(245,158,11,.14);color:var(--txt)}
     .redact{transition:opacity .12s ease}.redact.is-redacted{font-family:var(--font-mono);letter-spacing:.02em;color:var(--txt);background:rgba(100,116,139,.10);border:1px solid rgba(100,116,139,.22);border-radius:5px;padding:0 4px}
     .icon-toggle{position:relative;width:42px;min-width:42px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:10px}
@@ -199,6 +204,7 @@
     <a class="nav-item {{ 'active' if request.path.startswith('/reports') else '' }}" href="/reports"><i class="ti ti-report-analytics"></i><span>Smart reports</span></a>
     <a class="nav-item {{ 'active' if request.path.startswith('/logs') else '' }}" href="/logs"><i class="ti ti-file-text"></i><span>Logs & backups</span></a>
     <div class="nav-section">Help</div>
+    <a class="nav-item {{ 'active' if request.path.startswith('/docs') else '' }}" href="/docs/search"><i class="ti ti-search"></i><span>Docs search</span></a>
     <a class="nav-item {{ 'active' if request.path.startswith('/about') else '' }}" href="/about"><i class="ti ti-info-circle"></i><span>About</span></a>
     <a class="nav-item" href="/logout"><i class="ti ti-logout"></i><span>Logout</span></a>
     <div class="sidebar-footer">

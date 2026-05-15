@@ -1,5 +1,20 @@
 # LQoSync Release Notes
 
+## v2.62.0 - Config + Policy + Notification Unification
+
+### Improved
+
+- Makes Config Center the single settings home for normal config, Smart Policy Center settings, Telegram notification delivery settings, and Advanced Raw JSON.
+- Adds a Config Center Notifications tab for Telegram bot token, chat ID, base URL, alert levels, dedupe/min interval, digest/individual delivery, and event filters.
+- Enhances the Config Center Policies tab with Policy Conflict Resolver summary and Client Identity Handling guidance so operators do not need a separate Policy page for common decisions.
+- Keeps `/policy` and `/notifications` as compatibility aliases that redirect to `/config?tab=policies` and `/config?tab=notifications`.
+- Preserves Telegram test/current alert actions and policy preset/confirmation endpoints for compatibility.
+- Updates documentation with the consolidated settings model.
+
+### Notes
+
+This is a UI/routing/settings organization update. It does not change MikroTik collection, cleanup/apply policy evaluation, generated file formats, scheduler behavior, or LibreQoS apply execution.
+
 ## v2.61.0 - Compact Information Architecture + Documentation Consolidation
 
 ### Improved

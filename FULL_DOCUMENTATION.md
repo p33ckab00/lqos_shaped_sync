@@ -1600,3 +1600,10 @@ Logs & Backups now has a paginated backup list with compact icon-only actions. A
 ## v2.61 Compact Information Architecture
 
 LQoSync v2.61 consolidates redundant WebUI and documentation surfaces. Dashboard is the live health/status page. Operations Center now contains services, journals, LibreQoS apply history, app logs, audit events, and backups. Reports Center focuses on exports and report snapshots. Documentation Center is the searchable source of truth, while About is lightweight project/version/disclosure information. Existing `/services`, `/logs`, and `/health` links remain compatible through redirects.
+
+
+## v2.62 Config + Policy + Notification Unification
+
+LQoSync v2.62 makes Config Center the single operator-facing settings home. Smart Policy Center settings and Telegram notification delivery settings are now available as native Config Center tabs, while Advanced Raw JSON continues to mirror the same `config.json` payload. Old links remain compatible: `/policy` redirects to `/config?tab=policies`, and `/notifications` redirects to `/config?tab=notifications`.
+
+This keeps the project compact: Dashboard is for live health and alerts, Config Center is for settings and policies, Operations Center is for logs/services/backups, Reports is for exports, and Documentation Center is for the searchable manual.

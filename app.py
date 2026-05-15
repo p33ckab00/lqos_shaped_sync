@@ -674,6 +674,10 @@ def config_page():
     cfg = load_config(CONFIG_PATH)
     errors, warnings = validate_config(cfg)
     schema_report = validate_schema(cfg)
+    allowed_tabs = {"overview", "apply", "paths", "collector", "scheduler", "services", "policies", "notifications", "defaults", "routers", "router"}
+    initial_tab = request.args.get("tab") or "overview"
+    if initial_tab not in allowed_tabs:
+        initial_tab = "overview"
     return render_template(
         "config.html",
         config_json=json.dumps(cfg, indent=2),
@@ -682,6 +686,10 @@ def config_page():
         config_warnings=warnings,
         schema_report=schema_report,
         schema_version=CONFIG_SCHEMA_VERSION,
+        policy_conflicts=evaluate_policy_conflicts(cfg),
+        identity_report=client_identity_report(cfg),
+        telegram=telegram_settings_summary(cfg),
+        initial_tab=initial_tab,
         user=current_user(),
     )
 
@@ -873,30 +881,8 @@ def discover_dhcp(router_idx):
 @app.route("/policy")
 @admin_required
 def policy_center():
-    cfg, state = get_status()
-    normalize_policies(cfg)
-    pstate = load_policy_state(cfg)
-    last = state.get("last_run") or state.get("last_dry_run") or {}
-    decision = (last.get("diff") or {}).get("policy_decision") or pstate.get("last_policy_decision") or {}
-    preset = request.args.get("compare") or (cfg.get("policies") or {}).get("mode") or "balanced"
-    if preset == "custom":
-        preset = "balanced"
-    return render_template(
-        "policy_center.html",
-        cfg=cfg,
-        state=state,
-        policy_state=pstate,
-        decision=decision,
-        policy_schema=grouped_policy_schema(),
-        policy_values={item["path"]: get_by_path(cfg, item["path"]) for item in POLICY_SCHEMA},
-        preset_diff=policy_diff_from_preset(cfg, preset),
-        preset_compare=preset,
-        preset_comparison=enhanced_preset_comparison(cfg, preset),
-        closest_preset=closest_preset(cfg),
-        conflict_report=evaluate_policy_conflicts(cfg),
-        identity_report=client_identity_report(cfg),
-        user=current_user(),
-    )
+    """Compatibility alias: policies now live inside Config Center."""
+    return redirect(url_for("config_page", tab="policies"))
 
 
 @app.route("/api/policy/conflicts")
@@ -1245,7 +1231,7 @@ def setup_wizard_reset():
 @app.route("/notifications", methods=["GET", "POST"])
 @admin_required
 def notifications_center():
-    """Telegram notification settings and delivery center."""
+    """Compatibility alias: Telegram notification settings now live inside Config Center."""
     cfg, state = get_status()
     if request.method == "POST":
         tg = cfg.setdefault("notifications", {}).setdefault("telegram", {})
@@ -1269,22 +1255,8 @@ def notifications_center():
             tg[key] = bool(request.form.get(key))
         save_config(cfg, CONFIG_PATH, backup_existing=True)
         write_audit(cfg, "telegram_notifications_saved", actor=(current_user() or {}).get("username"), details={"enabled": tg.get("enabled"), "levels": tg.get("notify_levels")})
-        flash("Telegram notification settings saved.")
-        return redirect(url_for("notifications_center"))
-
-    policy_state = load_policy_state(cfg)
-    services = all_service_status(cfg)
-    apply_runs = list_apply_runs(cfg, limit=25)
-    report = compute_health_report(cfg, state, policy_state=policy_state, services=services, apply_runs=apply_runs)
-    return render_template(
-        "notifications.html",
-        cfg=cfg,
-        state=state,
-        report=report,
-        telegram=telegram_settings_summary(cfg),
-        notifications=report.get("notifications", []),
-        user=current_user(),
-    )
+        flash("Telegram notification settings saved. Notifications now live under Config Center.")
+    return redirect(url_for("config_page", tab="notifications"))
 
 
 @app.route("/notifications/test", methods=["POST"])
@@ -1294,7 +1266,7 @@ def notifications_test():
     result = send_test_message(cfg, actor=(current_user() or {}).get("username"))
     write_audit(cfg, "telegram_test_sent", actor=(current_user() or {}).get("username"), details={"ok": result.get("ok"), "error": result.get("error")})
     flash("Telegram test sent successfully." if result.get("ok") else f"Telegram test failed: {result.get('error') or result.get('response') or 'unknown error'}")
-    return redirect(url_for("notifications_center"))
+    return redirect(url_for("config_page", tab="notifications"))
 
 
 @app.route("/notifications/send-current", methods=["POST"])
@@ -1311,7 +1283,7 @@ def notifications_send_current():
         flash(f"Telegram current alerts sent: {result.get('sent', 0)} item(s).")
     else:
         flash(f"Telegram alert delivery skipped/failed: {result.get('reason') or result.get('error') or result.get('response') or 'unknown'}")
-    return redirect(url_for("notifications_center"))
+    return redirect(url_for("config_page", tab="notifications"))
 
 
 @app.route("/api/notifications/telegram/test", methods=["POST"])

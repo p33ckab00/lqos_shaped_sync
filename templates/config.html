@@ -2,6 +2,7 @@
 <script>
 window.initialConfig = {{ config | tojson }};
 window.initialSchemaReport = {{ schema_report | tojson }};
+window.initialConfigTab = {{ initial_tab | tojson }};
 function cfgEditor(initial) {
   const blankFactor = () => ({max_plan_mbps: 9999, download_factor: 1.0, upload_factor: 1.0});
   const blankDhcp = () => ({
@@ -40,6 +41,7 @@ function cfgEditor(initial) {
     cfg.preflight.enabled ??= true; cfg.preflight.duplicate_ip_policy ??= 'warn_and_skip'; cfg.preflight.missing_parent_policy ??= 'block'; cfg.preflight.invalid_bandwidth_policy ??= 'block';
     cfg.ui.refresh_seconds ??= 5; cfg.ui.show_raw_json_editor ??= true; cfg.ui.default_theme ??= 'light';
     cfg.services.units ??= ['lqosd','lqos_scheduler','lqos_shaped_sync']; cfg.services.legacy_optional_units ??= ['lqos_node_manager']; cfg.services.show_legacy_optional_not_installed ??= false; cfg.services.restart_groups ??= {libreqos_core: ['lqosd','lqos_scheduler']}; cfg.services.journal_lines_default ??= 100; cfg.services.unit_metadata ??= {lqos_node_manager:{label:'Legacy Web UI service',role:'legacy_optional',note:'Older LibreQoS installs only. Newer installs usually use lqosd for the Web UI.'}};
+    cfg.notifications ||= {}; cfg.notifications.telegram ||= {}; let tg=cfg.notifications.telegram; tg.enabled ??= false; tg.bot_token ??= ''; tg.chat_id ??= ''; tg.base_url ??= ''; tg.parse_mode ??= 'HTML'; tg.notify_levels ??= ['critical','warning']; tg.timeout_seconds ??= 10; tg.minimum_interval_seconds ??= 60; tg.dedupe_window_minutes ??= 60; tg.max_items_per_digest ??= 10; tg.send_digest ??= true; tg.send_individual ??= false; ['notify_on_apply_failed','notify_on_policy_block','notify_on_confirmation_required','notify_on_update_available','notify_on_source_health_warning','notify_on_performance_slow'].forEach(k => tg[k] ??= true);
     cfg.policies ||= {}; cfg.policies.mode ??= 'balanced'; cfg.policies.cleanup ||= {}; cfg.policies.cleanup.enabled ??= true; cfg.policies.cleanup.global_default_action ??= 'require_confirm_next_run'; cfg.policies.cleanup.confirmation_expires_hours ??= 24; cfg.policies.cleanup.apply_confirmed_cleanup ??= 'next_run'; cfg.policies.cleanup.allow_immediate_cleanup ??= true;
     cfg.policies.cleanup_sources ||= {}; ['pppoe','dhcp','hotspot','static'].forEach(src => { cfg.policies.cleanup_sources[src] ||= {}; let p=cfg.policies.cleanup_sources[src]; p.enabled ??= true; p.normal_inactive_action ??= (src==='pppoe'?'cleanup_next_run':(src==='static'?'preserve_rows':'cleanup_immediate')); p.source_disabled_action ??= (src==='static'?'preserve_rows':'require_confirm_next_run'); p.collector_failed_action ??= 'preserve_rows'; p.zero_result_action ??= (src==='hotspot'?'warn_only':(src==='static'?'preserve_rows':'block_cleanup')); p.mass_removal_action ??= (src==='static'?'preserve_rows':'require_confirm_next_run'); p.respect_percentage_guards ??= (src==='pppoe'||src==='static'); });
     cfg.policies.node_cleanup_guard ||= {}; cfg.policies.node_cleanup_guard.enabled ??= true; cfg.policies.node_cleanup_guard.threshold_percent ??= 30; cfg.policies.node_cleanup_guard.min_node_size ??= 10; cfg.policies.node_cleanup_guard.min_removed_count ??= 3; cfg.policies.node_cleanup_guard.action ??= 'require_confirm_next_run';
@@ -58,7 +60,7 @@ function cfgEditor(initial) {
   };
   return {
     cfg: ensure(JSON.parse(JSON.stringify(initial))),
-    tab: 'overview', routerIndex: 0, rawDraft: '', rawError: '', showRawEditor: false,
+    tab: (window.initialConfigTab || 'overview'), routerIndex: 0, rawDraft: '', rawError: '', showRawEditor: false,
     get routers(){ return this.cfg.routers || []; },
     get currentRouter(){ return this.routers[this.routerIndex] || null; },
     get jsonText(){ this.normalizeNetworkMode(); return JSON.stringify(this.cfg, null, 2); },
@@ -83,6 +85,16 @@ function cfgEditor(initial) {
     removeDhcp(router, i){ if(confirm('Remove DHCP server entry from config.json? This does not touch MikroTik.')) router.dhcp.servers.splice(i,1); },
     markPolicyCustom(){ this.cfg.policies ||= {}; if(this.cfg.policies.mode !== 'custom') this.cfg.policies.mode = 'custom'; },
     policyActions(){ return ['preserve_rows','warn_only','cleanup_immediate','cleanup_next_run','require_confirm_immediate','require_confirm_next_run','block_cleanup','block_apply']; },
+    notifyLevelOptions(){ return ['critical','warning','info']; },
+    eventToggleOptions(){ return [
+      ['notify_on_apply_failed','LibreQoS apply failed'],
+      ['notify_on_policy_block','Policy block / high risk'],
+      ['notify_on_confirmation_required','Cleanup confirmation required'],
+      ['notify_on_update_available','Update available'],
+      ['notify_on_source_health_warning','Source health warning'],
+      ['notify_on_performance_slow','Performance slow']
+    ]; },
+    async testSavedTelegram(){ try{ const res=await lqosJsonFetch('/api/notifications/telegram/test', {}); const data=await res.json(); alert(data.ok ? 'Telegram test sent successfully.' : ('Telegram test failed: ' + (data.error || data.reason || JSON.stringify(data)))); }catch(e){ alert('Telegram test failed: ' + e); } },
     addFactor(router){ router.pppoe ||= {factor_rules: []}; router.pppoe.factor_rules.push(blankFactor()); },
     removeFactor(router, i){ router.pppoe.factor_rules.splice(i,1); },
     submitTest(){ this.syncHidden(); this.$refs.testRouterIdx.value = String(this.routerIndex ?? 0); this.$refs.testPayload.value = this.jsonText; this.$refs.testForm.submit(); },
@@ -152,6 +164,7 @@ function cfgEditor(initial) {
           <button type="button" @click="tab='scheduler'" :class="tab==='scheduler' && 'active'" class="cfg-nav-btn"><i class="ti ti-clock-cog"></i>Scheduler</button>
           <button type="button" @click="tab='services'" :class="tab==='services' && 'active'" class="cfg-nav-btn"><i class="ti ti-server-cog"></i>Services</button>
           <button type="button" @click="tab='policies'" :class="tab==='policies' && 'active'" class="cfg-nav-btn"><i class="ti ti-shield-cog"></i>Policy Center</button>
+          <button type="button" @click="tab='notifications'" :class="tab==='notifications' && 'active'" class="cfg-nav-btn"><i class="ti ti-bell-cog"></i>Notifications</button>
           <button type="button" @click="tab='defaults'" :class="tab==='defaults' && 'active'" class="cfg-nav-btn"><i class="ti ti-ruler-measure"></i>Defaults</button>
           <button type="button" @click="tab='routers'" :class="tab==='routers' && 'active'" class="cfg-nav-btn"><i class="ti ti-router"></i>Routers</button>
           <button type="button" @click="tab='router'" :disabled="!currentRouter" :class="tab==='router' && 'active'" class="cfg-nav-btn"><i class="ti ti-settings-automation"></i>Selected Router</button>
@@ -287,9 +300,36 @@ function cfgEditor(initial) {
         <section x-show="tab==='policies'" x-cloak class="cfg-section">
           <div class="card" style="border-color:rgba(0,200,150,.35);background:rgba(0,200,150,.06)">
             <div class="card-title"><i class="ti ti-shield-cog"></i> Smart Policy Center — Settings Integration</div>
-            <p class="text-sm" style="color:var(--muted)">These values are saved directly to <code>config.json → policies</code>. Manual edits switch the preset to <b>custom</b>. Use the full Policy Center page for preset comparison, pending confirmations, and runtime policy state.</p>
-            <div class="btn-row" style="margin-top:10px"><a class="btn btn-primary" href="/policy"><i class="ti ti-sliders"></i> Open Full Policy Center</a><a class="btn" href="/sync/dry-run"><i class="ti ti-eye"></i> Dry Run Preview</a></div>
+            <p class="text-sm" style="color:var(--muted)">These values are saved directly to <code>config.json → policies</code>. Manual edits switch the preset to <b>custom</b>. Policy Center is now a native Config Center tab. Preset comparison, conflicts, and key policy guidance are shown here while Advanced Raw JSON stays synchronized.</p>
+            <div class="btn-row" style="margin-top:10px"><a class="btn btn-primary" href="/sync/dry-run"><i class="ti ti-eye"></i> Dry Run Preview</a><a class="btn" href="/docs/search?q=policy"><i class="ti ti-book"></i> Policy docs</a></div>
           </div>
+          <div class="grid lg:grid-cols-2 gap-3">
+            <div class="card">
+              <div class="card-title"><i class="ti ti-alert-triangle"></i> Policy Conflict Resolver</div>
+              {% if policy_conflicts.total %}
+              <p class="text-sm" style="color:var(--muted);margin-bottom:10px">{{ policy_conflicts.total }} conflict(s) detected. Fix high/critical items before production auto-apply.</p>
+              <div style="display:grid;gap:8px">
+                {% for c in policy_conflicts.conflicts[:3] %}
+                <div class="cfg-subtle" style="border-color:{{ 'rgba(239,68,68,.45)' if c.severity in ['critical','high'] else 'var(--br0)' }}">
+                  <div style="display:flex;justify-content:space-between;gap:8px"><b>{{ c.title }}</b><span class="badge {{ 'b-err' if c.severity in ['critical','high'] else 'b-warn' }}">{{ c.severity }}</span></div>
+                  <div class="cfg-help"><b>Fix:</b> {{ c.recommendation }}</div>
+                </div>
+                {% endfor %}
+                {% if policy_conflicts.total > 3 %}<div class="cfg-help">+{{ policy_conflicts.total - 3 }} more conflict(s). Use Preview Impact / Dry Run for full context.</div>{% endif %}
+              </div>
+              {% else %}<div class="empty-state" style="padding:12px"><i class="ti ti-circle-check"></i> No policy conflicts detected.</div>{% endif %}
+            </div>
+            <div class="card">
+              <div class="card-title"><i class="ti ti-id-badge"></i> Client Identity Handling</div>
+              <div style="display:grid;gap:8px">
+                {% for item in identity_report.sources %}
+                <div class="op-line"><strong>{{ item.label }}</strong><span>{{ item.identity }} · {{ item.stability }}</span></div>
+                {% endfor %}
+              </div>
+              <div class="note" style="margin-top:10px"><b>Reminder:</b> Grace is safest for stable identities like PPPoE usernames. DHCP private/random MAC can appear as a new client.</div>
+            </div>
+          </div>
+
           <div class="grid lg:grid-cols-2 gap-3">
             <div class="card">
               <div class="card-title"><i class="ti ti-template"></i> Preset / Core Cleanup</div>
@@ -335,6 +375,44 @@ function cfgEditor(initial) {
           <div class="card">
             <div class="card-title"><i class="ti ti-info-circle"></i> Single source of truth</div>
             <p class="text-sm" style="color:var(--muted)">The same policy block appears in Advanced Raw JSON and is used by Dry Run, Dashboard policy decision cards, cleanup confirmation workflow, and runtime policy state. Setup & Repair should diagnose policy/config health and link to documentation instead of duplicating long manuals.</p>
+          </div>
+        </section>
+
+        <section x-show="tab==='notifications'" x-cloak class="cfg-section">
+          <div class="card" style="border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.07)">
+            <div class="card-title"><i class="ti ti-bell-cog"></i> Notification Settings — Config Center</div>
+            <p class="text-sm" style="color:var(--muted)">Telegram delivery settings now live in config.json under <code>notifications.telegram</code>. Dashboard remains the live alert surface; this tab controls how alerts are delivered.</p>
+            <div class="btn-row" style="margin-top:10px"><button type="button" class="btn btn-primary" @click="testSavedTelegram()"><i class="ti ti-brand-telegram"></i> Test saved Telegram</button><a class="btn" href="/docs/search?q=telegram"><i class="ti ti-book"></i> Telegram docs</a></div>
+          </div>
+          <div class="grid lg:grid-cols-2 gap-3">
+            <div class="card">
+              <div class="card-title"><i class="ti ti-brand-telegram"></i> Telegram Delivery</div>
+              <div class="grid md:grid-cols-2 gap-3">
+                <label class="cfg-toggle cfg-subtle"><span><b>Enable Telegram</b><span class="cfg-help">When off, internal Dashboard notifications still work but Telegram delivery is disabled.</span></span><input type="checkbox" x-model="cfg.notifications.telegram.enabled"></label>
+                <label class="cfg-toggle cfg-subtle"><span><b>Send digest</b><span class="cfg-help">Recommended. Combines current alerts into one Telegram message.</span></span><input type="checkbox" x-model="cfg.notifications.telegram.send_digest"></label>
+                <label class="cfg-toggle cfg-subtle"><span><b>Send individual messages</b><span class="cfg-help">Can be noisy. Usually keep disabled unless you want one message per alert.</span></span><input type="checkbox" x-model="cfg.notifications.telegram.send_individual"></label>
+                <label class="cfg-field"><span class="cfg-label">Parse mode</span><select x-model="cfg.notifications.telegram.parse_mode" class="cfg-select"><option>HTML</option><option>Markdown</option><option></option></select></label>
+                <label class="cfg-field md:col-span-2"><span class="cfg-label">Bot token</span><input x-model="cfg.notifications.telegram.bot_token" type="password" class="cfg-input mono" placeholder="123456:ABC..."><span class="cfg-help">Stored in config.json. Protect config file permissions and avoid sharing raw config screenshots.</span></label>
+                <label class="cfg-field"><span class="cfg-label">Chat ID</span><input x-model="cfg.notifications.telegram.chat_id" class="cfg-input mono" placeholder="-1001234567890"></label>
+                <label class="cfg-field"><span class="cfg-label">Dashboard / Base URL</span><input x-model="cfg.notifications.telegram.base_url" class="cfg-input mono" placeholder="https://lqosync.example.com"></label>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title"><i class="ti ti-filter-cog"></i> Levels / Delivery Limits</div>
+              <div class="grid md:grid-cols-2 gap-3">
+                <div class="cfg-subtle md:col-span-2"><div class="cfg-label">Notify levels</div><template x-for="level in notifyLevelOptions()" :key="level"><label class="cfg-toggle" style="justify-content:flex-start;margin:5px 0"><input type="checkbox" :value="level" x-model="cfg.notifications.telegram.notify_levels"><span x-text="level"></span></label></template></div>
+                <label class="cfg-field"><span class="cfg-label">Timeout seconds</span><input type="number" x-model.number="cfg.notifications.telegram.timeout_seconds" class="cfg-input"></label>
+                <label class="cfg-field"><span class="cfg-label">Minimum interval seconds</span><input type="number" x-model.number="cfg.notifications.telegram.minimum_interval_seconds" class="cfg-input"></label>
+                <label class="cfg-field"><span class="cfg-label">Dedupe window minutes</span><input type="number" x-model.number="cfg.notifications.telegram.dedupe_window_minutes" class="cfg-input"></label>
+                <label class="cfg-field"><span class="cfg-label">Max digest items</span><input type="number" x-model.number="cfg.notifications.telegram.max_items_per_digest" class="cfg-input"></label>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-bell-ringing"></i> Event Filters</div>
+            <div class="grid md:grid-cols-3 gap-3">
+              <template x-for="item in eventToggleOptions()" :key="item[0]"><label class="cfg-toggle cfg-subtle"><span><b x-text="item[1]"></b></span><input type="checkbox" x-model="cfg.notifications.telegram[item[0]]"></label></template>
+            </div>
           </div>
         </section>
 

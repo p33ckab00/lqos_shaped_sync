@@ -133,5 +133,11 @@
     "file": "docs/content/compact_information_architecture.md",
     "anchor": "compact-information-architecture-and-documentation-consolidation",
     "summary": "v2.61 Operations Center consolidation, compact sidebar, Dashboard/Reports separation, and documentation source-of-truth cleanup."
+  },
+  "config.policy_notification_unification": {
+    "title": "Config + Policy + Notification Unification",
+    "file": "docs/content/config_policy_notification_unification.md",
+    "anchor": "config--policy--notification-unification",
+    "summary": "v2.62 consolidates Policy Center and Telegram notification delivery settings into Config Center while keeping compatibility redirects."
   }
 }

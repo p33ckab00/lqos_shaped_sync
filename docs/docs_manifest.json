@@ -290,5 +290,11 @@
     "file": "docs/content/policy_hierarchy_ui.md",
     "anchor": "config-policy-hierarchy-ui",
     "summary": "v2.70.2-rc1 compact Config Center policy hierarchy, required/recommended/optional setting classes, and auto-apply vs optional auto-backup behavior."
+  },
+  "policy.preset_wiring_hotfix": {
+    "title": "Policy Preset Wiring Hotfix",
+    "file": "docs/content/policy_preset_wiring_hotfix.md",
+    "anchor": "policy-preset-wiring-hotfix",
+    "summary": "v2.70.3-rc1 fixes Config Center policy preset apply controls and managed policies.mode display."
   }
 }

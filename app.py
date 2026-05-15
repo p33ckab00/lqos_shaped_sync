@@ -976,7 +976,7 @@ def policy_save_settings():
     save_config(cfg, CONFIG_PATH, backup_existing=True)
     write_audit(cfg, "policy_settings_saved", actor=(current_user() or {}).get("username"), details={"mode": "custom", "previous_mode": before.get("mode") if isinstance(before, dict) else None})
     flash("Policy settings saved. Preset changed to Custom because values were edited manually. Run Dry Run to preview decisions before enabling auto-apply.")
-    return redirect(url_for("policy_center"))
+    return redirect(url_for("config_page", tab="policies"))
 
 
 @app.route("/policy/apply-preset/<preset>", methods=["POST"])
@@ -990,7 +990,7 @@ def policy_apply_preset(preset):
         flash(f"Policy preset applied: {preset}. Run Dry Run to preview cleanup/apply behavior.")
     except Exception as exc:
         flash(f"Unable to apply policy preset: {exc}")
-    return redirect(url_for("policy_center"))
+    return redirect(url_for("config_page", tab="policies"))
 
 
 @app.route("/policy/confirm/<path:confirmation_id>", methods=["POST"])

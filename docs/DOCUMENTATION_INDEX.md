@@ -78,3 +78,5 @@ LQoSync v2.67 adds a clearer owner/admin/operator/viewer role model. Owner contr
 - [Policy / Path Reference](POLICY_PATH_REFERENCE.md) — policy/path audit and important policy groups.
 
 - [Config Policy Hierarchy UI](content/policy_hierarchy_ui.md) — v2.70.2-rc1 compact policy hierarchy and auto-apply/optional backup interpretation.
+
+- [Policy Preset Wiring Hotfix](content/policy_preset_wiring_hotfix.md) — Config Center policy preset apply controls and managed preset-mode behavior.

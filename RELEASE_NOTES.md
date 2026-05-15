@@ -1,5 +1,20 @@
 # LQoSync Release Notes
 
+## v2.70.3-rc1 - Policy Preset Wiring Hotfix
+
+### Fixed
+
+- Fixes Config Center → Policies preset workflow after the policy UI was moved into the compact hierarchy.
+- Adds visible Conservative, Balanced, and Aggressive preset buttons inside Config Center → Policies.
+- Wires preset buttons to the existing CSRF-protected `/policy/apply-preset/<preset>` route.
+- Makes `policies.mode` display as managed preset status instead of a misleading normal editable field.
+- Keeps manual policy edits switching mode to `custom`.
+- Ensures preset apply redirects back to `/config?tab=policies`.
+
+### Notes
+
+This is a UI wiring hotfix only. It does not change MikroTik collection, cleanup policy execution, generated file formats, scheduler timing, backup implementation, Telegram delivery, or LibreQoS apply mechanics.
+
 ## v2.70.2-rc1 - Config Policy Hierarchy UI + Optional Auto-Backup Semantics
 
 ### Improved

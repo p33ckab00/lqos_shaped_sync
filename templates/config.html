@@ -99,6 +99,20 @@ function cfgEditor(initial) {
       ['notify_on_performance_slow','Performance slow']
     ]; },
     async testSavedTelegram(){ try{ const res=await lqosJsonFetch('/api/notifications/telegram/test', {}); const data=await res.json(); alert(data.ok ? 'Telegram test sent successfully.' : ('Telegram test failed: ' + (data.error || data.reason || JSON.stringify(data)))); }catch(e){ alert('Telegram test failed: ' + e); } },
+    async applyPolicyPreset(preset){
+      const names = {conservative:'Conservative', balanced:'Balanced', aggressive:'Aggressive'};
+      if(!['conservative','balanced','aggressive'].includes(preset)){ alert('Invalid policy preset: ' + preset); return; }
+      let msg = `Apply ${names[preset]} policy preset to saved config.json?`;
+      msg += '\n\nThis will overwrite the Smart Policy block with the selected preset.';
+      msg += '\nUnsaved Config Center edits are not included unless you save them first.';
+      msg += '\n\nRun Dry Run after applying the preset.';
+      if(!confirm(msg)) return;
+      try{
+        const res = await lqosFetch('/policy/apply-preset/' + encodeURIComponent(preset), {method:'POST'});
+        if(!res.ok){ alert('Policy preset apply failed: HTTP ' + res.status); return; }
+        window.location = '/config?tab=policies';
+      }catch(e){ alert('Policy preset apply failed: ' + e); }
+    },
     addFactor(router){ router.pppoe ||= {factor_rules: []}; router.pppoe.factor_rules.push(blankFactor()); },
     removeFactor(router, i){ router.pppoe.factor_rules.splice(i,1); },
     submitTest(){ this.syncHidden(); this.$refs.testRouterIdx.value = String(this.routerIndex ?? 0); this.$refs.testPayload.value = this.jsonText; this.$refs.testForm.submit(); },
@@ -314,7 +328,12 @@ function cfgEditor(initial) {
               <span class="badge {{ 'b-err' if f.risk == 'critical' else ('b-warn' if f.risk == 'high' else ('b-dhcp' if f.risk == 'medium' else 'b-ok')) }}">{{ f.risk }}</span>
             </div>
             <div class="text-sm" style="color:var(--muted)">{{ f.description }}</div>
-            {% if f.type == 'bool' %}
+            {% if f.path == 'policies.mode' %}
+            <div class="cfg-subtle">
+              <div class="op-line"><strong>Current value</strong><span x-text="cfg.policies.mode || 'balanced'"></span></div>
+              <div class="cfg-help">Preset mode is controlled by the preset buttons in Policy Overview. Manual field edits automatically set this to <code>custom</code>.</div>
+            </div>
+            {% elif f.type == 'bool' %}
             <label class="cfg-toggle cfg-subtle"><span><b>Current value</b><span class="cfg-help">Recommended: {{ f.recommended }}</span></span><input type="checkbox" :checked="!!getPath({{ f.path|tojson }})" @change="setPath({{ f.path|tojson }}, $event.target.checked)"></label>
             {% elif f.type == 'number' %}
             <label class="cfg-field"><span class="cfg-label">Current value</span><input type="number" class="cfg-input" :value="getPath({{ f.path|tojson }})" @input="setPath({{ f.path|tojson }}, Number($event.target.value))"><span class="cfg-help">Recommended: {{ f.recommended }}{% if f.min %} · min {{ f.min }}{% endif %}{% if f.max %} · max {{ f.max }}{% endif %}</span></label>
@@ -349,6 +368,19 @@ function cfgEditor(initial) {
           <div class="card" style="border-color:rgba(0,200,150,.35);background:rgba(0,200,150,.06)">
             <div class="card-title"><i class="ti ti-sitemap"></i> Policy Hierarchy — Config Center</div>
             <p class="text-sm" style="color:var(--muted)">All configurable policies stay inside Config Center. The tree below groups policies by operator intent, while every field still saves to <code>config.json → policies</code> and remains visible in Advanced Raw JSON.</p>
+            <div class="cfg-subtle" style="margin-top:10px">
+              <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+                <div>
+                  <div style="font-weight:800;color:var(--txt)"><i class="ti ti-shield-cog"></i> Policy Preset</div>
+                  <div class="cfg-help">Current: <b x-text="cfg.policies.mode || 'balanced'"></b>. Applying a preset writes directly to saved <code>config.json → policies</code>. Manual edits remain <code>custom</code> after saving.</div>
+                </div>
+                <div class="btn-row">
+                  <button type="button" class="btn" @click="applyPolicyPreset('conservative')"><i class="ti ti-lock"></i> Conservative</button>
+                  <button type="button" class="btn btn-primary" @click="applyPolicyPreset('balanced')"><i class="ti ti-balance"></i> Balanced</button>
+                  <button type="button" class="btn" @click="applyPolicyPreset('aggressive')"><i class="ti ti-bolt"></i> Aggressive</button>
+                </div>
+              </div>
+            </div>
             <div class="btn-row" style="margin-top:10px"><a class="btn btn-primary" href="/sync/dry-run"><i class="ti ti-eye"></i> Preview Impact / Dry Run</a><a class="btn" href="/docs/search?q=policy+hierarchy"><i class="ti ti-book"></i> Policy docs</a><button type="button" class="btn" @click="openRaw()"><i class="ti ti-code"></i> Raw JSON</button></div>
           </div>
 

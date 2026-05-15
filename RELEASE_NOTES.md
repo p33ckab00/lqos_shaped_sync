@@ -1,5 +1,21 @@
 # LQoSync Release Notes
 
+## v2.67.0 - Access Control + Role Hardening
+
+### Added
+
+- Adds an explicit `owner`, `admin`, `operator`, and `viewer` role hierarchy.
+- Promotes the first preserved `admin` account to `owner` when upgrading older installs with no owner, preventing lockout from owner-only controls.
+- Adds owner-only access for Users & Roles, Update Center, Smart Defaults Repair, and release integrity API.
+- Keeps admin/owner access for config, policies, scheduler, operations, backup restore/delete, setup/repair operations, and LibreQoS apply actions.
+- Allows operator-or-above users to run Dry Run previews while viewers remain read-only.
+- Updates the Users page with role cards, a permission summary, role labels, and mobile-friendly user rows.
+- Adds access_control defaults to config.json.example and schema migration.
+
+### Notes
+
+This is a security/permission hardening release. It does not change MikroTik collection, cleanup policy decisions, generated files, scheduler timing, backup behavior, Telegram delivery behavior, or LibreQoS apply logic.
+
 ## v2.66.0 - Backup / Restore Center Polish
 
 ### Improved

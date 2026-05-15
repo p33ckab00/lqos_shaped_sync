@@ -59,3 +59,8 @@ This index is the GitHub-friendly map for the consolidated LQoSync documentation
 - [Production Hardening + Regression Suite](content/production_hardening_regression_suite.md)
 
 - [Backup / Restore Center Polish](content/backup_restore_center_polish.md) — backup preview, integrity, live diff, zip download, and retention preview.
+
+
+## v2.67 Access Control + Role Hardening
+
+LQoSync v2.67 adds a clearer owner/admin/operator/viewer role model. Owner controls users, updates, and high-trust repair actions. Admin controls config, policies, scheduler, backups, operations, and live apply actions. Operator can monitor and run dry-run previews. Viewer remains read-only. Older installs with only an admin account are upgraded safely by promoting the first admin to owner if no owner exists. See `docs/content/access_control_role_hardening.md`.

@@ -196,5 +196,11 @@
     "file": "docs/content/backup_restore_center_polish.md",
     "anchor": "v266-backup--restore-center-polish",
     "summary": "v2.66 backup preview, integrity check, live diff, zip download, and retention preview for Operations Center backups."
+  },
+  "security.access_control_role_hardening": {
+    "title": "Access Control + Role Hardening",
+    "file": "docs/content/access_control_role_hardening.md",
+    "anchor": "access-control--role-hardening",
+    "summary": "v2.67 owner/admin/operator/viewer role hierarchy, owner-only controls, and upgrade-safe role migration."
   }
 }

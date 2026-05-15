@@ -186,7 +186,7 @@
       </svg>
       <span class="privacy-slash" aria-hidden="true"></span>
     </button>
-    {% if user %}<span class="user-chip">{{ (user.username or 'ad')[:2] }}</span>{% endif %}
+    {% if user %}<span class="pill"><i class="ti ti-user-shield"></i> {{ user.role|default('viewer') }}</span><span class="user-chip">{{ (user.username or 'ad')[:2] }}</span>{% endif %}
   </header>
   <aside class="sidebar" id="appSidebar">
     <div class="nav-section">Main</div>
@@ -195,18 +195,18 @@
     <a class="nav-item {{ 'active' if request.path.startswith('/network') else '' }}" href="/network"><i class="ti ti-topology-star-3"></i><span>Network layout</span></a>
     <a class="nav-item {{ 'active' if request.path.startswith('/sync/dry-run') else '' }}" href="/sync/dry-run"><i class="ti ti-eye"></i><span>Dry-run preview</span></a>
     <a class="nav-item {{ 'active' if request.path.startswith('/lifecycle') else '' }}" href="/lifecycle"><i class="ti ti-history-toggle"></i><span>Lifecycle</span></a>
-    {% if user and user.role == 'admin' %}
+    {% if user and role_at_least(user.role, 'admin') %}
     <div class="nav-section">Settings</div>
     <a class="nav-item {{ 'active' if request.path.startswith('/config') or request.path.startswith('/policy') or request.path.startswith('/notifications') else '' }}" href="/config"><i class="ti ti-adjustments-horizontal"></i><span>Config Center</span></a>
-    <a class="nav-item {{ 'active' if request.path.startswith('/settings') else '' }}" href="/settings/users"><i class="ti ti-users"></i><span>Users</span></a>
+    {% if role_at_least(user.role, 'owner') %}<a class="nav-item {{ 'active' if request.path.startswith('/settings') else '' }}" href="/settings/users"><i class="ti ti-users"></i><span>Users</span></a>{% endif %}
     {% endif %}
     <div class="nav-section">Operations</div>
     <a class="nav-item {{ 'active' if request.path.startswith('/operations') or request.path.startswith('/services') or request.path.startswith('/logs') else '' }}" href="/operations"><i class="ti ti-tool"></i><span>Operations Center</span></a>
     <a class="nav-item {{ 'active' if request.path.startswith('/reports') else '' }}" href="/reports"><i class="ti ti-report-analytics"></i><span>Reports</span></a>
-    {% if user and user.role == 'admin' %}<a class="nav-item {{ 'active' if request.path.startswith('/updates') else '' }}" href="/updates"><i class="ti ti-cloud-download"></i><span>Updates</span></a>{% endif %}
+    {% if user and role_at_least(user.role, 'owner') %}<a class="nav-item {{ 'active' if request.path.startswith('/updates') else '' }}" href="/updates"><i class="ti ti-cloud-download"></i><span>Updates</span></a>{% endif %}
     <div class="nav-section">Help</div>
     <a class="nav-item {{ 'active' if request.path.startswith('/docs') else '' }}" href="/docs/search"><i class="ti ti-search"></i><span>Documentation</span></a>
-    {% if user and user.role == 'admin' %}<a class="nav-item {{ 'active' if request.path.startswith('/setup-wizard') else '' }}" href="/setup-wizard"><i class="ti ti-route-square"></i><span>Setup wizard</span></a><a class="nav-item {{ 'active' if request.path.startswith('/setup-repair') else '' }}" href="/setup-repair"><i class="ti ti-tool"></i><span>Setup / repair</span></a>{% endif %}
+    {% if user and role_at_least(user.role, 'admin') %}<a class="nav-item {{ 'active' if request.path.startswith('/setup-wizard') else '' }}" href="/setup-wizard"><i class="ti ti-route-square"></i><span>Setup wizard</span></a><a class="nav-item {{ 'active' if request.path.startswith('/setup-repair') else '' }}" href="/setup-repair"><i class="ti ti-tool"></i><span>Setup / repair</span></a>{% endif %}
     <a class="nav-item {{ 'active' if request.path.startswith('/about') else '' }}" href="/about"><i class="ti ti-info-circle"></i><span>About</span></a>
     <a class="nav-item" href="/logout"><i class="ti ti-logout"></i><span>Logout</span></a>
     <div class="sidebar-footer">

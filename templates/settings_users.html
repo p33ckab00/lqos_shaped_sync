@@ -2,14 +2,28 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <div class="page-title">Settings · Users</div>
-    <div class="page-subtitle">Local JSON-backed user management. Passwords are stored as bcrypt hashes in users.json.</div>
+    <div class="page-title">Settings · Users & Roles</div>
+    <div class="page-subtitle">Owner-only local user management with role-based access control. Passwords are stored as bcrypt hashes in users.json.</div>
   </div>
   <div class="btn-row">
     <a class="btn" href="/config"><i class="ti ti-adjustments-horizontal"></i> Config center</a>
-    <a class="btn" href="/logs"><i class="ti ti-history"></i> Audit logs</a>
+    <a class="btn" href="/operations?tab=audit"><i class="ti ti-history"></i> Audit events</a>
   </div>
 </div>
+
+<section class="card mb-4">
+  <div class="card-title"><i class="ti ti-shield-lock"></i> Role model</div>
+  <div class="responsive-grid">
+    {% for opt in role_options %}
+    <div class="section-card">
+      <div class="badge {{ 'b-ok' if opt.value == 'owner' else ('b-warn' if opt.value == 'admin' else ('b-dhcp' if opt.value == 'operator' else 'b-static')) }}"><i class="ti ti-user-shield"></i> {{ opt.value }}</div>
+      <div style="margin-top:8px;font-weight:700;color:var(--txt)">{{ opt.label }}</div>
+      <div class="page-subtitle" style="margin-top:4px">{{ opt.description }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="note" style="margin-top:12px"><b>Safety:</b> LQoSync protects the last owner account and the last admin-capable account. Existing old installs with only one <code>admin</code> account are upgraded to <code>owner</code> automatically to avoid lockout.</div>
+</section>
 
 <div class="two-grid" style="align-items:start">
   <section class="card">
@@ -18,13 +32,12 @@
       {{ csrf_field()|safe }}
       <label class="block">
         <span class="page-subtitle">Username</span>
-        <input class="input w-full mt-1" name="username" placeholder="viewer or noc-admin" required autocomplete="off">
+        <input class="input w-full mt-1" name="username" placeholder="operator or noc-viewer" required autocomplete="off">
       </label>
       <label class="block">
         <span class="page-subtitle">Role</span>
         <select class="input w-full mt-1" name="role">
-          <option value="viewer">viewer · read-only dashboard</option>
-          <option value="admin">admin · full control</option>
+          {% for opt in role_options %}<option value="{{ opt.value }}">{{ opt.value }} · {{ opt.description }}</option>{% endfor %}
         </select>
       </label>
       <label class="block">
@@ -36,26 +49,26 @@
   </section>
 
   <section class="card">
-    <div class="card-title"><i class="ti ti-shield-lock"></i> Security notes</div>
+    <div class="card-title"><i class="ti ti-lock-check"></i> Permission summary</div>
     <div class="space-y-3 text-sm" style="color:var(--muted)">
-      <p><b style="color:var(--txt)">No database:</b> users are saved in <code>users.json</code>, matching the LQoSync file-based design.</p>
-      <p><b style="color:var(--txt)">Passwords:</b> never saved in plain text. New or changed passwords are saved as bcrypt hashes.</p>
-      <p><b style="color:var(--txt)">Safety:</b> the UI prevents deleting yourself, deleting the last admin, or demoting the last admin.</p>
-      <p><b style="color:var(--txt)">Roles:</b> <code>admin</code> can edit config/run actions. <code>viewer</code> can view dashboard, layouts, devices, logs, and status.</p>
+      <p><b style="color:var(--txt)">Owner:</b> users, updates, setup/repair, config, policies, backups, and live actions.</p>
+      <p><b style="color:var(--txt)">Admin:</b> config, policies, scheduler, backup restore/delete, operations, and LibreQoS apply actions. Cannot manage users or Update Center.</p>
+      <p><b style="color:var(--txt)">Operator:</b> can monitor, review reports/lifecycle/operations, and run dry-run style checks. Cannot change production config or destructive actions.</p>
+      <p><b style="color:var(--txt)">Viewer:</b> read-only access for dashboards, docs, reports, devices, and status pages.</p>
     </div>
   </section>
 </div>
 
 <section class="card mt-4">
   <div class="card-title"><i class="ti ti-users"></i> Existing users</div>
-  <div class="table-wrap">
+  <div class="table-wrap ux-table-mobile-stack">
     <table class="table">
       <thead>
         <tr>
           <th>Username</th>
           <th>Role</th>
           <th>Password</th>
-          <th style="width:360px">Edit user</th>
+          <th style="width:400px">Edit user</th>
           <th style="width:360px">Change password</th>
           <th style="width:120px">Remove</th>
         </tr>
@@ -63,29 +76,32 @@
       <tbody>
         {% for u in users %}
         <tr>
-          <td class="mono">{{ u.username }}</td>
-          <td>
-            {% if u.role == 'admin' %}
-              <span class="badge b-ok"><i class="ti ti-shield-check"></i> admin</span>
+          <td class="mono" data-label="Username">{{ u.username }}</td>
+          <td data-label="Role">
+            {% if u.role == 'owner' %}
+              <span class="badge b-ok"><i class="ti ti-crown"></i> owner</span>
+            {% elif u.role == 'admin' %}
+              <span class="badge b-warn"><i class="ti ti-shield-check"></i> admin</span>
+            {% elif u.role == 'operator' %}
+              <span class="badge b-dhcp"><i class="ti ti-user-cog"></i> operator</span>
             {% else %}
               <span class="badge b-static"><i class="ti ti-eye"></i> viewer</span>
             {% endif %}
           </td>
-          <td>
+          <td data-label="Password">
             {% if u.has_password %}<span class="badge b-ok">bcrypt hash saved</span>{% else %}<span class="badge b-warn">missing</span>{% endif %}
           </td>
-          <td>
+          <td data-label="Edit user">
             <form method="post" action="{{ url_for('settings_users_update', username=u.username) }}" class="btn-row" style="gap:6px;align-items:center">
               {{ csrf_field()|safe }}
               <input class="input" style="width:130px" name="username" value="{{ u.username }}" required>
-              <select class="input" style="width:95px" name="role">
-                <option value="viewer" {% if u.role == 'viewer' %}selected{% endif %}>viewer</option>
-                <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>admin</option>
+              <select class="input" style="width:125px" name="role">
+                {% for opt in role_options %}<option value="{{ opt.value }}" {% if u.role == opt.value %}selected{% endif %}>{{ opt.value }}</option>{% endfor %}
               </select>
               <button class="btn" type="submit"><i class="ti ti-device-floppy"></i> Save</button>
             </form>
           </td>
-          <td>
+          <td data-label="Change password">
             <form method="post" action="{{ url_for('settings_users_password', username=u.username) }}" class="btn-row" style="gap:6px;align-items:center">
               {{ csrf_field()|safe }}
               <input class="input" style="width:120px" name="password" type="password" placeholder="new password" required autocomplete="new-password">
@@ -93,7 +109,7 @@
               <button class="btn" type="submit"><i class="ti ti-key"></i> Change</button>
             </form>
           </td>
-          <td>
+          <td data-label="Remove">
             <form method="post" action="{{ url_for('settings_users_delete', username=u.username) }}" onsubmit="return confirm('Delete user {{ u.username }}?');">
               {{ csrf_field()|safe }}
               <button class="btn btn-danger" type="submit" {% if user and user.username == u.username %}disabled title="Cannot delete current user"{% endif %}>

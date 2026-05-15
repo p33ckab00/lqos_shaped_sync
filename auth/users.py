@@ -8,7 +8,30 @@ import bcrypt
 from applier.atomic_writer import atomic_write_text
 
 DEFAULT_ADMIN_PASSWORD = "adminpass"
-VALID_ROLES = {"admin", "viewer"}
+
+# Role model introduced for v2.67. Older installs with only admin/viewer remain
+# valid; the first admin is promoted to owner when no owner exists so that owner-
+# only user/update controls do not lock out preserved installations.
+VALID_ROLES = {"owner", "admin", "operator", "viewer"}
+ROLE_ORDER = {"viewer": 10, "operator": 20, "admin": 30, "owner": 40}
+ROLE_DEFINITIONS = {
+    "owner": {
+        "label": "Owner",
+        "description": "Full control including users, updates, setup/repair, config, policies, backups, and live actions.",
+    },
+    "admin": {
+        "label": "Admin",
+        "description": "Can manage config, policies, scheduler, operations, backups, and live apply actions, but not owner-only user/update controls.",
+    },
+    "operator": {
+        "label": "Operator",
+        "description": "Can monitor, run/view dry-runs and reports, and inspect operations. Cannot edit config/policies/users or perform destructive actions.",
+    },
+    "viewer": {
+        "label": "Viewer",
+        "description": "Read-only access to dashboards, reports, devices, documentation, and status pages.",
+    },
+}
 
 
 def users_path():
@@ -36,7 +59,7 @@ def _default_store() -> dict:
             {
                 "username": "admin",
                 "password_hash": hash_password(DEFAULT_ADMIN_PASSWORD),
-                "role": "admin",
+                "role": "owner",
             }
         ]
     }
@@ -92,13 +115,31 @@ def _normalize_username(username: str) -> str:
 
 def _normalize_role(role: str) -> str:
     role = str(role or "viewer").strip().lower()
+    # Backward-compatible aliases from older/other naming conventions.
+    aliases = {
+        "superadmin": "owner",
+        "super_admin": "owner",
+        "read_only": "viewer",
+        "readonly": "viewer",
+        "ops": "operator",
+    }
+    role = aliases.get(role, role)
     return role if role in VALID_ROLES else "viewer"
+
+
+def role_rank(role: str) -> int:
+    return ROLE_ORDER.get(_normalize_role(role), 0)
+
+
+def role_at_least(role: str, minimum: str) -> bool:
+    return role_rank(role) >= role_rank(minimum)
 
 
 def _public_user(user: dict) -> dict:
     return {
         "username": user.get("username", ""),
         "role": user.get("role", "viewer"),
+        "role_label": ROLE_DEFINITIONS.get(user.get("role", "viewer"), {}).get("label", user.get("role", "viewer")),
         "has_password": bool(user.get("password_hash")),
     }
 
@@ -123,9 +164,14 @@ def load_users(path=None) -> List[dict]:
         seen.add(username)
         if username != user.get("username") or role != user.get("role"):
             changed = True
-    # Always keep at least one admin account.
-    if not any(u.get("role") == "admin" for u in normalized):
-        normalized.append({"username": "admin", "password_hash": hash_password(DEFAULT_ADMIN_PASSWORD), "role": "admin"})
+    # Always keep at least one owner-capable account. Existing old installs with
+    # a single admin are promoted to owner to avoid locking out user/update flows.
+    if normalized and not any(u.get("role") == "owner" for u in normalized):
+        admin_idx = next((i for i, u in enumerate(normalized) if u.get("role") == "admin"), 0)
+        normalized[admin_idx]["role"] = "owner"
+        changed = True
+    if not normalized:
+        normalized.append({"username": "admin", "password_hash": hash_password(DEFAULT_ADMIN_PASSWORD), "role": "owner"})
         changed = True
     if changed:
         _write_store({"users": normalized}, path)
@@ -134,6 +180,10 @@ def load_users(path=None) -> List[dict]:
 
 def list_users(path=None) -> List[dict]:
     return [_public_user(u) for u in load_users(path)]
+
+
+def role_options() -> List[dict]:
+    return [{"value": r, **ROLE_DEFINITIONS[r]} for r in ("owner", "admin", "operator", "viewer")]
 
 
 def authenticate(username: str, password: str):
@@ -152,7 +202,12 @@ def _find_user(users: List[dict], username: str) -> Tuple[int, dict | None]:
 
 
 def admin_count(users: List[dict]) -> int:
-    return sum(1 for u in users if u.get("role") == "admin")
+    # Backward compatibility: owner is also admin-capable.
+    return sum(1 for u in users if u.get("role") in {"owner", "admin"})
+
+
+def owner_count(users: List[dict]) -> int:
+    return sum(1 for u in users if u.get("role") == "owner")
 
 
 def add_user(username: str, password: str, role: str = "viewer", path=None) -> dict:
@@ -186,8 +241,10 @@ def update_user(old_username: str, new_username: str, role: str, path=None) -> d
         raise KeyError(f"User '{old_username}' was not found.")
     if new_username != old_username and any(u.get("username") == new_username for u in users):
         raise ValueError(f"User '{new_username}' already exists.")
-    if user.get("role") == "admin" and role != "admin" and admin_count(users) <= 1:
-        raise ValueError("Cannot demote the last admin user.")
+    if user.get("role") == "owner" and role != "owner" and owner_count(users) <= 1:
+        raise ValueError("Cannot demote the last owner user.")
+    if user.get("role") in {"owner", "admin"} and role not in {"owner", "admin"} and admin_count(users) <= 1:
+        raise ValueError("Cannot remove the last admin-capable user.")
     users[idx] = {"username": new_username, "password_hash": user.get("password_hash", ""), "role": role}
     _write_store({"users": users}, path)
     return {"username": new_username, "role": role}
@@ -215,8 +272,10 @@ def delete_user(username: str, current_username: str | None = None, path=None) -
         raise KeyError(f"User '{username}' was not found.")
     if current_username and username == current_username:
         raise ValueError("You cannot delete the currently logged-in user.")
-    if user.get("role") == "admin" and admin_count(users) <= 1:
-        raise ValueError("Cannot delete the last admin user.")
+    if user.get("role") == "owner" and owner_count(users) <= 1:
+        raise ValueError("Cannot delete the last owner user.")
+    if user.get("role") in {"owner", "admin"} and admin_count(users) <= 1:
+        raise ValueError("Cannot delete the last admin-capable user.")
     deleted = users.pop(idx)
     _write_store({"users": users}, path)
     return {"username": deleted.get("username"), "role": deleted.get("role", "viewer")}

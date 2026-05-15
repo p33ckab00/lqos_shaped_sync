@@ -1,5 +1,5 @@
 {
-  "config_schema_version": 6,
+  "config_schema_version": 7,
   "network_mode": "router_children",
   "flat_network": false,
   "no_parent": false,
@@ -152,7 +152,7 @@
     "recommended_start_page": "/setup-wizard"
   },
   "config_validation": {
-    "schema_version": 6,
+    "schema_version": 7,
     "validate_before_save": true,
     "simulate_before_save": true,
     "show_config_health": true,
@@ -467,5 +467,22 @@
       },
       "parent_node": ""
     }
-  ]
+  ],
+  "access_control": {
+    "enabled": true,
+    "roles": {
+      "owner": "Full control including users, updates, setup/repair, config, policies, backups, and live actions.",
+      "admin": "Config, policies, scheduler, backups, operations, and live apply actions except owner-only user/update controls.",
+      "operator": "Monitoring, dry-run/reports, lifecycle, operations inspection, and documentation access.",
+      "viewer": "Read-only dashboards, devices, reports, docs, and status pages."
+    },
+    "owner_required_routes": [
+      "/settings/users",
+      "/updates",
+      "/setup-repair/repair-defaults",
+      "/api/release/integrity"
+    ],
+    "admin_required_summary": "Config, policy, scheduler, backup restore/delete, service restart, force apply, and setup actions require admin or owner.",
+    "operator_summary": "Operators can view operational pages and run dry-run style previews, but cannot change production configuration or perform destructive actions."
+  }
 }

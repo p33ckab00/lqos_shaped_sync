@@ -15,7 +15,7 @@ from engine.policy_defaults import CLEANUP_ACTIONS, POLICY_PRESETS, smart_policy
 from engine.policy_schema import POLICY_SCHEMA, get_by_path, normalize_policies
 from rules.network_mode import VALID_NETWORK_MODES
 
-CONFIG_SCHEMA_VERSION = 6
+CONFIG_SCHEMA_VERSION = 7
 
 
 def deep_merge(base: dict, override: dict) -> dict:
@@ -96,6 +96,18 @@ def migrate_config_schema(cfg: dict) -> tuple[dict, list[str]]:
             "doctor_script": "/opt/lqosync/scripts/lqosync-doctor.sh",
             "release_check_script": "/opt/lqosync/scripts/release_check.py",
             "regression_check_script": "/opt/lqosync/scripts/regression_check.py",
+        },
+        "access_control": {
+            "enabled": True,
+            "roles": {
+                "owner": "Full control including users, updates, setup/repair, config, policies, backups, and live actions.",
+                "admin": "Config, policies, scheduler, backups, operations, and live apply actions except owner-only user/update controls.",
+                "operator": "Monitoring, dry-run/reports, lifecycle, operations inspection, and documentation access.",
+                "viewer": "Read-only dashboards, devices, reports, docs, and status pages.",
+            },
+            "owner_required_routes": ["/settings/users", "/updates", "/setup-repair/repair-defaults", "/api/release/integrity"],
+            "admin_required_summary": "Config, policy, scheduler, backup restore/delete, service restart, force apply, and setup actions require admin or owner.",
+            "operator_summary": "Operators can view operational pages and run dry-run style previews, but cannot change production configuration or perform destructive actions.",
         },
         "config_validation": {
             "schema_version": CONFIG_SCHEMA_VERSION,

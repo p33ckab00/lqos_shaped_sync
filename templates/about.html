@@ -42,4 +42,11 @@
   <h2><i class="ti ti-layout-grid"></i> v2.64 UI Consistency and Redundancy Polish</h2>
   <p>LQoSync v2.64 keeps the same engine behavior while making the WebUI more compact: Dashboard is live status, Operations Center is evidence/logs/backups, Reports is exports, Config Center owns settings, and Documentation Center is the manual.</p>
 </section>
+
+<section class="card about-section">
+  <h2><i class="ti ti-user-shield"></i> v2.67 Access Control + Role Hardening</h2>
+  <p>LQoSync v2.67 adds a clearer owner/admin/operator/viewer role hierarchy. Owner controls users, updates, and high-trust repair actions; admin controls config, policies, scheduler, operations, backups, and live apply; operator can monitor and run dry-run previews; viewer remains read-only.</p>
+  <p>Older installs with only one admin account are upgraded safely by promoting the first admin to owner when no owner exists, preventing lockout from owner-only controls.</p>
+  <a class="btn" href="/docs/search?q=access+control+roles"><i class="ti ti-search"></i> Read role guide</a>
+</section>
 {% endblock %}

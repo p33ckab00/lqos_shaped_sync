@@ -173,6 +173,18 @@ DEFAULT_CONFIG = {
         "regression_check_script": "/opt/lqosync/scripts/regression_check.py",
         "config_migration_check_script": "/opt/lqosync/scripts/config_migration_check.py"
     },
+    "access_control": {
+        "enabled": True,
+        "roles": {
+            "owner": "Full control including users, updates, setup/repair, config, policies, backups, and live actions.",
+            "admin": "Config, policies, scheduler, backups, operations, and live apply actions except owner-only user/update controls.",
+            "operator": "Monitoring, dry-run/reports, lifecycle, operations inspection, and documentation access.",
+            "viewer": "Read-only dashboards, devices, reports, docs, and status pages."
+        },
+        "owner_required_routes": ["/settings/users", "/updates", "/setup-repair/repair-defaults", "/api/release/integrity"],
+        "admin_required_summary": "Config, policy, scheduler, backup restore/delete, service restart, force apply, and setup actions require admin or owner.",
+        "operator_summary": "Operators can view operational pages and run dry-run style previews, but cannot change production configuration or perform destructive actions."
+    },
     "policies": smart_policy_defaults(),
     "services": {
         # Required/current LibreQoS + LQoSync units. lqos_node_manager is not

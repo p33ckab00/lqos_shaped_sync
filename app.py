@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 from auth.users import (
     authenticate, ensure_users_file, list_users, add_user, update_user,
-    set_user_password, delete_user
+    set_user_password, delete_user, role_at_least, role_options, ROLE_DEFINITIONS
 )
 from engine.config_loader import load_config, save_config, validate_config
 from engine.run_cycle import run_cycle
@@ -99,24 +99,47 @@ def login_required(view_func):
     return wrapped
 
 
-def admin_required(view_func):
-    """Decorator for actions that require admin role."""
+def _require_min_role(min_role: str, error_name: str):
+    """Build a route decorator for role-based access control.
+
+    Role hierarchy: owner > admin > operator > viewer.
+    Older installs with only an admin account are normalized to owner by
+    auth.users.load_users(), so owner-only routes remain reachable after upgrade.
+    """
     from functools import wraps
 
-    @wraps(view_func)
-    def wrapped(*args, **kwargs):
-        user = current_user()
-        if not user:
-            if request.path.startswith("/api/"):
-                return jsonify({"ok": False, "error": "login_required"}), 401
-            return redirect(url_for("login", next=request.path))
-        if user.get("role") != "admin":
-            if request.path.startswith("/api/"):
-                return jsonify({"ok": False, "error": "admin_required"}), 403
-            abort(403)
-        return view_func(*args, **kwargs)
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapped(*args, **kwargs):
+            user = current_user()
+            if not user:
+                if request.path.startswith("/api/"):
+                    return jsonify({"ok": False, "error": "login_required"}), 401
+                return redirect(url_for("login", next=request.path))
+            if not role_at_least(user.get("role", "viewer"), min_role):
+                if request.path.startswith("/api/"):
+                    return jsonify({"ok": False, "error": error_name, "required_role": min_role, "role": user.get("role", "viewer")}), 403
+                abort(403)
+            return view_func(*args, **kwargs)
 
-    return wrapped
+        return wrapped
+
+    return decorator
+
+
+def owner_required(view_func):
+    """Decorator for owner-only actions: users, updates, and high-trust repair controls."""
+    return _require_min_role("owner", "owner_required")(view_func)
+
+
+def admin_required(view_func):
+    """Decorator for config, policy, scheduler, backup, and live action routes."""
+    return _require_min_role("admin", "admin_required")(view_func)
+
+
+def operator_required(view_func):
+    """Decorator for routes/actions available to operators and above."""
+    return _require_min_role("operator", "operator_required")(view_func)
 
 
 def _csrf_token():
@@ -386,6 +409,8 @@ def inject_globals():
         "csrf_token": _csrf_token,
         "csrf_field": _csrf_field,
         "default_theme": default_theme,
+        "role_at_least": role_at_least,
+        "role_definitions": ROLE_DEFINITIONS,
     }
 
 
@@ -460,6 +485,9 @@ def sync_run():
 def dry_run():
     result = None
     if request.method == "POST":
+        user = current_user() or {}
+        if not role_at_least(user.get("role", "viewer"), "operator"):
+            abort(403)
         result = run_cycle(mode="dry_run", config_path=CONFIG_PATH).to_dict()
     else:
         _cfg, state = get_status()
@@ -585,14 +613,14 @@ def shaped_devices():
 # Settings / user management
 # =========================
 @app.route("/settings/users")
-@admin_required
+@owner_required
 def settings_users():
     users = list_users(USERS_PATH)
-    return render_template("settings_users.html", users=users, user=current_user())
+    return render_template("settings_users.html", users=users, role_options=role_options(), role_definitions=ROLE_DEFINITIONS, user=current_user())
 
 
 @app.route("/settings/users/add", methods=["POST"])
-@admin_required
+@owner_required
 def settings_users_add():
     actor = current_user() or {}
     try:
@@ -608,7 +636,7 @@ def settings_users_add():
 
 
 @app.route("/settings/users/<path:username>/update", methods=["POST"])
-@admin_required
+@owner_required
 def settings_users_update(username):
     actor = current_user() or {}
     try:
@@ -626,7 +654,7 @@ def settings_users_update(username):
 
 
 @app.route("/settings/users/<path:username>/password", methods=["POST"])
-@admin_required
+@owner_required
 def settings_users_password(username):
     actor = current_user() or {}
     try:
@@ -643,7 +671,7 @@ def settings_users_password(username):
 
 
 @app.route("/settings/users/<path:username>/delete", methods=["POST"])
-@admin_required
+@owner_required
 def settings_users_delete(username):
     actor = current_user() or {}
     try:
@@ -656,7 +684,7 @@ def settings_users_delete(username):
 
 
 @app.route("/api/users")
-@admin_required
+@owner_required
 def api_users():
     return jsonify(list_users(USERS_PATH))
 
@@ -1339,7 +1367,7 @@ def setup_repair_policy_preset():
 
 
 @app.route("/setup-repair/repair-defaults", methods=["POST"])
-@admin_required
+@owner_required
 def setup_repair_repair_defaults():
     cfg = load_config(CONFIG_PATH)
     result = repair_config_defaults(CONFIG_PATH)
@@ -1352,13 +1380,13 @@ def setup_repair_repair_defaults():
 
 
 @app.route("/api/release/integrity")
-@admin_required
+@owner_required
 def api_release_integrity():
     return jsonify(compute_release_integrity(Path(__file__).resolve().parent))
 
 
 @app.route("/updates")
-@admin_required
+@owner_required
 def update_center():
     """Read-only Git/update operations center.
 

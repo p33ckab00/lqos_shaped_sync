@@ -7,9 +7,9 @@
     <div class="page-subtitle">Same engine as live sync, but no file write and no LibreQoS call.</div>
   </div>
   <div class="btn-row">
-    {% if user.role == 'admin' %}
+    {% if role_at_least(user.role, 'operator') %}
     <form method="post" action="/sync/dry-run">{{ csrf_field()|safe }}<button class="btn"><i class="ti ti-eye"></i> Run dry run</button></form>
-    <form method="post" action="/sync/run" onsubmit="return confirm('Apply requires a fresh live sync. Continue?')">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-refresh"></i> Run fresh apply</button></form>
+    {% if role_at_least(user.role, 'admin') %}<form method="post" action="/sync/run" onsubmit="return confirm('Apply requires a fresh live sync. Continue?')">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-refresh"></i> Run fresh apply</button></form>{% endif %}
     {% endif %}
     <a class="btn" href="/devices"><i class="ti ti-device-desktop-analytics"></i> Devices</a>
     <a class="btn" href="/network"><i class="ti ti-topology-star"></i> Network</a>

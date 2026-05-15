@@ -1082,7 +1082,10 @@ def lifecycle_center():
     search = request.args.get("search", "")
     code = request.args.get("code") or ""
     limit = int(request.args.get("limit", 500))
-    report = compute_lifecycle_report(pstate, status=status, source=source, search=search, code=code, limit=limit)
+    event = request.args.get("event", "all")
+    event_limit = int(request.args.get("event_limit", 50))
+    event_page = int(request.args.get("event_page", 1))
+    report = compute_lifecycle_report(pstate, status=status, source=source, search=search, code=code, limit=limit, event=event, event_limit=event_limit, event_page=event_page)
     return render_template(
         "lifecycle.html",
         cfg=cfg,
@@ -1109,6 +1112,9 @@ def api_lifecycle_report():
         search=request.args.get("search", ""),
         code=request.args.get("code", ""),
         limit=int(request.args.get("limit", 500)),
+        event=request.args.get("event", "all"),
+        event_limit=int(request.args.get("event_limit", 50)),
+        event_page=int(request.args.get("event_page", 1)),
     )
     return jsonify(report)
 
@@ -1125,6 +1131,9 @@ def lifecycle_export(fmt):
         search=request.args.get("search", ""),
         code=request.args.get("code", ""),
         limit=int(request.args.get("limit", 500)),
+        event=request.args.get("event", "all"),
+        event_limit=int(request.args.get("event_limit", 50)),
+        event_page=int(request.args.get("event_page", 1)),
     )
     if fmt == "json":
         return Response(json.dumps(report, indent=2, ensure_ascii=False), mimetype="application/json", headers={"Content-Disposition": "attachment; filename=lqos_lifecycle_report.json"})

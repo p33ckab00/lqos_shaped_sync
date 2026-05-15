@@ -2249,3 +2249,8 @@ This release also adds reusable UI/mobile consistency helpers for cleaner respon
 LQoSync v2.60 improves first-run onboarding. New installs are guided to the First Run Setup Wizard, the Dashboard shows a setup-incomplete banner, and scheduler enable is protected until router/source setup, Dry Run, and Setup & Repair checks are ready. Existing live installs with prior run history or scheduler already enabled are not forced into the wizard after upgrade.
 
 The new `setup_wizard` config block controls redirect behavior, Dashboard banners, and scheduler-enable requirements. Operators can mark setup complete when readiness is satisfied or reset the wizard to repeat onboarding.
+
+
+## v2.60.1 Client Lifecycle View and Filter Hotfix
+
+The Client Lifecycle page now uses instant searchable filters similar to the Shaped Devices/Subscribers table. The View button preserves current filters and focuses the selected client's timeline correctly. Timeline Focus now supports event type filtering, row-limit selection, and pagination with Prev/Next controls. Mobile lifecycle cards use the same filtering and View/focus behavior as the desktop table.

@@ -42,3 +42,8 @@ The Lifecycle Center provides JSON, CSV, and Markdown exports so operators can a
 ## Privacy mode
 
 Lifecycle tables and timelines use WebUI redaction classes. When Privacy Mode is enabled, visible client names, nodes, IP addresses, and MAC addresses are masked in the browser only. Source files and state files are unchanged.
+
+
+## v2.60.1 Client Lifecycle View and Filter Hotfix
+
+The Client Lifecycle page now uses instant searchable filters similar to the Shaped Devices/Subscribers table. The View button preserves current filters and focuses the selected client's timeline correctly. Timeline Focus now supports event type filtering, row-limit selection, and pagination with Prev/Next controls. Mobile lifecycle cards use the same filtering and View/focus behavior as the desktop table.

@@ -1,5 +1,18 @@
 # LQoSync Release Notes
 
+## v2.60.1 - Client Lifecycle View and Filter Hotfix
+
+### Fixed / Improved
+
+- Fixed the Client Lifecycle Table **View** action so it focuses the selected client timeline while preserving the current status, source, search, row-limit, and timeline filter context.
+- Reworked Lifecycle filters into instant, client-side searchable controls similar to the Shaped Devices/Subscribers table. Search, status pills, source selector, row-limit selector, and column filters update the table/cards without requiring the Apply button workflow.
+- Added Timeline Focus pagination controls with event type filter, timeline row-limit selector, Prev/Next controls, page count, and total event count.
+- Improved mobile lifecycle cards so they use the same auto-filtering behavior and View/focus wiring as the desktop table.
+
+### Notes
+
+This is a UI/UX and route-parameter hotfix. It does not change policy decisions, cleanup behavior, MikroTik collection, generated files, scheduler behavior, Telegram notifications, or LibreQoS apply behavior.
+
 ## v2.60.0 - Better Fresh Install Experience
 
 ### Added

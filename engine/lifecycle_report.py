@@ -85,14 +85,16 @@ def filter_lifecycle_clients(
     return out[: max(1, int(limit or 500))]
 
 
-def lifecycle_events(policy_state: dict[str, Any], *, code: str = "", event: str = "all", limit: int = 300) -> list[dict[str, Any]]:
+def lifecycle_events(policy_state: dict[str, Any], *, code: str = "", event: str = "all", limit: int = 300, offset: int = 0) -> list[dict[str, Any]]:
     events = policy_state.get("client_events", []) or []
     if code:
         events = [e for e in events if str(e.get("code")) == str(code)]
     if event and event != "all":
         events = [e for e in events if str(e.get("event")) == str(event)]
     events = sorted(events, key=lambda e: _parse_dt(e.get("ts", "")), reverse=True)
-    return events[: max(1, int(limit or 300))]
+    offset = max(0, int(offset or 0))
+    limit = max(1, int(limit or 300))
+    return events[offset: offset + limit]
 
 
 def compute_lifecycle_report(
@@ -103,10 +105,19 @@ def compute_lifecycle_report(
     search: str = "",
     code: str = "",
     limit: int = 500,
+    event: str = "all",
+    event_limit: int = 50,
+    event_page: int = 1,
 ) -> dict[str, Any]:
     clients_all = policy_state.get("client_lifecycle", {}) or {}
     clients_filtered = filter_lifecycle_clients(policy_state, status=status, source=source, search=search, limit=limit)
-    events = lifecycle_events(policy_state, code=code, limit=300)
+    event_limit = max(10, min(500, int(event_limit or 50)))
+    event_page = max(1, int(event_page or 1))
+    all_events_for_count = lifecycle_events(policy_state, code=code, event=event, limit=100000, offset=0)
+    events_total = len(all_events_for_count)
+    event_offset = (event_page - 1) * event_limit
+    events = lifecycle_events(policy_state, code=code, event=event, limit=event_limit, offset=event_offset)
+    event_pages = max(1, (events_total + event_limit - 1) // event_limit)
     status_counts: dict[str, int] = {}
     source_counts: dict[str, int] = {}
     bucket_counts: dict[str, int] = {}
@@ -151,7 +162,8 @@ def compute_lifecycle_report(
             "bucket_counts": bucket_counts,
             "source_counts": source_counts,
         },
-        "filters": {"status": status, "source": source, "search": search, "code": code, "limit": limit},
+        "filters": {"status": status, "source": source, "search": search, "code": code, "limit": limit, "event": event, "event_limit": event_limit, "event_page": event_page},
+        "event_pagination": {"total": events_total, "page": event_page, "limit": event_limit, "pages": event_pages},
         "selected_client": selected_client,
         "clients": [{"code": c, **item} for c, item in clients_filtered],
         "events": events,

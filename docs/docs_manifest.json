@@ -116,5 +116,11 @@
     "file": "docs/content/better_fresh_install_experience.md",
     "anchor": "better-fresh-install-experience",
     "summary": "v2.60 first-run gate, scheduler readiness protection, setup wizard redirect, and fresh install workflow."
+  },
+  "lifecycle.view_filter_hotfix": {
+    "title": "Client Lifecycle View and Filter Hotfix",
+    "file": "docs/content/client_lifecycle_timeline.md",
+    "anchor": "v2601-client-lifecycle-view-and-filter-hotfix",
+    "summary": "v2.60.1 fixes Lifecycle View button wiring, adds instant table/card filtering, and adds timeline pagination/row limits."
   }
 }

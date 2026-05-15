@@ -1,5 +1,17 @@
 # LQoSync Release Notes
 
+## v2.63.1 - Operations Center Log Variable Hotfix
+
+### Fixed
+
+- Fixes an Internal Server Error on `/operations` caused by a template variable collision after Operations Center consolidation.
+- The journal line-count selector and app log line list now use separate variables so the App Logs section can render safely even when another tab is active.
+- Keeps `/operations`, `/services`, and `/logs` compatibility behavior unchanged.
+
+### Notes
+
+This is a routing/template hotfix only. It does not change MikroTik collection, policy logic, generated files, scheduler behavior, backup behavior, or LibreQoS apply behavior.
+
 ## v2.63.0 - Documentation Center Consolidation
 
 ### Improved

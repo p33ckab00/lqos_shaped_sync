@@ -1457,9 +1457,9 @@ def operations_center():
     journal = journal_lines(cfg, selected_unit, lines=lines_count) if selected_unit else {"stdout": "", "stderr": ""}
 
     log_file = Path(cfg["paths"].get("log_file", "logs/lqos_shaped_sync.log"))
-    lines = []
+    app_log_lines = []
     if log_file.exists():
-        lines = log_file.read_text(encoding="utf-8", errors="ignore").splitlines()[-500:]
+        app_log_lines = log_file.read_text(encoding="utf-8", errors="ignore").splitlines()[-500:]
 
     backups_all = list_backups(cfg)
     allowed_backup_limits = [5, 10, 20, 50, 100]
@@ -1501,7 +1501,8 @@ def operations_center():
         last=last,
         apply_runs=apply_runs,
         selected_unit=selected_unit,
-        lines=lines_count,
+        lines=app_log_lines,
+        journal_lines_count=lines_count,
         journal=journal,
         backups=backups,
         backup_pagination=backup_pagination,

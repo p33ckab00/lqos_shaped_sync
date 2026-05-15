@@ -698,3 +698,8 @@ LQoSync v2.61 consolidates redundant WebUI and documentation surfaces. Dashboard
 LQoSync v2.62 makes Config Center the single operator-facing settings home. Smart Policy Center settings and Telegram notification delivery settings are now available as native Config Center tabs, while Advanced Raw JSON continues to mirror the same `config.json` payload. Old links remain compatible: `/policy` redirects to `/config?tab=policies`, and `/notifications` redirects to `/config?tab=notifications`.
 
 This keeps the project compact: Dashboard is for live health and alerts, Config Center is for settings and policies, Operations Center is for logs/services/backups, Reports is for exports, and Documentation Center is for the searchable manual.
+
+
+## v2.63.1 Operations Center hotfix
+
+This hotfix resolves an Internal Server Error on `/operations` caused by a variable-name collision between the journal line-count selector and the app log line list. The Operations Center now passes `journal_lines_count` separately from `lines`, so app logs render safely while all tabs and compatibility redirects remain unchanged.

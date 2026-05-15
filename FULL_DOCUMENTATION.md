@@ -7283,3 +7283,8 @@ When adding a new feature:
 
 A compact documentation model prevents conflicting instructions, reduces UI clutter, improves search quality, and makes the project easier to maintain as LQoSync grows.
 
+
+
+## v2.63.1 Operations Center hotfix
+
+This hotfix resolves an Internal Server Error on `/operations` caused by a variable-name collision between the journal line-count selector and the app log line list. The Operations Center now passes `journal_lines_count` separately from `lines`, so app logs render safely while all tabs and compatibility redirects remain unchanged.

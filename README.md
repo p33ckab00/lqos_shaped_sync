@@ -90,3 +90,8 @@ The documentation is consolidated into one coherent system:
 ## Safety note
 
 LQoSync can write LibreQoS input files and trigger LibreQoS apply behavior. Always verify `config.json`, backups, policies, dry-run output, and apply results before using it in production.
+
+
+## v2.63.1 Operations Center hotfix
+
+This hotfix resolves an Internal Server Error on `/operations` caused by a variable-name collision between the journal line-count selector and the app log line list. The Operations Center now passes `journal_lines_count` separately from `lines`, so app logs render safely while all tabs and compatibility redirects remain unchanged.

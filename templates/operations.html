@@ -60,7 +60,7 @@
 
 <section id="journals" class="ops-section {{ 'active' if active_tab == 'journals' else '' }}">
   <div class="card ops-card-tall">
-    <div class="ops-sticky"><div class="card-title"><i class="ti ti-terminal-2"></i> Journal Viewer</div><form method="get" action="/operations" class="btn-row"><input type="hidden" name="tab" value="journals"><select class="input" name="unit" style="max-width:280px">{% for unit in services.keys() %}<option value="{{ unit }}" {{ 'selected' if unit == selected_unit else '' }}>{{ unit }}</option>{% endfor %}</select><select class="input" name="lines" style="max-width:130px">{% for n in [50,100,300,500,1000] %}<option value="{{ n }}" {{ 'selected' if lines == n else '' }}>last {{ n }}</option>{% endfor %}</select><button class="btn"><i class="ti ti-refresh"></i> Load</button></form></div>
+    <div class="ops-sticky"><div class="card-title"><i class="ti ti-terminal-2"></i> Journal Viewer</div><form method="get" action="/operations" class="btn-row"><input type="hidden" name="tab" value="journals"><select class="input" name="unit" style="max-width:280px">{% for unit in services.keys() %}<option value="{{ unit }}" {{ 'selected' if unit == selected_unit else '' }}>{{ unit }}</option>{% endfor %}</select><select class="input" name="lines" style="max-width:130px">{% for n in [50,100,300,500,1000] %}<option value="{{ n }}" {{ 'selected' if journal_lines_count == n else '' }}>last {{ n }}</option>{% endfor %}</select><button class="btn"><i class="ti ti-refresh"></i> Load</button></form></div>
     <div class="ops-scroll"><pre class="mono ops-pre">{{ journal.stdout or journal.stderr or 'No journal output available.' }}</pre></div>
   </div>
 </section>

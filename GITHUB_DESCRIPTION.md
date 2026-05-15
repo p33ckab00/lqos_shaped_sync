@@ -1,26 +1,16 @@
-# GitHub Repository Metadata
+# GitHub Repository Description
 
-Repository name:
+Database-free MikroTik-to-LibreQoS subscriber sync dashboard that generates ShapedDevices.csv/network.json with dry-run, policy-aware cleanup, operations center, reports, lifecycle visibility, and setup/repair workflows.
 
-```text
-lqos_shaped_sync
-```
-
-Description:
+Suggested topics:
 
 ```text
-Database-free MikroTik-to-LibreQoS subscriber sync dashboard that generates ShapedDevices.csv/network.json with dry-run, scheduler, Docker, and service monitoring.
+libreqos mikrotik routeros qos shaping isp pppoe dhcp hotspot scheduler flask python
 ```
 
-Topics:
+Documentation:
 
-```text
-libreqos mikrotik routeros qos shaping isp pppoe dhcp hotspot scheduler docker python flask
-```
-
-## In-app About module
-
-The application includes an operator-readable About page at `/about` with project description, workflow, installation guide, requirements, paths, commands, and notes.
-
-
-This release includes pending LibreQoS apply recovery: when files were written successfully but LibreQoS.py fails, LQoSync keeps a pending apply marker and retries until LibreQoS applies successfully.
+- README.md: compact landing page
+- FULL_DOCUMENTATION.md: complete manual
+- docs/DOCUMENTATION_INDEX.md: topic index
+- docs/content/: source-of-truth topic files

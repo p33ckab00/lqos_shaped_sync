@@ -5,10 +5,11 @@
 <div class="page-header">
   <div>
     <div class="page-title">Documentation Center</div>
-    <div class="page-subtitle">One searchable documentation center for setup, policies, operations, troubleshooting, commands, release notes, and GitHub-facing manuals.</div>
+    <div class="page-subtitle">One searchable source-of-truth for WebUI help, GitHub docs, setup, policies, operations, troubleshooting, commands, and release notes.</div>
   </div>
   <div class="btn-row">
-    <a class="btn" href="/about"><i class="ti ti-info-circle"></i> About</a>
+    <a class="btn" href="/docs/view/documentation-consolidation"><i class="ti ti-sitemap"></i> Docs model</a>
+    <a class="btn" href="/docs/view/documentation-index"><i class="ti ti-list-details"></i> GitHub index</a>
     <a class="btn" href="/setup-repair"><i class="ti ti-tool"></i> Setup / repair</a>
   </div>
 </div>
@@ -46,9 +47,10 @@
   </div>
 
   <aside class="card">
-    <div class="card-title"><i class="ti ti-info-circle"></i> Search guide</div>
-    <div class="note" style="margin-bottom:10px"><b>Best for:</b> quickly finding setup steps, policy meanings, troubleshooting commands, route/template checks, Telegram settings, and update procedures.</div>
-    <div class="note" style="margin-bottom:10px"><b>Source of truth:</b> this searches local Markdown documentation bundled with the package. Setup & Repair links back to these docs instead of duplicating long manuals.</div>
+    <div class="card-title"><i class="ti ti-books"></i> Consolidated docs model</div>
+    <div class="note" style="margin-bottom:10px"><b>Source of truth:</b> <code>docs/content/*.md</code> and <code>docs/docs_manifest.json</code> define the topic documentation used by WebUI search and GitHub docs.</div>
+    <div class="note" style="margin-bottom:10px"><b>GitHub view:</b> <code>README.md</code> stays compact, <code>FULL_DOCUMENTATION.md</code> is the complete manual, and <code>docs/DOCUMENTATION_INDEX.md</code> is the topic map.</div>
+    <div class="note" style="margin-bottom:10px"><b>UI rule:</b> Setup & Repair diagnoses problems and links here instead of duplicating long manuals. About stays lightweight.</div>
     <div class="note"><b>Privacy:</b> documentation search is local and read-only. It does not send queries outside the LQoSync WebUI.</div>
   </aside>
 </section>

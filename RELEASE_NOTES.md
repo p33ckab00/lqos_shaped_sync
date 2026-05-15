@@ -1,5 +1,20 @@
 # LQoSync Release Notes
 
+## v2.63.0 - Documentation Center Consolidation
+
+### Improved
+
+- Consolidates GitHub-facing and WebUI-facing documentation into one source-of-truth model.
+- Keeps `README.md` compact as the GitHub landing page.
+- Rebuilds `FULL_DOCUMENTATION.md` as the complete single-file manual compiled from indexed documentation topics.
+- Adds `docs/DOCUMENTATION_INDEX.md` as the GitHub-friendly table of contents for documentation topics.
+- Adds `docs/content/documentation_consolidation.md` describing the documentation ownership model and maintenance rules.
+- Updates the Documentation Center landing copy to emphasize that WebUI docs, GitHub docs, and source topic files share the same documentation model.
+
+### Notes
+
+This is a documentation consolidation and UI guidance update. It does not change MikroTik collectors, policy decisions, cleanup behavior, generated files, scheduler behavior, or LibreQoS apply behavior.
+
 ## v2.62.0 - Config + Policy + Notification Unification
 
 ### Improved

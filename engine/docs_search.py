@@ -28,6 +28,8 @@ DEFAULT_DOC_FILES = [
     "docs/SMART_LIFECYCLE.md",
     "docs/SMART_SETUP_REPAIR.md",
     "docs/AI_ASSISTED_DEVELOPMENT.md",
+    "docs/DOCUMENTATION_INDEX.md",
+    "GITHUB_DESCRIPTION.md",
 ]
 
 

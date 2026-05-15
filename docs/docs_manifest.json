@@ -139,5 +139,17 @@
     "file": "docs/content/config_policy_notification_unification.md",
     "anchor": "config--policy--notification-unification",
     "summary": "v2.62 consolidates Policy Center and Telegram notification delivery settings into Config Center while keeping compatibility redirects."
+  },
+  "documentation.consolidation": {
+    "title": "Documentation Consolidation and Source of Truth",
+    "file": "docs/content/documentation_consolidation.md",
+    "anchor": "documentation-consolidation-and-source-of-truth",
+    "summary": "v2.63 consolidates GitHub and WebUI documentation into docs/content, docs_manifest, README, and FULL_DOCUMENTATION as one coherent source-of-truth system."
+  },
+  "documentation.index": {
+    "title": "LQoSync Documentation Index",
+    "file": "docs/DOCUMENTATION_INDEX.md",
+    "anchor": "lqosync-documentation-index",
+    "summary": "GitHub-friendly documentation table of contents that points to the consolidated LQoSync manual topics."
   }
 }

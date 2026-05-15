@@ -12,6 +12,22 @@
   </div>
 </div>
 
+<section class="card" style="margin-bottom:12px;border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.06)">
+  <div class="card-title"><i class="ti ti-shield-check"></i> v2.70 Stable Release Candidate discipline</div>
+  <p class="text-sm" style="color:var(--muted)">This release is in feature-freeze mode. Before updating or tagging stable, run the full validation chain: release integrity, regression, config migration, policy/path audit, and stable release check.</p>
+  <div class="btn-row" style="margin-top:10px">
+    <a class="btn" href="/api/stable-release/check" target="_blank"><i class="ti ti-code"></i> Stable check JSON</a>
+    <a class="btn" href="/docs/search?q=stable+release"><i class="ti ti-book"></i> Stable checklist</a>
+    <a class="btn" href="/setup-repair"><i class="ti ti-tool"></i> System Validation</a>
+  </div>
+  <pre class="mono text-xs command-box" style="margin-top:10px">cd /opt/lqosync
+python3 scripts/release_check.py
+python3 scripts/regression_check.py
+python3 scripts/config_migration_check.py
+python3 scripts/policy_path_audit.py
+python3 scripts/stable_release_check.py</pre>
+</section>
+
 {% set relation = git.get('relation','unknown') %}
 <div class="card" style="border-color:{{ 'rgba(239,68,68,.45)' if relation == 'diverged' else ('rgba(245,158,11,.45)' if relation in ['ahead','behind','dirty'] or git.get('dirty') else 'rgba(34,197,94,.35)') }};background:{{ 'rgba(239,68,68,.08)' if relation == 'diverged' else ('rgba(245,158,11,.08)' if relation in ['ahead','behind','dirty'] or git.get('dirty') else 'rgba(34,197,94,.08)') }};margin-bottom:12px">
   <div class="card-title"><i class="ti {{ 'ti-alert-triangle text-err' if relation == 'diverged' else ('ti-alert-circle text-warn' if relation in ['ahead','behind','dirty'] or git.get('dirty') else 'ti-circle-check text-accent') }}"></i> Git update status</div>

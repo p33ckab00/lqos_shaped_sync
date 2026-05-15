@@ -29,6 +29,10 @@ DEFAULT_DOC_FILES = [
     "docs/SMART_SETUP_REPAIR.md",
     "docs/AI_ASSISTED_DEVELOPMENT.md",
     "docs/DOCUMENTATION_INDEX.md",
+    "docs/ROUTE_COMPATIBILITY.md",
+    "docs/STABLE_RELEASE_CHECKLIST.md",
+    "docs/UPGRADE_GUIDE.md",
+    "docs/POLICY_PATH_REFERENCE.md",
     "GITHUB_DESCRIPTION.md",
 ]
 

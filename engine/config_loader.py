@@ -172,7 +172,19 @@ DEFAULT_CONFIG = {
         "release_check_script": "/opt/lqosync/scripts/release_check.py",
         "regression_check_script": "/opt/lqosync/scripts/regression_check.py",
         "config_migration_check_script": "/opt/lqosync/scripts/config_migration_check.py",
-        "policy_path_audit_script": "/opt/lqosync/scripts/policy_path_audit.py"
+        "policy_path_audit_script": "/opt/lqosync/scripts/policy_path_audit.py",
+        "stable_release_check_script": "/opt/lqosync/scripts/stable_release_check.py"
+    },
+    "stable_release": {
+        "target": "v2.70 Stable Release Candidate",
+        "feature_freeze": True,
+        "allow_new_sidebar_modules": False,
+        "require_release_check": True,
+        "require_regression_check": True,
+        "require_config_migration_check": True,
+        "require_policy_path_audit": True,
+        "require_stable_release_check": True,
+        "compatibility_routes": ["/health", "/services", "/logs", "/policy", "/notifications", "/routers"]
     },
     "access_control": {
         "enabled": True,

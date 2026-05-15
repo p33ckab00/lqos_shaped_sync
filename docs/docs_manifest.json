@@ -234,5 +234,35 @@
     "file": "docs/content/router_insight_dedup_policy_path_audit.md",
     "anchor": "router-insight-de-duplication--policypath-audit",
     "summary": "v2.69.1 moves Router Insight into Config Center, keeps /routers as a redirect alias, removes duplicate router page UI, and adds policy/path audit checks."
+  },
+  "stable.stable_release_candidate": {
+    "title": "Stable Release Candidate",
+    "file": "docs/content/stable_release_candidate.md",
+    "anchor": "stable-release-candidate",
+    "summary": "v2.70 feature freeze, validation chain, and stable candidate rules."
+  },
+  "stable.route_compatibility_map": {
+    "title": "Route Compatibility Map",
+    "file": "docs/ROUTE_COMPATIBILITY.md",
+    "anchor": "route-compatibility-map",
+    "summary": "Compatibility aliases for compact canonical UI routes."
+  },
+  "stable.stable_release_checklist": {
+    "title": "Stable Release Checklist",
+    "file": "docs/STABLE_RELEASE_CHECKLIST.md",
+    "anchor": "stable-release-checklist",
+    "summary": "Preflight, operator review, and release discipline checklist."
+  },
+  "stable.upgrade_guide": {
+    "title": "Upgrade Guide",
+    "file": "docs/UPGRADE_GUIDE.md",
+    "anchor": "upgrade-guide",
+    "summary": "Safe GitHub update, diverged Git handling, and post-upgrade checks."
+  },
+  "stable.policy_path_reference": {
+    "title": "Policy / Path Reference",
+    "file": "docs/POLICY_PATH_REFERENCE.md",
+    "anchor": "policy--path-reference",
+    "summary": "Policy/path audit purpose and important policy groups."
   }
 }

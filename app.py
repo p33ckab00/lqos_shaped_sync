@@ -30,6 +30,7 @@ from engine.policy_schema import grouped_policy_schema, policy_diff_from_preset,
 from engine.policy_conflicts import evaluate_policy_conflicts, enhanced_preset_comparison, client_identity_report
 from engine.health_trends import compute_health_report
 from engine.production_readiness import compute_production_readiness
+from engine.stable_release import compute_stable_release_check
 from engine.router_overview import compute_router_overview
 from engine.notifications import telegram_settings_summary, send_test_message, dispatch_telegram_notifications
 from engine.docs_search import search_docs, build_docs_index, get_doc
@@ -1440,6 +1441,12 @@ def setup_repair_repair_defaults():
 @owner_required
 def api_release_integrity():
     return jsonify(compute_release_integrity(Path(__file__).resolve().parent))
+
+
+@app.route("/api/stable-release/check")
+@login_required
+def api_stable_release_check():
+    return jsonify(compute_stable_release_check(Path(__file__).resolve().parent))
 
 
 @app.route("/updates")

@@ -1,5 +1,22 @@
 # Release Notes
 
+## v2.70.0-rc1 — Stable Release Candidate / Production Freeze
+
+- Declares v2.70 as a stable release candidate and feature-freeze release.
+- Adds `engine/stable_release.py` and `scripts/stable_release_check.py` for stable candidate validation.
+- Adds route compatibility validation for `/health`, `/services`, `/logs`, `/policy`, `/notifications`, and `/routers`.
+- Adds template classification for active, compatibility/deprecated, and review templates.
+- Adds update preflight validation for required release/update scripts and config JSON.
+- Integrates the stable release check into `lqosync-doctor.sh`.
+- Adds `/api/stable-release/check` for read-only stable release diagnostics.
+- Updates Update Center with stable-candidate validation commands and System Validation links.
+- Renames Setup / Repair presentation toward System Validation and adds stable validation guidance.
+- Adds stable documentation: `docs/STABLE_RELEASE_CHECKLIST.md`, `docs/ROUTE_COMPATIBILITY.md`, `docs/UPGRADE_GUIDE.md`, `docs/POLICY_PATH_REFERENCE.md`, and `docs/content/stable_release_candidate.md`.
+- Updates package quality defaults with `stable_release_check_script`.
+
+This is a stabilization release. It does not change MikroTik collection, cleanup policy decisions, generated files, scheduler behavior, backups, Telegram delivery, or LibreQoS apply behavior.
+
+
 ## v2.69.1 — Router Insight De-duplication + Policy/Path Audit
 
 - Reimagines the Router module to avoid redundant UX: Router Insight now lives inside Config Center → Routers where router settings already exist.

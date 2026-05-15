@@ -70,3 +70,9 @@ LQoSync v2.67 adds a clearer owner/admin/operator/viewer role model. Owner contr
 - [Router Overview + Multi-Router UX Polish](content/router_overview_multi_router_ux.md) — v2.69/v2.69.1 Router Insight now lives inside Config Center; /routers is a redirect alias.
 
 - [Router Insight De-duplication + Policy/Path Audit](content/router_insight_dedup_policy_path_audit.md) — v2.69.1 removes duplicate Router page UI and adds policy/path audit checks.
+
+- [Stable Release Candidate](content/stable_release_candidate.md) — v2.70 feature freeze and validation chain.
+- [Route Compatibility Map](ROUTE_COMPATIBILITY.md) — compact canonical routes and compatibility aliases.
+- [Stable Release Checklist](STABLE_RELEASE_CHECKLIST.md) — preflight/operator checklist for stable candidates.
+- [Upgrade Guide](UPGRADE_GUIDE.md) — safe GitHub update and post-upgrade checks.
+- [Policy / Path Reference](POLICY_PATH_REFERENCE.md) — policy/path audit and important policy groups.

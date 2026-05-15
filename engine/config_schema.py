@@ -15,7 +15,7 @@ from engine.policy_defaults import CLEANUP_ACTIONS, POLICY_PRESETS, smart_policy
 from engine.policy_schema import POLICY_SCHEMA, get_by_path, normalize_policies
 from rules.network_mode import VALID_NETWORK_MODES
 
-CONFIG_SCHEMA_VERSION = 8
+CONFIG_SCHEMA_VERSION = 9
 
 
 def deep_merge(base: dict, override: dict) -> dict:
@@ -98,6 +98,18 @@ def migrate_config_schema(cfg: dict) -> tuple[dict, list[str]]:
             "regression_check_script": "/opt/lqosync/scripts/regression_check.py",
             "config_migration_check_script": "/opt/lqosync/scripts/config_migration_check.py",
             "policy_path_audit_script": "/opt/lqosync/scripts/policy_path_audit.py",
+            "stable_release_check_script": "/opt/lqosync/scripts/stable_release_check.py",
+        },
+        "stable_release": {
+            "target": "v2.70 Stable Release Candidate",
+            "feature_freeze": True,
+            "allow_new_sidebar_modules": False,
+            "require_release_check": True,
+            "require_regression_check": True,
+            "require_config_migration_check": True,
+            "require_policy_path_audit": True,
+            "require_stable_release_check": True,
+            "compatibility_routes": ["/health", "/services", "/logs", "/policy", "/notifications", "/routers"],
         },
         "production_readiness": {
             "enabled": True,

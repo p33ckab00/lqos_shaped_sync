@@ -52,6 +52,16 @@ fi
 POLICY_PATH_STATUS=${POLICY_PATH_STATUS:-0}
 echo
 
+echo "== Stable release candidate check =="
+if [[ -x scripts/stable_release_check.py || -f scripts/stable_release_check.py ]]; then
+  python3 scripts/stable_release_check.py || STABLE_RELEASE_STATUS=$?
+else
+  echo "[WARN] scripts/stable_release_check.py not found; skipping."
+  STABLE_RELEASE_STATUS=0
+fi
+STABLE_RELEASE_STATUS=${STABLE_RELEASE_STATUS:-0}
+echo
+
 echo "== Environment / config doctor =="
 CONFIG_PATH="${CONFIG_PATH}" python3 scripts/doctor.py "${CONFIG_PATH}" "$@" || DOCTOR_STATUS=$?
 DOCTOR_STATUS=${DOCTOR_STATUS:-0}
@@ -65,7 +75,7 @@ else
   echo "[INFO] systemd is not available in this environment; skipping service status."
 fi
 
-if [[ "${RELEASE_STATUS}" -ne 0 || "${REGRESSION_STATUS:-0}" -ne 0 || "${MIGRATION_STATUS:-0}" -ne 0 || "${POLICY_PATH_STATUS:-0}" -ne 0 || "${DOCTOR_STATUS}" -ne 0 ]]; then
+if [[ "${RELEASE_STATUS}" -ne 0 || "${REGRESSION_STATUS:-0}" -ne 0 || "${MIGRATION_STATUS:-0}" -ne 0 || "${POLICY_PATH_STATUS:-0}" -ne 0 || "${STABLE_RELEASE_STATUS:-0}" -ne 0 || "${DOCTOR_STATUS}" -ne 0 ]]; then
   echo
   echo "Doctor completed with issues. Review FAIL/WARN lines above."
   exit 1

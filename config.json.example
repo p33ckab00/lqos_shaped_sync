@@ -1,5 +1,5 @@
 {
-  "config_schema_version": 8,
+  "config_schema_version": 9,
   "network_mode": "router_children",
   "flat_network": false,
   "no_parent": false,
@@ -152,7 +152,7 @@
     "recommended_start_page": "/setup-wizard"
   },
   "config_validation": {
-    "schema_version": 7,
+    "schema_version": 9,
     "validate_before_save": true,
     "simulate_before_save": true,
     "show_config_health": true,
@@ -167,7 +167,8 @@
     "release_check_script": "/opt/lqosync/scripts/release_check.py",
     "regression_check_script": "/opt/lqosync/scripts/regression_check.py",
     "config_migration_check_script": "/opt/lqosync/scripts/config_migration_check.py",
-    "policy_path_audit_script": "/opt/lqosync/scripts/policy_path_audit.py"
+    "policy_path_audit_script": "/opt/lqosync/scripts/policy_path_audit.py",
+    "stable_release_check_script": "/opt/lqosync/scripts/stable_release_check.py"
   },
   "policies": {
     "mode": "balanced",
@@ -506,5 +507,23 @@
       "apply_health": true,
       "service_health": true
     }
+  },
+  "stable_release": {
+    "target": "v2.70 Stable Release Candidate",
+    "feature_freeze": true,
+    "allow_new_sidebar_modules": false,
+    "require_release_check": true,
+    "require_regression_check": true,
+    "require_config_migration_check": true,
+    "require_policy_path_audit": true,
+    "require_stable_release_check": true,
+    "compatibility_routes": [
+      "/health",
+      "/services",
+      "/logs",
+      "/policy",
+      "/notifications",
+      "/routers"
+    ]
   }
 }

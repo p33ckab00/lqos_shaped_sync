@@ -21,8 +21,8 @@
 
 <div class="page-header">
   <div>
-    <div class="page-title">Smart Setup / Repair Center</div>
-    <div class="page-subtitle">Guided setup, health checks, safe repair commands, policy preset setup, and Git/install adoption guidance.</div>
+    <div class="page-title">System Validation / Setup Repair</div>
+    <div class="page-subtitle">Stable-release validation, health checks, safe repair commands, policy preset setup, and Git/install adoption guidance.</div>
   </div>
   <div class="btn-row">
     <a class="btn" href="/setup-wizard"><i class="ti ti-route-square"></i> Setup Wizard</a>
@@ -35,8 +35,20 @@
 
 <section class="card" style="margin-bottom:12px;border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.07)">
   <div class="card-title"><i class="ti ti-book"></i> Diagnostics, not duplicate manual</div>
-  <p class="text-sm" style="color:var(--muted)">Setup & Repair now focuses on live diagnostics, readiness score, repair commands, and next actions. Long explanations live in Documentation/About and docs/content as the source of truth, so instructions do not drift between pages.</p>
-  <div class="btn-row" style="margin-top:10px"><a class="btn" href="/about"><i class="ti ti-book-2"></i> Open Documentation</a><a class="btn" href="/policy"><i class="ti ti-shield-cog"></i> Open Policy Center</a></div>
+  <p class="text-sm" style="color:var(--muted)">System Validation now focuses on live diagnostics, readiness score, release checks, repair commands, and next actions. Long explanations live in Documentation/About and docs/content as the source of truth, so instructions do not drift between pages.</p>
+  <div class="btn-row" style="margin-top:10px"><a class="btn" href="/about"><i class="ti ti-book-2"></i> Open Documentation</a><a class="btn" href="/config?tab=policies"><i class="ti ti-shield-cog"></i> Open Policy Center</a></div>
+</section>
+
+<section class="card" style="margin-bottom:12px;border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.06)">
+  <div class="card-title"><i class="ti ti-shield-check"></i> Stable Release Validation Chain</div>
+  <p class="text-sm" style="color:var(--muted)">v2.70 is a stable release candidate. Use this page as System Validation: verify package integrity, route compatibility, regression checks, config migration, policy/path coverage, and update readiness before production changes.</p>
+  <div class="btn-row" style="margin-top:10px"><a class="btn" href="/api/stable-release/check" target="_blank"><i class="ti ti-code"></i> Stable JSON</a><a class="btn" href="/docs/search?q=stable+release"><i class="ti ti-book"></i> Stable docs</a></div>
+  <pre class="mono text-xs command-box">cd /opt/lqosync
+python3 scripts/release_check.py
+python3 scripts/regression_check.py
+python3 scripts/config_migration_check.py
+python3 scripts/policy_path_audit.py
+python3 scripts/stable_release_check.py</pre>
 </section>
 
 <section class="two-grid" style="margin-bottom:12px">

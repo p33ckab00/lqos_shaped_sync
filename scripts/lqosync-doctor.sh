@@ -52,6 +52,16 @@ fi
 POLICY_PATH_STATUS=${POLICY_PATH_STATUS:-0}
 echo
 
+echo "== Stale file cleanup check =="
+if [[ -x scripts/cleanup_stale_files.py || -f scripts/cleanup_stale_files.py ]]; then
+  python3 scripts/cleanup_stale_files.py || CLEANUP_STATUS=$?
+else
+  echo "[WARN] scripts/cleanup_stale_files.py not found; skipping."
+  CLEANUP_STATUS=0
+fi
+CLEANUP_STATUS=${CLEANUP_STATUS:-0}
+echo
+
 echo "== Stable release candidate check =="
 if [[ -x scripts/stable_release_check.py || -f scripts/stable_release_check.py ]]; then
   python3 scripts/stable_release_check.py || STABLE_RELEASE_STATUS=$?

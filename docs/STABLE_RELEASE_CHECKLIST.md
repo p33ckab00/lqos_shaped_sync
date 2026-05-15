@@ -32,3 +32,8 @@ python3 scripts/stable_release_check.py
 - No missing policy/path warnings.
 - No stale route links.
 - No undocumented production behavior changes.
+
+
+## v2.70.1-rc1 Stable RC Stale Template Cleanup Hotfix
+
+This hotfix adds `scripts/cleanup_stale_files.py` for older ZIP/manual installs that may keep files removed from the canonical package. The first known stale file is `templates/routers.html`, because Router Insight now lives in Config Center → Routers and `/routers` redirects there. Run `python3 scripts/cleanup_stale_files.py --apply` then rerun `python3 scripts/stable_release_check.py`.

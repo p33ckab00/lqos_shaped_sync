@@ -175,7 +175,7 @@ def compute_stable_release_check(root: str | Path | None = None) -> dict[str, An
         items.append(StableItem("templates.classification", "Template classification", "ok", f"{len(templates['templates'])} templates classified as active/compatibility/secondary", "templates"))
     else:
         names = ", ".join(r["template"] for r in templates["review"][:10])
-        items.append(StableItem("templates.classification", "Template classification", "warn", f"Templates need review: {names}", "templates", "Classify or remove stale templates before stable tag."))
+        items.append(StableItem("templates.classification", "Template classification", "warn", f"Templates need review: {names}", "templates", "Run python3 scripts/cleanup_stale_files.py --apply, then rerun scripts/stable_release_check.py."))
 
     preflight = update_preflight_check(root)
     if preflight["ok"]:

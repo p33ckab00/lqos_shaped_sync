@@ -161,3 +161,8 @@ python3 scripts/stable_release_check.py
 ```
 
 Compatibility aliases remain in place: `/health`, `/services`, `/logs`, `/policy`, `/notifications`, and `/routers` redirect to their canonical compact UI destinations.
+
+
+## v2.70.1-rc1 Stable RC Stale Template Cleanup Hotfix
+
+This hotfix adds `scripts/cleanup_stale_files.py` for older ZIP/manual installs that may keep files removed from the canonical package. The first known stale file is `templates/routers.html`, because Router Insight now lives in Config Center → Routers and `/routers` redirects there. Run `python3 scripts/cleanup_stale_files.py --apply` then rerun `python3 scripts/stable_release_check.py`.

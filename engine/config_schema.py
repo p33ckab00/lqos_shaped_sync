@@ -99,6 +99,7 @@ def migrate_config_schema(cfg: dict) -> tuple[dict, list[str]]:
             "config_migration_check_script": "/opt/lqosync/scripts/config_migration_check.py",
             "policy_path_audit_script": "/opt/lqosync/scripts/policy_path_audit.py",
             "stable_release_check_script": "/opt/lqosync/scripts/stable_release_check.py",
+            "cleanup_stale_files_script": "/opt/lqosync/scripts/cleanup_stale_files.py",
         },
         "stable_release": {
             "target": "v2.70 Stable Release Candidate",

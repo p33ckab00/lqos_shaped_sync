@@ -26,3 +26,8 @@ Do not blindly pull. Create a backup first, then decide whether GitHub main is t
 - Run Dry Run.
 - Open Operations Center and check apply/log/audit tabs.
 - Open System Validation and run the validation chain.
+
+
+## v2.70.1-rc1 Stable RC Stale Template Cleanup Hotfix
+
+This hotfix adds `scripts/cleanup_stale_files.py` for older ZIP/manual installs that may keep files removed from the canonical package. The first known stale file is `templates/routers.html`, because Router Insight now lives in Config Center → Routers and `/routers` redirects there. Run `python3 scripts/cleanup_stale_files.py --apply` then rerun `python3 scripts/stable_release_check.py`.

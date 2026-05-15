@@ -180,6 +180,13 @@
       "path": "docs/content/production_readiness_score.md",
       "category": "Operations",
       "summary": "v2.68 Dashboard production readiness score, go-live checks, blockers, recommendations, and read-only readiness API."
+    },
+    {
+      "id": "stable_rc_stale_template_cleanup",
+      "title": "Stable RC Stale Template Cleanup Hotfix",
+      "path": "docs/content/stable_rc_stale_template_cleanup.md",
+      "category": "Release",
+      "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html."
     }
   ],
   "docs": [
@@ -203,6 +210,13 @@
       "path": "docs/content/production_readiness_score.md",
       "category": "Operations",
       "summary": "v2.68 Dashboard production readiness score, go-live checks, blockers, recommendations, and read-only readiness API."
+    },
+    {
+      "id": "stable_rc_stale_template_cleanup",
+      "title": "Stable RC Stale Template Cleanup Hotfix",
+      "path": "docs/content/stable_rc_stale_template_cleanup.md",
+      "category": "Release",
+      "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html."
     }
   ],
   "backup_restore_center_polish": {
@@ -264,5 +278,11 @@
     "file": "docs/POLICY_PATH_REFERENCE.md",
     "anchor": "policy--path-reference",
     "summary": "Policy/path audit purpose and important policy groups."
+  },
+  "stable_rc_stale_template_cleanup": {
+    "title": "Stable RC Stale Template Cleanup Hotfix",
+    "file": "docs/content/stable_rc_stale_template_cleanup.md",
+    "anchor": "stable-rc-stale-template-cleanup-hotfix",
+    "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html."
   }
 }

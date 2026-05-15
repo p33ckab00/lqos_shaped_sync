@@ -1,3 +1,19 @@
+# LQoSync Release Notes
+
+## v2.70.1-rc1 - Stable RC Stale Template Cleanup Hotfix
+
+### Fixed
+
+- Adds `scripts/cleanup_stale_files.py` to detect and remove known stale files left behind by older ZIP/manual installs.
+- Adds `templates/routers.html` to the known stale-file cleanup list because Router Insight now lives in Config Center → Routers and `/routers` is only a compatibility redirect.
+- Updates `upgrade.sh` to run stale-file cleanup automatically after code update so stable validation does not warn about old untracked templates.
+- Updates `lqosync-doctor.sh` to show stale-file cleanup status before running the stable release candidate check.
+- Updates stable release validation guidance to recommend running `python3 scripts/cleanup_stale_files.py --apply` when stale templates are detected.
+
+### Notes
+
+This is a cleanup/hotfix release. It does not change MikroTik collection, cleanup policy behavior, generated files, scheduler behavior, backups, Telegram delivery, or LibreQoS apply behavior.
+
 # Release Notes
 
 ## v2.70.0-rc1 — Stable Release Candidate / Production Freeze

@@ -104,6 +104,12 @@ if systemctl is-active --quiet "$SERVICE_NAME"; then
 fi
 
 pull_or_clone
+
+if [ -f "$INSTALL_DIR/scripts/cleanup_stale_files.py" ]; then
+  log "Removing known stale files from older ZIP/manual installs..."
+  python3 "$INSTALL_DIR/scripts/cleanup_stale_files.py" --apply || true
+fi
+
 NEW_COMMIT="$(git -C "$INSTALL_DIR" rev-parse --short HEAD 2>/dev/null || echo unknown)"
 log "Commit: $OLD_COMMIT -> $NEW_COMMIT"
 

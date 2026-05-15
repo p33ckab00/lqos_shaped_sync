@@ -166,6 +166,13 @@
       "path": "docs/content/production_hardening_regression_suite.md",
       "category": "operations",
       "summary": "Offline release/regression checks for routes, templates, config migration, policy behavior, Operations Center, and documentation integrity."
+    },
+    {
+      "id": "backup_restore_center_polish",
+      "title": "Backup / Restore Center Polish",
+      "path": "docs/content/backup_restore_center_polish.md",
+      "category": "Operations",
+      "summary": "Backup preview, integrity check, live diff, zip download, and retention preview for Operations Center."
     }
   ],
   "docs": [
@@ -175,6 +182,19 @@
       "path": "docs/content/ui_consistency_redundancy_polish.md",
       "category": "Operations",
       "summary": "Explains the v2.64 compact operator model, UI consistency helpers, dashboard shortcuts, and Operations Center pagination polish."
+    },
+    {
+      "id": "backup_restore_center_polish",
+      "title": "Backup / Restore Center Polish",
+      "path": "docs/content/backup_restore_center_polish.md",
+      "category": "Operations",
+      "summary": "Backup preview, integrity check, live diff, zip download, and retention preview for Operations Center."
     }
-  ]
+  ],
+  "backup_restore_center_polish": {
+    "title": "Backup / Restore Center Polish",
+    "file": "docs/content/backup_restore_center_polish.md",
+    "anchor": "v266-backup--restore-center-polish",
+    "summary": "v2.66 backup preview, integrity check, live diff, zip download, and retention preview for Operations Center backups."
+  }
 }

@@ -2,6 +2,8 @@ import json
 import os
 import secrets
 import subprocess
+import io
+import zipfile
 from pathlib import Path
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Response, abort
 from dotenv import load_dotenv
@@ -16,7 +18,7 @@ from engine.state import load_state, update_state
 from scheduler.runner import LQoSyncScheduler
 from builders.shaped_devices import read_shaped_devices_csv, render_shaped_devices_csv
 from builders.network_json import read_network_json, render_network_json, flatten_nodes
-from applier.backup import list_backups, delete_backup
+from applier.backup import list_backups, delete_backup, inspect_backup, compare_backup_to_live, retention_preview
 from applier.libreqos_runner import run_libreqos_update
 from applier.rollback import restore_backup
 from collectors.mikrotik_client import test_router_connection, connect_to_router, get_resource_data
@@ -1591,6 +1593,63 @@ def logs_page():
     args = request.args.to_dict(flat=True)
     args.setdefault("tab", "logs")
     return redirect(url_for("operations_center", **args))
+
+
+@app.route("/backups/<backup_id>/preview")
+@login_required
+def backup_preview(backup_id):
+    """Read-only backup inspection and restore preview."""
+    cfg = load_config(CONFIG_PATH)
+    try:
+        inspection = inspect_backup(cfg, backup_id)
+        comparison = compare_backup_to_live(cfg, backup_id)
+    except Exception as e:
+        flash(f"Backup preview failed: {e}")
+        return redirect(url_for("operations_center", tab="backups"))
+    return render_template(
+        "backup_preview.html",
+        backup_id=backup_id,
+        inspection=inspection,
+        comparison=comparison,
+        user=current_user(),
+    )
+
+
+@app.route("/backups/<backup_id>/download")
+@login_required
+def backup_download(backup_id):
+    """Download a single backup directory as a zip archive."""
+    cfg = load_config(CONFIG_PATH)
+    inspection = inspect_backup(cfg, backup_id)
+    backup_path = Path(inspection["path"])
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for item in backup_path.rglob("*"):
+            if item.is_file():
+                zf.write(item, item.relative_to(backup_path.parent))
+    buf.seek(0)
+    return Response(
+        buf.getvalue(),
+        mimetype="application/zip",
+        headers={"Content-Disposition": f"attachment; filename=lqos_backup_{backup_id}.zip"},
+    )
+
+
+@app.route("/api/backups/<backup_id>/preview")
+@login_required
+def api_backup_preview(backup_id):
+    cfg = load_config(CONFIG_PATH)
+    try:
+        return jsonify({"ok": True, "inspection": inspect_backup(cfg, backup_id), "comparison": compare_backup_to_live(cfg, backup_id)})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
+
+
+@app.route("/api/backups/retention-preview")
+@login_required
+def api_backup_retention_preview():
+    cfg = load_config(CONFIG_PATH)
+    return jsonify(retention_preview(cfg))
 
 
 @app.route("/backups/<backup_id>/restore", methods=["POST"])

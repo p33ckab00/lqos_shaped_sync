@@ -1,0 +1,43 @@
+{% extends "base.html" %}{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Backup Preview</div>
+    <div class="page-subtitle">Read-only integrity check and restore preview for backup <span class="mono">{{ backup_id }}</span>.</div>
+  </div>
+  <div class="btn-row">
+    <a class="btn" href="/operations?tab=backups"><i class="ti ti-arrow-left"></i> Backups</a>
+    <a class="btn" href="/backups/{{ backup_id }}/download"><i class="ti ti-download"></i> Download zip</a>
+    {% if user.role == 'admin' %}
+    <form method="post" action="/backups/{{ backup_id }}/restore" onsubmit="return confirm('Restore backup {{ backup_id }}? Current files will be backed up first so the restore can be reversed.')">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-rotate-clockwise"></i> Restore</button></form>
+    {% endif %}
+  </div>
+</div>
+
+<section class="grid-stats">
+  <div class="stat"><div class="stat-label"><i class="ti ti-shield-check"></i> Integrity</div><div class="stat-value {{ 'text-accent' if inspection.ok else 'text-err' }}">{{ 'OK' if inspection.ok else 'Check' }}</div><div class="stat-sub">metadata hash verification</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-file-diff"></i> Live Diff</div><div class="stat-value {{ 'text-warn' if comparison.changed_count else 'text-accent' }}">{{ comparison.changed_count }}</div><div class="stat-sub">files differ from live targets</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-calendar"></i> Reason</div><div class="stat-value">{{ inspection.metadata.reason or 'backup' }}</div><div class="stat-sub">backup metadata</div></div>
+  <div class="stat"><div class="stat-label"><i class="ti ti-folder"></i> Files</div><div class="stat-value">{{ inspection.files|length }}</div><div class="stat-sub">tracked files</div></div>
+</section>
+
+<div class="card" style="margin-top:12px">
+  <div class="card-title"><i class="ti ti-info-circle"></i> Restore Safety</div>
+  <div class="note">This page does not modify live files. Restore will first create a new backup of current live files, then replace only files present in this selected backup.</div>
+</div>
+
+<div class="card" style="margin-top:12px;overflow:auto">
+  <div class="card-title"><i class="ti ti-shield-search"></i> Backup Integrity</div>
+  <table class="table">
+    <thead><tr><th>File</th><th>Exists</th><th>Size</th><th>Hash OK</th><th>SHA256</th></tr></thead>
+    <tbody>{% for f in inspection.files %}<tr><td class="mono">{{ f.name }}</td><td>{{ 'yes' if f.exists else 'no' }}</td><td class="mono">{{ f.size_bytes }}</td><td><span class="badge {{ 'b-ok' if f.hash_ok else 'b-err' }}">{{ 'OK' if f.hash_ok else 'CHECK' }}</span></td><td class="mono" style="max-width:220px;overflow:hidden;text-overflow:ellipsis">{{ f.sha256 or '—' }}</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+
+<div class="card" style="margin-top:12px;overflow:auto">
+  <div class="card-title"><i class="ti ti-file-diff"></i> Restore Preview vs Live Files</div>
+  <table class="table">
+    <thead><tr><th>File</th><th>Backup</th><th>Live</th><th>Status</th><th>Restore action</th></tr></thead>
+    <tbody>{% for c in comparison.comparisons %}<tr><td class="mono">{{ c.name }}</td><td>{{ 'exists' if c.backup_exists else 'missing' }} · {{ c.backup_size_bytes }} bytes</td><td>{{ 'exists' if c.live_exists else 'missing' }} · {{ c.live_size_bytes }} bytes<br><span class="mono text-xs">{{ c.live_path }}</span></td><td><span class="badge {{ 'b-warn' if c.changed else 'b-ok' }}">{{ 'changed' if c.changed else 'same' }}</span></td><td class="mono">{{ c.restore_action }}</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% endblock %}

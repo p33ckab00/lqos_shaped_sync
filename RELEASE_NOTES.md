@@ -1,5 +1,20 @@
 # LQoSync Release Notes
 
+## v2.66.0 - Backup / Restore Center Polish
+
+### Improved
+
+- Adds read-only backup preview/inspection from Operations Center.
+- Adds backup integrity details for tracked backup files and metadata hashes.
+- Adds live-file comparison so operators can see whether selected backup files differ from current live files before restore.
+- Adds backup zip download for a selected backup directory.
+- Adds retention preview API for visibility into configured backup retention pruning.
+- Keeps restore behavior reversible by creating a new backup of current live files before rollback.
+
+### Notes
+
+This is an Operations Center backup/restore UX and safety release. It does not change MikroTik collection, cleanup policy behavior, generated file building, scheduler behavior, or LibreQoS apply behavior.
+
 ## v2.65.0 - Production Hardening + Regression Test Suite
 
 ### Added

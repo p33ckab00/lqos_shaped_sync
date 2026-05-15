@@ -7311,3 +7311,8 @@ The full environment doctor also runs these checks:
 ```bash
 sudo CONFIG_PATH=/opt/libreqos/src/config.json bash scripts/lqosync-doctor.sh
 ```
+
+
+## v2.66 Backup / Restore Center Polish
+
+Operations Center backups now support read-only preview, metadata/hash integrity checks, live-file comparison, selected-backup zip download, and retention preview visibility. Restore still creates a fresh backup of current live files before rollback so restore remains reversible. This is a backup/restore UX and safety improvement only.

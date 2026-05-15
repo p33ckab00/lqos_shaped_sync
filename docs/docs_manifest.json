@@ -159,6 +159,13 @@
       "path": "docs/content/ui_consistency_redundancy_polish.md",
       "category": "Operations",
       "summary": "Explains the v2.64 compact operator model, UI consistency helpers, dashboard shortcuts, and Operations Center pagination polish."
+    },
+    {
+      "id": "production-hardening-regression-suite",
+      "title": "Production Hardening + Regression Suite",
+      "path": "docs/content/production_hardening_regression_suite.md",
+      "category": "operations",
+      "summary": "Offline release/regression checks for routes, templates, config migration, policy behavior, Operations Center, and documentation integrity."
     }
   ],
   "docs": [

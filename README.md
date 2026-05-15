@@ -100,3 +100,21 @@ This hotfix resolves an Internal Server Error on `/operations` caused by a varia
 ## v2.64 UI Consistency and Redundancy Polish
 
 LQoSync v2.64 improves the compact operator experience without changing engine behavior. Dashboard remains the live status cockpit, Operations Center owns services/journals/logs/audit/backups, Reports is export-focused, Config Center owns settings/policies/notifications, and Documentation Center is the single manual surface. Operations Center Apply History and Audit Events now use consistent pagination and row-limit controls.
+
+
+## v2.65 Production Hardening + Regression Suite
+
+LQoSync v2.65 adds offline regression checks for route/template wiring, high-risk template context, preserved config migration, policy safety behavior, Operations Center compatibility, and documentation integrity. Before publishing or updating from GitHub, run:
+
+```bash
+cd /opt/lqosync
+python3 scripts/release_check.py
+python3 scripts/regression_check.py
+python3 scripts/config_migration_check.py
+```
+
+The full environment doctor also runs these checks:
+
+```bash
+sudo CONFIG_PATH=/opt/libreqos/src/config.json bash scripts/lqosync-doctor.sh
+```

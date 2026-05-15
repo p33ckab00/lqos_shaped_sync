@@ -49,8 +49,73 @@ def migrate_config_schema(cfg: dict) -> tuple[dict, list[str]]:
         normalize_policies(migrated)
         if before != migrated.get("policies"):
             notes.append("Merged missing Smart Policy defaults")
+    # Schema-owned defaults that must exist even when a preserved older
+    # config.json bypasses the full config_loader DEFAULT_CONFIG merge. Keep
+    # these fragments local to avoid circular imports with config_loader.
+    default_fragments = {
+        "notifications": {
+            "enabled": True,
+            "internal_center_enabled": True,
+            "telegram": {
+                "enabled": False,
+                "bot_token": "",
+                "chat_id": "",
+                "base_url": "",
+                "parse_mode": "HTML",
+                "timeout_seconds": 10,
+                "notify_levels": ["critical", "warning"],
+                "minimum_interval_seconds": 60,
+                "dedupe_window_minutes": 60,
+                "max_items_per_digest": 10,
+                "send_digest": True,
+                "send_individual": False,
+                "notify_on_apply_failed": True,
+                "notify_on_policy_block": True,
+                "notify_on_confirmation_required": True,
+                "notify_on_update_available": True,
+                "notify_on_source_health_warning": True,
+                "notify_on_performance_slow": True,
+            },
+        },
+        "setup_wizard": {
+            "enabled": True,
+            "first_run_completed": False,
+            "redirect_after_login_until_complete": True,
+            "show_dashboard_banner_until_complete": True,
+            "scheduler_enable_requires_dry_run": True,
+            "scheduler_enable_requires_no_failed_checks": True,
+            "scheduler_enable_requires_router_and_source": True,
+            "allow_force_scheduler_enable": False,
+            "recommended_start_page": "/setup-wizard",
+        },
+        "package_quality": {
+            "enabled": True,
+            "check_routes_templates": True,
+            "check_config_defaults": True,
+            "show_in_setup_repair": True,
+            "doctor_script": "/opt/lqosync/scripts/lqosync-doctor.sh",
+            "release_check_script": "/opt/lqosync/scripts/release_check.py",
+            "regression_check_script": "/opt/lqosync/scripts/regression_check.py",
+        },
+        "config_validation": {
+            "schema_version": CONFIG_SCHEMA_VERSION,
+            "validate_before_save": True,
+            "simulate_before_save": True,
+            "show_config_health": True,
+            "block_save_on_schema_errors": True,
+        },
+    }
+    for key, defaults in default_fragments.items():
+        before = deepcopy(migrated.get(key, {}))
+        if not isinstance(migrated.get(key), dict):
+            migrated[key] = deepcopy(defaults)
+            notes.append(f"Added missing {key} block")
+        else:
+            migrated[key] = deep_merge(defaults, migrated.get(key, {}))
+            if before != migrated[key]:
+                notes.append(f"Merged missing {key} defaults")
     migrated.setdefault("config_validation", {})
-    migrated["config_validation"].setdefault("schema_version", CONFIG_SCHEMA_VERSION)
+    migrated["config_validation"]["schema_version"] = CONFIG_SCHEMA_VERSION
     migrated["config_validation"].setdefault("validate_before_save", True)
     migrated["config_validation"].setdefault("simulate_before_save", True)
     return migrated, notes

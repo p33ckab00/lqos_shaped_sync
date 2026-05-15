@@ -55,3 +55,5 @@ This index is the GitHub-friendly map for the consolidated LQoSync documentation
   - v2.62 consolidates Policy Center and Telegram notification delivery settings into Config Center while keeping compatibility redirects.
 - [Documentation Consolidation and Source of Truth](content/documentation_consolidation.md)
   - v2.63 consolidates GitHub and WebUI documentation into docs/content, docs_manifest, README, and FULL_DOCUMENTATION as one coherent source-of-truth system.
+
+- [Production Hardening + Regression Suite](content/production_hardening_regression_suite.md)

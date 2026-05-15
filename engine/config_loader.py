@@ -169,7 +169,9 @@ DEFAULT_CONFIG = {
         "check_config_defaults": True,
         "show_in_setup_repair": True,
         "doctor_script": "/opt/lqosync/scripts/lqosync-doctor.sh",
-        "release_check_script": "/opt/lqosync/scripts/release_check.py"
+        "release_check_script": "/opt/lqosync/scripts/release_check.py",
+        "regression_check_script": "/opt/lqosync/scripts/regression_check.py",
+        "config_migration_check_script": "/opt/lqosync/scripts/config_migration_check.py"
     },
     "policies": smart_policy_defaults(),
     "services": {

@@ -1,5 +1,21 @@
 # LQoSync Release Notes
 
+## v2.65.0 - Production Hardening + Regression Test Suite
+
+### Added
+
+- Added `engine/regression.py` as an offline production-hardening regression suite.
+- Added `scripts/regression_check.py` for route/template wiring, high-risk template context, config migration, policy safety behavior, Operations Center compatibility, and documentation integrity checks.
+- Added `scripts/config_migration_check.py` to focused-test preserved older config scenarios against the current schema and policy defaults.
+- Updated `scripts/lqosync-doctor.sh` to run release integrity, regression, config migration, and environment/config checks in one operator command.
+- Strengthened config schema migration so preserved older configs deep-merge `notifications`, `setup_wizard`, `package_quality`, and `config_validation` defaults without overwriting operator values.
+- Added regression script paths to `package_quality` defaults.
+- Added production hardening documentation under `docs/content/production_hardening_regression_suite.md`.
+
+### Notes
+
+This is a hardening and testing release. It does not change MikroTik collection, cleanup policy decisions, generated files, scheduler behavior, backup behavior, Telegram delivery behavior, or LibreQoS apply behavior.
+
 ## v2.64.0 - UI Consistency and Redundancy Polish
 
 ### Improved

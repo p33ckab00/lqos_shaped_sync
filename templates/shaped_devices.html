@@ -4,7 +4,7 @@
   <div class="btn-row">
     <a href="/download/csv" class="btn"><i class="ti ti-download"></i> Export CSV</a>
     <a href="/network" class="btn"><i class="ti ti-topology-star"></i> Network</a>
-    {% if user.role == 'admin' %}<form method="post" action="/sync/run">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-refresh"></i> Sync now</button></form>{% endif %}
+    {% if role_at_least(user.role, 'admin') %}<form method="post" action="/sync/run">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-refresh"></i> Sync now</button></form>{% endif %}
   </div>
 </div>
 

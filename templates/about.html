@@ -6,7 +6,7 @@
   </div>
   <div class="btn-row">
     <a class="btn btn-primary" href="/docs/search"><i class="ti ti-search"></i> Open Documentation</a>
-    <a class="btn" href="/updates"><i class="ti ti-cloud-download"></i> Update Center</a>
+    {% if user and role_at_least(user.role, 'owner') %}<a class="btn" href="/updates"><i class="ti ti-cloud-download"></i> Update Center</a>{% endif %}
   </div>
 </div>
 <section class="responsive-grid">

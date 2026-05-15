@@ -1,4 +1,18 @@
-# LQoSync Release Notes
+# Release Notes
+
+## v2.70.4-rc1 — UI Wiring Audit + Role Visibility Hotfix
+
+- Added `engine/ui_wiring_audit.py` and `scripts/ui_wiring_audit.py` for deeper static UI wiring validation.
+- Fixed role-hardened action visibility by replacing literal `user.role == 'admin'` checks with `role_at_least(user.role, 'admin')` or `role_at_least(user.role, 'operator')` where appropriate.
+- Fixed owner accounts not seeing admin-capable action buttons in Dashboard, Network Layout, Shaped Devices, Operations Center, Backup Preview, and compatibility templates.
+- Gated owner-only Update Center links in About and Setup/System Validation pages so non-owner users do not see links that lead to 403 Forbidden.
+- Added UI wiring checks for policy preset wiring inside Config Center → Policies, canonical compatibility routes, owner-only links, role visibility, and stale files.
+- Integrated UI wiring audit into `release_check.py`, `regression_check.py`, `stable_release_check.py`, and `lqosync-doctor.sh`.
+- Expanded stale-file cleanup to include `app.py.pre_reports_route_fix` in addition to old `templates/routers.html`.
+- Added `package_quality.ui_wiring_audit_script` to config defaults and schema migration.
+- Updated documentation, docs manifest, documentation index, README, full documentation, operator guide, release notes, and version metadata to `2.70.4-rc1`.
+
+This is a UI wiring, role visibility, and validation hotfix only. It does not change MikroTik collection, cleanup policy execution, generated file formats, scheduler timing, backup implementation, Telegram delivery, or LibreQoS apply mechanics.
 
 ## v2.70.3-rc1 - Policy Preset Wiring Hotfix
 

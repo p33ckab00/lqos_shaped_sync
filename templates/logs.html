@@ -38,7 +38,7 @@
           <div class="mono text-xs backup-id" title="{{ b.id }}">{{ b.id }}</div>
           {% if b.metadata.reason %}<div class="mono text-xs backup-reason">{{ b.metadata.reason }}</div>{% endif %}
         </div>
-        {% if user.role == 'admin' %}
+        {% if role_at_least(user.role, 'admin') %}
         <div class="backup-actions">
           <form method="post" action="/backups/{{ b.id }}/restore" onsubmit="return confirm('Restore backup {{ b.id }}? Current files will be backed up first so the restore can be reversed.')">
             {{ csrf_field()|safe }}

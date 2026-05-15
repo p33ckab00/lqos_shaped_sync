@@ -20,7 +20,7 @@
     <div class="page-subtitle">LibreQoS services, LQoSync service, LibreQoS.py apply history, and elapsed-time timeline</div>
   </div>
   <div class="btn-row">
-    {% if user.role == 'admin' %}
+    {% if role_at_least(user.role, 'admin') %}
     <form method="post" action="/libreqos/force-apply" onsubmit="return confirm('Force LibreQoS.py --updateonly now?')">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-bolt"></i> Force LibreQoS Apply</button></form>
     {% endif %}
     <a class="btn" href="/logs"><i class="ti ti-file-text"></i> Logs & backups</a>
@@ -53,7 +53,7 @@
         <div style="display:flex;align-items:center;gap:6px">
           <span class="badge {{ 'b-ok' if info.active == 'active' else ('b-warn' if info.load == 'not-found' else 'b-err') }}">{{ info.active }}</span>
           <a class="action-btn" title="View journal" href="/services?unit={{ unit }}"><i class="ti ti-terminal-2"></i></a>
-          {% if user.role == 'admin' %}
+          {% if role_at_least(user.role, 'admin') %}
           <form method="post" action="/services/{{ unit }}/restart" onsubmit="return confirm('Restart {{ unit }}?')">{{ csrf_field()|safe }}<button class="action-btn" title="Restart {{ unit }}"><i class="ti ti-refresh"></i></button></form>
           {% endif %}
         </div>
@@ -73,7 +73,7 @@
             <div class="mono" style="font-weight:600">{{ group }}</div>
             <div class="mono text-sm" style="color:var(--hint)">{{ units|join(' + ') }}</div>
           </div>
-          {% if user.role == 'admin' %}
+          {% if role_at_least(user.role, 'admin') %}
           <form method="post" action="/services/group/{{ group }}/restart" onsubmit="return confirm('Restart group {{ group }}: {{ units|join(' + ') }}?')">{{ csrf_field()|safe }}<button class="btn"><i class="ti ti-refresh"></i> Restart group</button></form>
           {% endif %}
         </div>

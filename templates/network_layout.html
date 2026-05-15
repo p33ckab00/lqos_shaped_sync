@@ -9,8 +9,8 @@
   </div>
   <div class="btn-row">
     <a href="/download/network" class="btn"><i class="ti ti-download"></i> Export network.json</a>
-    <form method="post" action="/sync/dry-run">{{ csrf_field()|safe }}<button class="btn"><i class="ti ti-eye"></i> Dry run</button></form>
-    {% if user.role == 'admin' %}<button class="btn btn-primary" onclick="saveTopology()"><i class="ti ti-device-floppy"></i> Save topology</button>{% endif %}
+    {% if role_at_least(user.role, 'operator') %}<form method="post" action="/sync/dry-run">{{ csrf_field()|safe }}<button class="btn"><i class="ti ti-eye"></i> Dry run</button></form>{% endif %}
+    {% if role_at_least(user.role, 'admin') %}<button class="btn btn-primary" onclick="saveTopology()"><i class="ti ti-device-floppy"></i> Save topology</button>{% endif %}
   </div>
 </div>
 

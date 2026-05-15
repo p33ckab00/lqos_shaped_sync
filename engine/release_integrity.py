@@ -230,7 +230,22 @@ def compute_release_integrity(root: str | Path | None = None) -> dict[str, Any]:
     root = Path(root or Path(__file__).resolve().parents[1])
     route_report = check_route_template_integrity(root)
     config_report = check_config_defaults(root)
-    items = [*route_report["items"], *config_report["items"]]
+    try:
+        from engine.ui_wiring_audit import audit_ui_wiring
+        ui_report = audit_ui_wiring(root)
+        if ui_report["summary"].get("fail", 0):
+            failed = [x for x in ui_report.get("items", []) if x.get("status") == "fail"]
+            detail = "; ".join((x.get("title", "ui") + ": " + x.get("detail", "")) for x in failed[:5])
+            ui_items = [IntegrityItem("ui.wiring", "UI wiring audit", "fail", detail, "ui", "Run scripts/ui_wiring_audit.py and fix role/link/preset/stale wiring gaps.").to_dict()]
+        elif ui_report["summary"].get("warn", 0):
+            warned = [x for x in ui_report.get("items", []) if x.get("status") == "warn"]
+            detail = "; ".join((x.get("title", "ui") + ": " + x.get("detail", "")) for x in warned[:5])
+            ui_items = [IntegrityItem("ui.wiring", "UI wiring audit", "warn", detail, "ui", "Review UI wiring warnings before stable tag.").to_dict()]
+        else:
+            ui_items = [IntegrityItem("ui.wiring", "UI wiring audit", "ok", f"{ui_report['summary'].get('ok', 0)} UI wiring checks passed", "ui").to_dict()]
+    except Exception as exc:
+        ui_items = [IntegrityItem("ui.wiring", "UI wiring audit", "fail", str(exc), "ui", "Fix engine/ui_wiring_audit.py or template imports.").to_dict()]
+    items = [*route_report["items"], *config_report["items"], *ui_items]
     summary = {
         "ok": sum(1 for i in items if i["status"] == "ok"),
         "warn": sum(1 for i in items if i["status"] == "warn"),
@@ -245,6 +260,7 @@ def compute_release_integrity(root: str | Path | None = None) -> dict[str, Any]:
         "items": items,
         "route_template": route_report,
         "config_defaults": config_report,
+        "ui_wiring": ui_items,
     }
 
 

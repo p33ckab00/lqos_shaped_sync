@@ -15,7 +15,7 @@ from engine.policy_defaults import CLEANUP_ACTIONS, POLICY_PRESETS, smart_policy
 from engine.policy_schema import POLICY_SCHEMA, get_by_path, normalize_policies
 from rules.network_mode import VALID_NETWORK_MODES
 
-CONFIG_SCHEMA_VERSION = 10
+CONFIG_SCHEMA_VERSION = 11
 
 
 def deep_merge(base: dict, override: dict) -> dict:
@@ -108,6 +108,7 @@ def migrate_config_schema(cfg: dict) -> tuple[dict, list[str]]:
             "config_migration_check_script": "/opt/lqosync/scripts/config_migration_check.py",
             "policy_path_audit_script": "/opt/lqosync/scripts/policy_path_audit.py",
             "stable_release_check_script": "/opt/lqosync/scripts/stable_release_check.py",
+            "ui_wiring_audit_script": "/opt/lqosync/scripts/ui_wiring_audit.py",
             "cleanup_stale_files_script": "/opt/lqosync/scripts/cleanup_stale_files.py",
         },
         "stable_release": {

@@ -27,7 +27,7 @@
   <div class="btn-row">
     <a class="btn" href="/setup-wizard"><i class="ti ti-route-square"></i> Setup Wizard</a>
     <a class="btn" href="/sync/dry-run"><i class="ti ti-eye"></i> Run Dry Run</a>
-    <a class="btn" href="/updates"><i class="ti ti-cloud-download"></i> Update Center</a>
+    {% if user and role_at_least(user.role, 'owner') %}<a class="btn" href="/updates"><i class="ti ti-cloud-download"></i> Update Center</a>{% endif %}
     <a class="btn" href="/config"><i class="ti ti-settings"></i> Config Center</a>
     <a class="btn" href="/api/release/integrity" target="_blank"><i class="ti ti-package"></i> Integrity JSON</a>
   </div>

@@ -44,8 +44,10 @@
       <div class="page-subtitle">Production control plane for MikroTik collection, LibreQoS file generation, apply decisions, and timing metrics · {{ (cfg.get('routers') or [{}])[0].get('name','No router') }}</div>
     </div>
     <div class="btn-row">
-      {% if user.role == 'admin' %}
+      {% if role_at_least(user.role, 'operator') %}
       <form method="post" action="/sync/dry-run">{{ csrf_field()|safe }}<button class="btn"><i class="ti ti-eye"></i> Dry run</button></form>
+      {% endif %}
+      {% if role_at_least(user.role, 'admin') %}
       {% if manual_blocked %}<button class="btn btn-primary" disabled title="Auto update via scheduler is active"><i class="ti ti-refresh"></i> Run sync now</button>{% else %}<form method="post" action="/sync/run">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-refresh"></i> Run sync now</button></form>{% endif %}
       <form method="post" action="/scheduler/{{ 'disable' if sched_enabled else 'enable' }}">{{ csrf_field()|safe }}<button class="btn"><i class="ti {{ 'ti-player-pause' if sched_enabled else 'ti-player-play' }}"></i> {{ 'Disable' if sched_enabled else 'Enable' }} scheduler</button></form>
       {% endif %}
@@ -68,7 +70,7 @@
       Setup progress is <b>{{ setup_wizard.progress }}%</b>. Scheduler go-live is {% if setup_wizard.production_ready %}<b class="text-accent">ready</b>{% else %}<b class="text-warn">blocked</b>{% endif %}.
       {% if setup_wizard.go_live_blockers %}<br>Blockers: {{ setup_wizard.go_live_blockers[:3]|join('; ') }}{% endif %}
     </div>
-    <div class="btn-row" style="margin-top:10px"><a class="btn btn-primary" href="/setup-wizard"><i class="ti ti-arrow-right"></i> Continue Setup Wizard</a><a class="btn" href="/setup-repair"><i class="ti ti-tool"></i> Setup & Repair</a></div>
+    {% if role_at_least(user.role, 'admin') %}<div class="btn-row" style="margin-top:10px"><a class="btn btn-primary" href="/setup-wizard"><i class="ti ti-arrow-right"></i> Continue Setup Wizard</a><a class="btn" href="/setup-repair"><i class="ti ti-tool"></i> Setup & Repair</a></div>{% endif %}
   </div>
   {% endif %}
 
@@ -76,7 +78,7 @@
   {% if config_warnings %}<div class="card" style="border-color:rgba(245,158,11,.5);margin-bottom:12px"><div class="card-title text-warn"><i class="ti ti-alert-triangle"></i> Config Warnings</div><ul class="mono text-warn text-sm" style="padding-left:18px">{% for w in config_warnings %}<li>{{ w }}</li>{% endfor %}</ul></div>{% endif %}
 
   {% if manual_blocked %}<div class="card" style="border-color:rgba(34,197,94,.35);margin-bottom:12px;background:rgba(34,197,94,.08)"><div class="card-title"><i class="ti ti-refresh-dot text-accent"></i> Auto update via scheduler is active</div><div class="text-sm" style="color:var(--muted)">Manual Run Sync Now is disabled to avoid overlapping applies. The scheduler writes changed files and runs LibreQoS.py automatically when changes are detected. Dry Run remains available for preview.</div></div>{% endif %}
-  {% if pending_apply %}<div class="card" style="border-color:rgba(245,158,11,.5);margin-bottom:12px;background:rgba(245,158,11,.08)"><div class="card-title text-warn"><i class="ti ti-alert-triangle"></i> Pending LibreQoS apply</div><div class="text-sm" style="color:var(--muted)">Files were written but the last apply failed or did not complete. LQoSync will retry on the next non-dry-run cycle, or you can use Services & Journals → Force LibreQoS Apply.</div></div>{% endif %}
+  {% if pending_apply %}<div class="card" style="border-color:rgba(245,158,11,.5);margin-bottom:12px;background:rgba(245,158,11,.08)"><div class="card-title text-warn"><i class="ti ti-alert-triangle"></i> Pending LibreQoS apply</div><div class="text-sm" style="color:var(--muted)">Files were written but the last apply failed or did not complete. LQoSync will retry on the next non-dry-run cycle, or you can use Operations Center → Force LibreQoS Apply.</div></div>{% endif %}
   {% if dry %}<a href="/sync/dry-run" class="card" style="display:flex;gap:10px;align-items:center;margin-bottom:12px;text-decoration:none;border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.08)"><i class="ti ti-info-circle text-dhcp" style="font-size:19px"></i><span class="text-sm">Last dry run: <b class="text-dhcp">+{{ dry.diff.csv.counts.added if dry.diff and dry.diff.csv else 0 }}</b> added, <b class="text-dhcp">~{{ dry.diff.csv.counts.updated if dry.diff and dry.diff.csv else 0 }}</b> updated, <b class="text-dhcp">-{{ dry.diff.csv.counts.removed if dry.diff and dry.diff.csv else 0 }}</b> removed. Preview available.</span></a>{% endif %}
 
   {% include "dashboard_production_readiness_fragment.html" %}
@@ -283,7 +285,7 @@
         <div class="op-line"><span>{{ svc }}{% if info.legacy_optional %} <span class="badge b-warn">legacy</span>{% endif %}</span><strong class="{{ 'text-accent' if info.active == 'active' else ('text-warn' if info.active == 'not_installed' else 'text-err') }}">{{ 'not installed' if info.active == 'not_installed' else info.active }}</strong></div>
         {% endfor %}
       </div>
-      <div class="btn-row" style="margin-top:12px"><a class="btn" href="/services"><i class="ti ti-terminal-2"></i> Services & Journals</a></div>
+      <div class="btn-row" style="margin-top:12px"><a class="btn" href="/operations?tab=services"><i class="ti ti-terminal-2"></i> Operations Center</a></div>
     </div>
   </section>
 

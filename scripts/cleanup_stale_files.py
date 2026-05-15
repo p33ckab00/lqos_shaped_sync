@@ -20,6 +20,11 @@ STALE_FILES = [
         "reason": "Standalone Router page removed; /routers now redirects to Config Center → Routers and Router Insight is embedded there.",
         "introduced_by": "pre-v2.69.1 ZIP/manual installs",
     },
+    {
+        "path": "app.py.pre_reports_route_fix",
+        "reason": "Old one-off backup/debug file from an earlier reports route hotfix; not part of the stable runtime package.",
+        "introduced_by": "pre-v2.70.4 manual/ZIP packages",
+    },
 ]
 
 

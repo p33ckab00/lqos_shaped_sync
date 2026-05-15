@@ -1,5 +1,5 @@
 {
-  "config_schema_version": 10,
+  "config_schema_version": 11,
   "network_mode": "router_children",
   "flat_network": false,
   "no_parent": false,
@@ -153,7 +153,7 @@
     "recommended_start_page": "/setup-wizard"
   },
   "config_validation": {
-    "schema_version": 10,
+    "schema_version": 11,
     "validate_before_save": true,
     "simulate_before_save": true,
     "show_config_health": true,
@@ -170,7 +170,8 @@
     "config_migration_check_script": "/opt/lqosync/scripts/config_migration_check.py",
     "policy_path_audit_script": "/opt/lqosync/scripts/policy_path_audit.py",
     "stable_release_check_script": "/opt/lqosync/scripts/stable_release_check.py",
-    "cleanup_stale_files_script": "/opt/lqosync/scripts/cleanup_stale_files.py"
+    "cleanup_stale_files_script": "/opt/lqosync/scripts/cleanup_stale_files.py",
+    "ui_wiring_audit_script": "/opt/lqosync/scripts/ui_wiring_audit.py"
   },
   "policies": {
     "mode": "balanced",

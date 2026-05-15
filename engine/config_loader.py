@@ -175,6 +175,7 @@ DEFAULT_CONFIG = {
         "config_migration_check_script": "/opt/lqosync/scripts/config_migration_check.py",
         "policy_path_audit_script": "/opt/lqosync/scripts/policy_path_audit.py",
         "stable_release_check_script": "/opt/lqosync/scripts/stable_release_check.py",
+        "ui_wiring_audit_script": "/opt/lqosync/scripts/ui_wiring_audit.py",
         "cleanup_stale_files_script": "/opt/lqosync/scripts/cleanup_stale_files.py"
     },
     "stable_release": {

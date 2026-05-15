@@ -7,7 +7,7 @@
   <div class="btn-row">
     <a class="btn" href="/operations?tab=backups"><i class="ti ti-arrow-left"></i> Backups</a>
     <a class="btn" href="/backups/{{ backup_id }}/download"><i class="ti ti-download"></i> Download zip</a>
-    {% if user.role == 'admin' %}
+    {% if role_at_least(user.role, 'admin') %}
     <form method="post" action="/backups/{{ backup_id }}/restore" onsubmit="return confirm('Restore backup {{ backup_id }}? Current files will be backed up first so the restore can be reversed.')">{{ csrf_field()|safe }}<button class="btn btn-primary"><i class="ti ti-rotate-clockwise"></i> Restore</button></form>
     {% endif %}
   </div>

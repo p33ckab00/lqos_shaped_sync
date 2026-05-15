@@ -15,6 +15,7 @@ from typing import Any
 from engine.release_integrity import collect_app_routes, collect_render_templates, collect_internal_links, route_exists, compute_release_integrity
 from engine.regression import compute_regression_suite, check_config_migration_regressions
 from engine.policy_path_audit import audit_policy_and_paths
+from engine.ui_wiring_audit import audit_ui_wiring
 
 STABLE_RELEASE_TARGET = "v2.70 Stable Release Candidate"
 FEATURE_FREEZE_POLICY = {
@@ -213,6 +214,15 @@ def compute_stable_release_check(root: str | Path | None = None) -> dict[str, An
         items.append(StableItem("policy.path_audit", "Policy/path audit", "warn", f"WARN={policy_paths['summary'].get('warn')}", "policy", "Review warnings before stable tag."))
     else:
         items.append(StableItem("policy.path_audit", "Policy/path audit", "ok", f"OK={policy_paths['summary'].get('ok')}", "policy"))
+
+
+    ui_wiring = audit_ui_wiring(root)
+    if ui_wiring["summary"].get("fail"):
+        items.append(StableItem("ui.wiring", "UI wiring audit", "fail", f"FAIL={ui_wiring['summary'].get('fail')} WARN={ui_wiring['summary'].get('warn')}", "ui", "Run scripts/ui_wiring_audit.py and fix role/link/preset/stale wiring gaps."))
+    elif ui_wiring["summary"].get("warn"):
+        items.append(StableItem("ui.wiring", "UI wiring audit", "warn", f"WARN={ui_wiring['summary'].get('warn')}", "ui", "Review UI wiring warnings before stable tag."))
+    else:
+        items.append(StableItem("ui.wiring", "UI wiring audit", "ok", f"OK={ui_wiring['summary'].get('ok')}", "ui"))
 
     version = (root / "VERSION").read_text(encoding="utf-8", errors="ignore").strip() if (root / "VERSION").exists() else "unknown"
     if not version.startswith("2.70"):

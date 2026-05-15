@@ -62,6 +62,16 @@ fi
 CLEANUP_STATUS=${CLEANUP_STATUS:-0}
 echo
 
+echo "== UI wiring audit =="
+if [[ -x scripts/ui_wiring_audit.py || -f scripts/ui_wiring_audit.py ]]; then
+  python3 scripts/ui_wiring_audit.py || UI_WIRING_STATUS=$?
+else
+  echo "[WARN] scripts/ui_wiring_audit.py not found; skipping."
+  UI_WIRING_STATUS=0
+fi
+UI_WIRING_STATUS=${UI_WIRING_STATUS:-0}
+echo
+
 echo "== Stable release candidate check =="
 if [[ -x scripts/stable_release_check.py || -f scripts/stable_release_check.py ]]; then
   python3 scripts/stable_release_check.py || STABLE_RELEASE_STATUS=$?
@@ -85,7 +95,7 @@ else
   echo "[INFO] systemd is not available in this environment; skipping service status."
 fi
 
-if [[ "${RELEASE_STATUS}" -ne 0 || "${REGRESSION_STATUS:-0}" -ne 0 || "${MIGRATION_STATUS:-0}" -ne 0 || "${POLICY_PATH_STATUS:-0}" -ne 0 || "${STABLE_RELEASE_STATUS:-0}" -ne 0 || "${DOCTOR_STATUS}" -ne 0 ]]; then
+if [[ "${RELEASE_STATUS}" -ne 0 || "${REGRESSION_STATUS:-0}" -ne 0 || "${MIGRATION_STATUS:-0}" -ne 0 || "${POLICY_PATH_STATUS:-0}" -ne 0 || "${UI_WIRING_STATUS:-0}" -ne 0 || "${STABLE_RELEASE_STATUS:-0}" -ne 0 || "${DOCTOR_STATUS}" -ne 0 ]]; then
   echo
   echo "Doctor completed with issues. Review FAIL/WARN lines above."
   exit 1

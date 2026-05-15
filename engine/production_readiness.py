@@ -140,15 +140,29 @@ def compute_production_readiness(
     else:
         _add(checks, "sources", "Router/source readiness", "ok", 0, f"{enabled_routers} enabled router(s); {enabled_sources} enabled source group(s).", "", "/config")
 
-    # 4. Backup/readiness guards
+    # 4. Operation mode, auto-apply requirement, and optional backup policy.
     app_cfg = cfg.get("app") or {}
+    operation_mode = str(app_cfg.get("operation_mode") or "automatic").strip().lower()
     auto_apply = bool(app_cfg.get("auto_apply", True))
-    backup_before = bool(app_cfg.get("backup_before_apply", True))
-    if auto_apply and not backup_before:
-        penalize(16, "Auto-apply is enabled while backup_before_apply is disabled.")
-        _add(checks, "backup", "Backup before apply", "warn", -16, "Auto-apply is enabled while backup_before_apply is disabled.", "Enable backup_before_apply in Config Center.", "/config")
+    backup_before = bool(app_cfg.get("backup_before_apply", False))
+    backup_retention = _as_int(app_cfg.get("backup_retention"), 10)
+    if operation_mode == "automatic" and not auto_apply:
+        penalize(30, "Automatic operation mode requires app.auto_apply=true.", blocker=True)
+        _add(checks, "auto_apply", "Auto Apply Requirement", "fail", -30, "Operation mode is automatic but auto_apply is disabled.", "Enable app.auto_apply or switch app.operation_mode to manual.", "/config")
+    elif operation_mode == "manual" and not auto_apply:
+        _add(checks, "auto_apply", "Auto Apply Requirement", "ok", 0, "Manual operation mode: auto_apply is optional and currently disabled.", "", "/config")
     else:
-        _add(checks, "backup", "Backup before apply", "ok", 0, f"auto_apply={auto_apply}, backup_before_apply={backup_before}.", "", "/config")
+        _add(checks, "auto_apply", "Auto Apply Requirement", "ok", 0, f"operation_mode={operation_mode}, auto_apply={auto_apply}.", "", "/config")
+
+    if backup_before:
+        backup_detail = f"Optional auto-backup is enabled; retention={backup_retention}."
+        if backup_retention < 1:
+            penalize(3, "Auto-backup is enabled but backup_retention is below 1.")
+            _add(checks, "backup", "Auto Backup Policy", "warn", -3, backup_detail, "Set backup_retention to at least 1 or disable auto-backup.", "/config")
+        else:
+            _add(checks, "backup", "Auto Backup Policy", "ok", 0, backup_detail, "", "/config")
+    else:
+        _add(checks, "backup", "Auto Backup Policy", "ok", 0, "Optional auto-backup is disabled by operator choice. Storage use is reduced; rollback convenience is reduced.", "Use manual backup before major updates or enable backup_before_apply if you want automatic rollback points.", "/config")
 
     # 5. File/path readiness
     paths = cfg.get("paths") or {}

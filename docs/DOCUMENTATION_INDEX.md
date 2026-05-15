@@ -76,3 +76,5 @@ LQoSync v2.67 adds a clearer owner/admin/operator/viewer role model. Owner contr
 - [Stable Release Checklist](STABLE_RELEASE_CHECKLIST.md) — preflight/operator checklist for stable candidates.
 - [Upgrade Guide](UPGRADE_GUIDE.md) — safe GitHub update and post-upgrade checks.
 - [Policy / Path Reference](POLICY_PATH_REFERENCE.md) — policy/path audit and important policy groups.
+
+- [Config Policy Hierarchy UI](content/policy_hierarchy_ui.md) — v2.70.2-rc1 compact policy hierarchy and auto-apply/optional backup interpretation.

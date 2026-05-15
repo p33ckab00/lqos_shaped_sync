@@ -119,9 +119,9 @@ SMART_POLICY_DEFAULTS = {
         "max_recommended_depth": 4,
     },
     "backup_guard": {
-        "require_backup_before_apply": True,
-        "warn_if_backup_disabled_while_auto_apply_enabled": True,
-        "minimum_backup_retention": 30,
+        "require_backup_before_apply": False,
+        "warn_if_backup_disabled_while_auto_apply_enabled": False,
+        "minimum_backup_retention": 10,
     },
     "anomaly_detection": {
         "enabled": True,

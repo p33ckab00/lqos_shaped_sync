@@ -124,21 +124,21 @@ def data_quality_score(config: dict, result: Any, policy_decision: dict[str, Any
 
 def backup_readiness(config: dict, result: Any | None = None) -> dict[str, Any]:
     app = config.get("app", {}) or {}
-    enabled = bool(app.get("backup_before_apply", True))
-    retention = _as_int(app.get("backup_retention"), 30)
+    enabled = bool(app.get("backup_before_apply", False))
+    retention = _as_int(app.get("backup_retention"), 10)
     auto_apply = bool(app.get("auto_apply", True))
-    status = "ready" if enabled and retention >= 1 else "warning"
-    message = "Backups are enabled before file writes/apply." if enabled else "backup_before_apply is disabled."
-    if enabled and retention < 30:
+    status = "ready"
+    message = "Optional auto-backup is enabled before file writes/apply." if enabled else "Optional auto-backup is disabled by operator choice; storage growth is reduced."
+    if enabled and retention < 1:
         status = "warning"
-        message = "Backups are enabled but retention is lower than the recommended 30 backups."
+        message = "Auto-backup is enabled but retention is lower than 1."
     return {
         "enabled": enabled,
         "retention": retention,
         "auto_apply": auto_apply,
         "status": status,
         "message": message,
-        "recommended_retention": 30,
+        "recommended_retention": 10,
     }
 
 
@@ -235,9 +235,9 @@ def compute_smart_insights(config: dict, result: Any, policy_decision: dict[str,
             source="speed_resolver",
         )
     if not backup.get("enabled") and backup.get("auto_apply"):
-        _add_recommendation(recommendations, "Enable backup_before_apply", "Auto-apply is enabled but backups before apply are disabled.", "Enable backup_before_apply in Config Center before relying on unattended scheduler applies.", "warning", source="backup_guard")
-    elif backup.get("enabled") and backup.get("retention", 0) < backup.get("recommended_retention", 30):
-        _add_recommendation(recommendations, "Increase backup retention", "Backup retention is below the recommended value for production rollbacks.", "Set backup_retention to at least 30 in Config Center.", "info", source="backup_guard")
+        _add_recommendation(recommendations, "Optional auto-backup disabled", "Auto-apply is enabled while backup_before_apply is disabled by operator choice.", "This is allowed storage-saving mode. Use manual backup before major updates or enable backup_before_apply if you want automatic rollback points.", "info", source="backup_guard")
+    elif backup.get("enabled") and backup.get("retention", 0) < backup.get("recommended_retention", 10):
+        _add_recommendation(recommendations, "Review backup retention", "Auto-backup is enabled but retention is below the recommended storage-saving value.", "Set backup_retention to at least 10, or lower it intentionally to save disk.", "info", source="backup_guard")
     if quality.get("level") in {"needs_attention", "poor"}:
         _add_recommendation(recommendations, "Improve data quality before auto-apply", f"Data Quality is {quality['score']}% ({quality['level'].replace('_',' ')}).", "Review validation errors, collector errors, fallback speeds, and Policy Center warnings before applying.", "high", source="data_quality")
     for a in anomalies.get("anomalies", [])[:5]:

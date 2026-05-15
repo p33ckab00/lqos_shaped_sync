@@ -396,10 +396,10 @@ def evaluate_apply_guards(config: dict, decision: PolicyDecision, preflight: dic
         if "fallback" in str(warn).lower():
             decision.add_warning("Fallback speed warning", str(warn), severity="warning")
     backup_guard = pol.get("backup_guard", {}) or {}
-    if backup_guard.get("warn_if_backup_disabled_while_auto_apply_enabled", True):
-        if config.get("app", {}).get("auto_apply", True) and not config.get("app", {}).get("backup_before_apply", True):
-            decision.add_warning("Backup before apply is disabled", "Auto-apply is enabled but backup_before_apply is disabled.", severity="warning")
-            decision.add_recommendation("Enable backup_before_apply", "Backups make rollback safer when auto-apply is enabled.", "Enable backup_before_apply in Config Center.", severity="warning")
+    if backup_guard.get("warn_if_backup_disabled_while_auto_apply_enabled", False):
+        if config.get("app", {}).get("auto_apply", True) and not config.get("app", {}).get("backup_before_apply", False):
+            decision.add_warning("Optional auto-backup is disabled", "Auto-apply is enabled and backup_before_apply is disabled by operator policy.", severity="info")
+            decision.add_recommendation("Review backup policy", "Auto-backup is optional. Disabled mode reduces storage growth but reduces automatic rollback convenience.", "Leave disabled for storage-saving mode or enable backup_before_apply for automatic rollback points.", severity="info")
     return decision.finalize()
 
 

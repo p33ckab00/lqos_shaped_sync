@@ -106,10 +106,10 @@ for section_key, section_label, entries in [
         ("warn_on_deep_hierarchy_depth", "Warn on deep hierarchy depth", "bool", True, "medium"),
         ("max_recommended_depth", "Max recommended hierarchy depth", "number", 4, "medium"),
     ]),
-    ("backup_guard", "Backup Guards", [
-        ("require_backup_before_apply", "Require backup before apply", "bool", True, "high"),
-        ("warn_if_backup_disabled_while_auto_apply_enabled", "Warn if backups disabled with auto-apply", "bool", True, "high"),
-        ("minimum_backup_retention", "Minimum backup retention", "number", 30, "medium"),
+    ("backup_guard", "Backup Policy", [
+        ("require_backup_before_apply", "Require backup before apply", "bool", False, "medium"),
+        ("warn_if_backup_disabled_while_auto_apply_enabled", "Warn if optional backups are disabled", "bool", False, "low"),
+        ("minimum_backup_retention", "Minimum backup retention when enabled", "number", 10, "low"),
     ]),
     ("anomaly_detection", "Anomaly Detection", [
         ("enabled", "Anomaly detection", "bool", True, "medium"),
@@ -326,9 +326,9 @@ GENERAL_EXPLANATIONS = {
     "topology_guard.warn_on_virtual_node_promotion": ("Warns when virtual nodes may promote children to nearest physical ancestor.", "Keep enabled so operators understand LibreQoS virtual-node behavior.", "Virtual nodes are useful but can surprise operators if not explained."),
     "topology_guard.warn_on_deep_hierarchy_depth": ("Warns when topology depth grows beyond recommended levels.", "Keep enabled for readability and performance awareness.", "Very deep trees are harder to debug."),
     "topology_guard.max_recommended_depth": ("Recommended maximum hierarchy depth before warnings appear.", "4 is a good practical default.", "Higher depth may be valid but should be deliberate."),
-    "backup_guard.require_backup_before_apply": ("Requires or expects a backup before LibreQoS apply.", "Keep enabled for production.", "Applying without backups makes rollback harder."),
-    "backup_guard.warn_if_backup_disabled_while_auto_apply_enabled": ("Warns when auto-apply is enabled but backup_before_apply is disabled.", "Keep enabled.", "This exact warning is a strong production-safety signal."),
-    "backup_guard.minimum_backup_retention": ("Minimum number of backups considered healthy.", "30 gives practical rollback history.", "Too low reduces rollback options."),
+    "backup_guard.require_backup_before_apply": ("Controls whether backup_before_apply is treated as required. LQoSync defaults this off because auto-backup is an operator storage/rollback choice.", "Keep disabled for storage-saving automatic deployments; enable only if every apply must create a rollback point.", "If enabled while app.backup_before_apply is off, policy conflicts will warn or block according to your guards."),
+    "backup_guard.warn_if_backup_disabled_while_auto_apply_enabled": ("Controls whether optional auto-backup disabled should produce policy warnings while auto-apply is enabled.", "Keep disabled if backup_before_apply is intentionally optional. Enable only when your operation requires automatic rollback points.", "Enabling this can make storage-saving mode look unhealthy."),
+    "backup_guard.minimum_backup_retention": ("Minimum retention count considered healthy when automatic backups are enabled.", "Use 5–10 for storage-saving deployments, higher only when you need more rollback history.", "Retention only matters when automatic or manual backups are being created."),
     "anomaly_detection.enabled": ("Enables rule-based anomaly detection from previous successful runs.", "Keep enabled for smart warnings.", "Disabling removes early warning for unusual drops/slowness."),
     "anomaly_detection.compare_with_last_successful_run": ("Uses last successful run as baseline for anomaly checks.", "Keep enabled.", "Without baseline comparison, sudden changes are harder to classify."),
     "anomaly_detection.warn_if_client_count_drops_percent": ("Warns when client count drops by this percentage compared with baseline.", "30% is a practical default.", "Too low can be noisy; too high may miss incidents."),

@@ -757,6 +757,7 @@ def config_page():
         identity_report=client_identity_report(cfg),
         telegram=telegram_settings_summary(cfg),
         router_overview=router_overview,
+        policy_hierarchy=grouped_policy_schema(),
         initial_tab=initial_tab,
         user=current_user(),
     )

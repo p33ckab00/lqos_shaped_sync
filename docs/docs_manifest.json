@@ -284,5 +284,11 @@
     "file": "docs/content/stable_rc_stale_template_cleanup.md",
     "anchor": "stable-rc-stale-template-cleanup-hotfix",
     "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html."
+  },
+  "policy.hierarchy_ui": {
+    "title": "Config Policy Hierarchy UI",
+    "file": "docs/content/policy_hierarchy_ui.md",
+    "anchor": "config-policy-hierarchy-ui",
+    "summary": "v2.70.2-rc1 compact Config Center policy hierarchy, required/recommended/optional setting classes, and auto-apply vs optional auto-backup behavior."
   }
 }

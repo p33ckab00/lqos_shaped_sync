@@ -1,5 +1,23 @@
 # LQoSync Release Notes
 
+## v2.70.2-rc1 - Config Policy Hierarchy UI + Optional Auto-Backup Semantics
+
+### Improved
+
+- Rebuilds Config Center → Policies into a compact hierarchy tree instead of a flat policy card list.
+- Groups policies by operator intent: Overview, General Core, PPPoE, DHCP, Hotspot, Static, Cleanup Lifecycle, Mass Removal, Apply Guards, Auto Apply, Backup Policy, Topology/Data, Speed Resolution, and Advanced JSON.
+- Shows policy labels, current values, recommended values, risk badges, descriptions, setup guidance, and config paths for visible policy settings.
+- Adds `app.operation_mode` with `automatic` and `manual` modes.
+- Treats `app.auto_apply` as required when `app.operation_mode=automatic`.
+- Treats `app.backup_before_apply` as optional storage/rollback policy by default.
+- Updates Production Readiness so auto-apply disabled in automatic mode is a blocker, while auto-backup disabled is accepted as storage-saving mode.
+- Updates policy defaults, policy schema, config migration, config simulator, insights, and setup/repair interpretation to match optional auto-backup semantics.
+- Adds Policy Hierarchy documentation.
+
+### Notes
+
+This is a Config Center UI and status-interpretation update. It does not change MikroTik collection, cleanup policy execution, generated file formats, scheduler timing, backup implementation, Telegram delivery, or LibreQoS apply mechanics.
+
 ## v2.70.1-rc1 - Stable RC Stale Template Cleanup Hotfix
 
 ### Fixed

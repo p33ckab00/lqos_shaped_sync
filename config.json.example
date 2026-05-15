@@ -1,5 +1,5 @@
 {
-  "config_schema_version": 9,
+  "config_schema_version": 10,
   "network_mode": "router_children",
   "flat_network": false,
   "no_parent": false,
@@ -8,9 +8,10 @@
     "name": "LQoSync",
     "auto_apply": true,
     "dry_run_default": false,
-    "backup_before_apply": true,
-    "backup_retention": 30,
-    "file_drift_policy": "overwrite_with_backup"
+    "backup_before_apply": false,
+    "backup_retention": 10,
+    "file_drift_policy": "overwrite_with_backup",
+    "operation_mode": "automatic"
   },
   "paths": {
     "shaped_devices_csv": "/opt/libreqos/src/ShapedDevices.csv",
@@ -152,7 +153,7 @@
     "recommended_start_page": "/setup-wizard"
   },
   "config_validation": {
-    "schema_version": 9,
+    "schema_version": 10,
     "validate_before_save": true,
     "simulate_before_save": true,
     "show_config_health": true,
@@ -271,9 +272,9 @@
       "max_recommended_depth": 4
     },
     "backup_guard": {
-      "require_backup_before_apply": true,
-      "warn_if_backup_disabled_while_auto_apply_enabled": true,
-      "minimum_backup_retention": 30
+      "require_backup_before_apply": false,
+      "warn_if_backup_disabled_while_auto_apply_enabled": false,
+      "minimum_backup_retention": 10
     },
     "anomaly_detection": {
       "enabled": true,

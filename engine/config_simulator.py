@@ -55,8 +55,8 @@ def derive_impacts(saved: dict, proposed: dict, changes: list[dict[str, Any]], s
         impacts.append({"severity": "medium", "title": "Network layout behavior changed", "detail": "Parent Node behavior or network.json generation may change. Run Dry Run before live scheduler/apply."})
     if "app.auto_apply" in changed_paths:
         impacts.append({"severity": "high" if proposed.get("app", {}).get("auto_apply") else "medium", "title": "Auto-apply setting changed", "detail": "LibreQoS.py apply behavior may change after file writes."})
-    if "app.backup_before_apply" in changed_paths and not proposed.get("app", {}).get("backup_before_apply", True):
-        impacts.append({"severity": "high", "title": "Backups disabled", "detail": "backup_before_apply is disabled. Rollback safety is reduced."})
+    if "app.backup_before_apply" in changed_paths and not proposed.get("app", {}).get("backup_before_apply", False):
+        impacts.append({"severity": "low", "title": "Optional auto-backup disabled", "detail": "backup_before_apply is disabled by operator choice. Storage use is reduced; automatic rollback convenience is reduced."})
     if any(p.startswith("routers") for p in changed_paths):
         impacts.append({"severity": "medium", "title": "Router/source settings changed", "detail": "MikroTik collector sources, credentials, or PPP/DHCP/Hotspot inputs may change. Dry Run is recommended."})
 

@@ -33,7 +33,7 @@ function cfgEditor(initial) {
   const ensure = (cfg) => {
     cfg.app ||= {}; cfg.paths ||= {}; cfg.libreqos ||= {}; cfg.scheduler ||= {}; cfg.defaults ||= {}; cfg.collector ||= {}; cfg.collector.pppoe ||= {}; cfg.collector.dhcp ||= {}; cfg.collector.hotspot ||= {}; cfg.preflight ||= {}; cfg.ui ||= {}; cfg.routers ||= []; cfg.services ||= {};
     cfg.network_mode ??= ((cfg.flat_network && cfg.no_parent) ? 'flat_no_parent' : (cfg.flat_network ? 'flat_router_root' : 'router_children'));
-    cfg.app.name ??= 'LQoSync'; cfg.app.auto_apply ??= true; cfg.app.dry_run_default ??= false; cfg.app.backup_before_apply ??= true; cfg.app.backup_retention ??= 30; cfg.app.file_drift_policy ??= 'overwrite_with_backup';
+    cfg.app.name ??= 'LQoSync'; cfg.app.operation_mode ??= 'automatic'; cfg.app.auto_apply ??= true; cfg.app.dry_run_default ??= false; cfg.app.backup_before_apply ??= false; cfg.app.backup_retention ??= 10; cfg.app.file_drift_policy ??= 'overwrite_with_backup';
     absPaths(cfg);
     cfg.collector.selective_fields ??= true; cfg.collector.pppoe.read_active ??= true; cfg.collector.pppoe.read_secrets ??= true; cfg.collector.pppoe.read_profiles ??= true; cfg.collector.dhcp.lease_mode ??= 'permissive'; cfg.collector.dhcp.read_server_metadata ??= true; cfg.collector.hotspot.enhanced_metadata ??= true;
     cfg.libreqos.cmd ??= '/opt/libreqos/src/LibreQoS.py'; cfg.libreqos.args ??= ['--updateonly']; cfg.libreqos.working_dir ??= '/opt/libreqos/src'; cfg.libreqos.timeout_seconds ??= 300; cfg.libreqos.run_only_when_files_changed ??= true; cfg.libreqos.retry_if_last_apply_failed ??= true; cfg.libreqos.sudo ??= true; cfg.libreqos.run_mode ??= 'direct';
@@ -86,6 +86,9 @@ function cfgEditor(initial) {
     removeDhcp(router, i){ if(confirm('Remove DHCP server entry from config.json? This does not touch MikroTik.')) router.dhcp.servers.splice(i,1); },
     markPolicyCustom(){ this.cfg.policies ||= {}; if(this.cfg.policies.mode !== 'custom') this.cfg.policies.mode = 'custom'; },
     policyActions(){ return ['preserve_rows','warn_only','cleanup_immediate','cleanup_next_run','require_confirm_immediate','require_confirm_next_run','block_cleanup','block_apply']; },
+    getPath(path){ return String(path).split('.').reduce((obj,key)=>obj ? obj[key] : undefined, this.cfg); },
+    setPath(path, value){ const parts=String(path).split('.'); let cur=this.cfg; for(let i=0;i<parts.length-1;i++){ if(cur[parts[i]]===undefined || cur[parts[i]]===null || typeof cur[parts[i]]!=='object') cur[parts[i]]={}; cur=cur[parts[i]]; } cur[parts[parts.length-1]]=value; this.markPolicyCustom(); },
+    policyRiskClass(risk){ return risk==='critical' ? 'b-err' : (risk==='high' ? 'b-warn' : (risk==='medium' ? 'b-dhcp' : 'b-ok')); },
     notifyLevelOptions(){ return ['critical','warning','info']; },
     eventToggleOptions(){ return [
       ['notify_on_apply_failed','LibreQoS apply failed'],
@@ -133,6 +136,7 @@ function cfgEditor(initial) {
 
 <style>
   .cfg-shell{display:grid;grid-template-columns:260px minmax(0,1fr) 430px;gap:12px;align-items:start}.cfg-nav{position:sticky;top:74px}.cfg-side{position:sticky;top:74px}.cfg-nav-card{padding:10px}.cfg-nav-btn{width:100%;display:flex;align-items:center;gap:9px;text-align:left;border:1px solid transparent;border-radius:10px;padding:10px 11px;color:var(--muted);font-size:12px;transition:.12s}.cfg-nav-btn:hover{background:var(--bg2);color:var(--txt)}.cfg-nav-btn.active{background:rgba(0,200,150,.10);border-color:rgba(0,200,150,.35);color:var(--c-accent);font-weight:700}.cfg-section{display:grid;gap:12px}.cfg-field{display:block;font-size:12px}.cfg-label{display:block;color:var(--muted);font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}.cfg-help{display:block;color:var(--hint);font-size:11px;margin-top:6px;line-height:1.35}.cfg-input,.cfg-select,.cfg-textarea{width:100%;background:var(--bg1);color:var(--txt);border:1px solid var(--br1);border-radius:10px;padding:9px 10px;outline:none}.cfg-input:focus,.cfg-select:focus,.cfg-textarea:focus{border-color:var(--c-accent);box-shadow:0 0 0 3px rgba(0,200,150,.08)}.cfg-toggle{display:flex;align-items:center;justify-content:space-between;gap:14px}.cfg-toggle input{width:20px;height:20px}.cfg-kpi{padding:13px;border:1px solid var(--br0);background:var(--bg1);border-radius:12px}.cfg-kpi-label{color:var(--hint);font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.05em}.cfg-kpi-value{font-family:var(--font-mono);font-size:18px;font-weight:700;margin-top:4px}.cfg-json{max-height:52vh;overflow:auto;font-family:var(--font-mono);font-size:11px;line-height:1.45;background:var(--bg1);color:var(--txt);border:1px solid var(--br0);border-radius:12px;padding:12px}.cfg-subtle{border:1px solid var(--br0);background:var(--bg1);border-radius:12px;padding:12px}.cfg-router-row{border:1px solid var(--br0);background:var(--bg1);border-radius:12px;padding:13px;display:flex;align-items:center;justify-content:space-between;gap:12px}.cfg-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--br1);background:var(--bg2);border-radius:999px;padding:4px 8px;font-size:10px;color:var(--muted);font-family:var(--font-mono)}.cfg-danger{background:rgba(239,68,68,.11);border-color:rgba(239,68,68,.35);color:#f87171}.cfg-ok{background:rgba(0,200,150,.10);border-color:rgba(0,200,150,.35);color:var(--c-accent)}.cfg-warn{background:rgba(245,158,11,.10);border-color:rgba(245,158,11,.35);color:var(--c-warn)}
+.policy-layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:12px;align-items:start}.policy-tree{position:sticky;top:74px;display:grid;gap:6px}.policy-tree-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;border:1px solid var(--br0);background:var(--bg1);border-radius:10px;padding:9px 10px;color:var(--muted);font-size:12px}.policy-tree-btn:hover,.policy-tree-btn.active{border-color:rgba(0,200,150,.35);background:rgba(0,200,150,.08);color:var(--txt)}.policy-field-card{border:1px solid var(--br0);background:var(--bg1);border-radius:12px;padding:12px;display:grid;gap:8px}.policy-field-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.policy-path{font-family:var(--font-mono);font-size:10px;color:var(--hint);word-break:break-all}.policy-required{display:inline-flex;align-items:center;gap:5px;border-radius:999px;border:1px solid var(--br0);padding:3px 7px;font-size:10px;font-family:var(--font-mono);color:var(--muted)}.policy-kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}.policy-ladder{counter-reset:step;display:grid;gap:7px}.policy-ladder div{counter-increment:step;border:1px solid var(--br0);border-radius:10px;padding:8px 10px;background:var(--bg1);font-size:12px;color:var(--muted)}.policy-ladder div:before{content:counter(step);display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;background:rgba(0,200,150,.12);color:var(--c-accent);font-family:var(--font-mono);font-size:10px;margin-right:8px}@media(max-width:1180px){.policy-layout{grid-template-columns:1fr}.policy-tree{position:static;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
   @media(max-width:1180px){.cfg-shell{grid-template-columns:1fr}.cfg-nav,.cfg-side{position:static}.cfg-nav-card{display:flex;flex-wrap:wrap}.cfg-nav-btn{width:auto}.cfg-json{max-height:420px}}
   @media(max-width:760px){.cfg-shell{display:block}.cfg-nav{margin-bottom:10px}.cfg-side{margin-top:10px}.cfg-nav-card{display:flex;overflow-x:auto;flex-wrap:nowrap;padding:8px;gap:6px}.cfg-nav-btn{flex:0 0 auto;white-space:nowrap;width:auto;min-height:40px;padding:9px 10px}.cfg-router-row{display:block}.cfg-router-row .btn-row{margin-top:10px}.cfg-toggle{align-items:flex-start}.cfg-kpi-value{font-size:15px;word-break:break-word}.cfg-json{max-height:300px;font-size:10px}.cfg-input,.cfg-select,.cfg-textarea{min-height:42px}.cfg-subtle{padding:10px}}
 </style>
@@ -201,9 +205,10 @@ function cfgEditor(initial) {
             <div class="card-title"><i class="ti ti-apps"></i> Application Settings</div>
             <div class="grid md:grid-cols-2 gap-3">
               <label class="cfg-field"><span class="cfg-label">App name</span><input x-model="cfg.app.name" class="cfg-input"></label>
-              <label class="cfg-field"><span class="cfg-label">Backup retention</span><input type="number" x-model.number="cfg.app.backup_retention" class="cfg-input"><span class="cfg-help">Number of generated backups to keep.</span></label>
-              <label class="cfg-toggle cfg-subtle"><span><b>Auto Apply</b><span class="cfg-help">Non-dry-run file changes automatically trigger LibreQoS.py.</span></span><input type="checkbox" x-model="cfg.app.auto_apply"></label>
-              <label class="cfg-toggle cfg-subtle"><span><b>Backup Before Apply</b><span class="cfg-help">Recommended for production rollback safety.</span></span><input type="checkbox" x-model="cfg.app.backup_before_apply"></label>
+              <label class="cfg-field"><span class="cfg-label">Operation mode</span><select x-model="cfg.app.operation_mode" class="cfg-select"><option>automatic</option><option>manual</option></select><span class="cfg-help">Automatic requires Auto Apply. Manual treats Auto Apply as optional.</span></label>
+              <label class="cfg-field"><span class="cfg-label">Backup retention</span><input type="number" x-model.number="cfg.app.backup_retention" class="cfg-input"><span class="cfg-help">Used only when backups are created.</span></label>
+              <label class="cfg-toggle cfg-subtle"><span><b>Auto Apply</b><span class="cfg-help">Required in automatic mode.</span></span><input type="checkbox" x-model="cfg.app.auto_apply"></label>
+              <label class="cfg-toggle cfg-subtle"><span><b>Optional Auto Backup</b><span class="cfg-help">Disabled is valid storage-saving mode.</span></span><input type="checkbox" x-model="cfg.app.backup_before_apply"></label>
               <label class="cfg-toggle cfg-subtle"><span><b>Dry-run Default</b><span class="cfg-help">Preview only. Never writes files or applies LibreQoS.</span></span><input type="checkbox" x-model="cfg.app.dry_run_default"></label>
               <label class="cfg-field"><span class="cfg-label">File Drift Policy</span><select x-model="cfg.app.file_drift_policy" class="cfg-select"><option>overwrite_with_backup</option><option>warn_only</option><option>block</option></select></label>
             </div>
@@ -298,84 +303,122 @@ function cfgEditor(initial) {
           </div>
         </section>
 
-        <section x-show="tab==='policies'" x-cloak class="cfg-section">
-          <div class="card" style="border-color:rgba(0,200,150,.35);background:rgba(0,200,150,.06)">
-            <div class="card-title"><i class="ti ti-shield-cog"></i> Smart Policy Center — Settings Integration</div>
-            <p class="text-sm" style="color:var(--muted)">These values are saved directly to <code>config.json → policies</code>. Manual edits switch the preset to <b>custom</b>. Policy Center is now a native Config Center tab. Preset comparison, conflicts, and key policy guidance are shown here while Advanced Raw JSON stays synchronized.</p>
-            <div class="btn-row" style="margin-top:10px"><a class="btn btn-primary" href="/sync/dry-run"><i class="ti ti-eye"></i> Dry Run Preview</a><a class="btn" href="/docs/search?q=policy"><i class="ti ti-book"></i> Policy docs</a></div>
+        <section x-show="tab==='policies'" x-cloak class="cfg-section" x-data="{psec:'overview'}">
+          {% macro policy_field(f) -%}
+          <div class="policy-field-card">
+            <div class="policy-field-head">
+              <div>
+                <div style="font-weight:700;color:var(--txt)">{{ f.label }}</div>
+                <div class="policy-path">{{ f.path }}</div>
+              </div>
+              <span class="badge {{ 'b-err' if f.risk == 'critical' else ('b-warn' if f.risk == 'high' else ('b-dhcp' if f.risk == 'medium' else 'b-ok')) }}">{{ f.risk }}</span>
+            </div>
+            <div class="text-sm" style="color:var(--muted)">{{ f.description }}</div>
+            {% if f.type == 'bool' %}
+            <label class="cfg-toggle cfg-subtle"><span><b>Current value</b><span class="cfg-help">Recommended: {{ f.recommended }}</span></span><input type="checkbox" :checked="!!getPath({{ f.path|tojson }})" @change="setPath({{ f.path|tojson }}, $event.target.checked)"></label>
+            {% elif f.type == 'number' %}
+            <label class="cfg-field"><span class="cfg-label">Current value</span><input type="number" class="cfg-input" :value="getPath({{ f.path|tojson }})" @input="setPath({{ f.path|tojson }}, Number($event.target.value))"><span class="cfg-help">Recommended: {{ f.recommended }}{% if f.min %} · min {{ f.min }}{% endif %}{% if f.max %} · max {{ f.max }}{% endif %}</span></label>
+            {% elif f.type == 'select' %}
+            <label class="cfg-field"><span class="cfg-label">Current value</span><select class="cfg-select" :value="getPath({{ f.path|tojson }})" @change="setPath({{ f.path|tojson }}, $event.target.value)">{% for c in f.choices %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select><span class="cfg-help">Recommended: {{ f.recommended }}</span></label>
+            {% else %}
+            <label class="cfg-field"><span class="cfg-label">Current value</span><input class="cfg-input" :value="getPath({{ f.path|tojson }})" @input="setPath({{ f.path|tojson }}, $event.target.value)"></label>
+            {% endif %}
+            <div class="cfg-help"><b>Setup guidance:</b> {{ f.setup_guidance or 'Visible operator policy setting saved to config.json.' }} {% if f.risk_note %}<br><b>Risk note:</b> {{ f.risk_note }}{% endif %}</div>
           </div>
-          <div class="grid lg:grid-cols-2 gap-3">
+          {%- endmacro %}
+
+          {% macro policy_group(title, icon, sections, subtitle='') -%}
+          <div x-show="psec==='{{ title|lower|replace(' ','_')|replace('/','_') }}'" x-cloak class="card">
+            <div class="card-title"><i class="ti {{ icon }}"></i> {{ title }}</div>
+            {% if subtitle %}<p class="text-sm" style="color:var(--muted);margin-bottom:10px">{{ subtitle }}</p>{% endif %}
+            <div style="display:grid;gap:10px">
+              {% for sec in sections %}
+                {% if policy_hierarchy.get(sec) %}
+                <div class="cfg-subtle">
+                  <div style="font-weight:800;margin-bottom:8px;color:var(--txt)">{{ sec }}</div>
+                  <div class="grid md:grid-cols-2 gap-3">
+                  {% for f in policy_hierarchy.get(sec, []) %}{{ policy_field(f) }}{% endfor %}
+                  </div>
+                </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          {%- endmacro %}
+
+          <div class="card" style="border-color:rgba(0,200,150,.35);background:rgba(0,200,150,.06)">
+            <div class="card-title"><i class="ti ti-sitemap"></i> Policy Hierarchy — Config Center</div>
+            <p class="text-sm" style="color:var(--muted)">All configurable policies stay inside Config Center. The tree below groups policies by operator intent, while every field still saves to <code>config.json → policies</code> and remains visible in Advanced Raw JSON.</p>
+            <div class="btn-row" style="margin-top:10px"><a class="btn btn-primary" href="/sync/dry-run"><i class="ti ti-eye"></i> Preview Impact / Dry Run</a><a class="btn" href="/docs/search?q=policy+hierarchy"><i class="ti ti-book"></i> Policy docs</a><button type="button" class="btn" @click="openRaw()"><i class="ti ti-code"></i> Raw JSON</button></div>
+          </div>
+
+          <div class="grid lg:grid-cols-3 gap-3">
+            <div class="card">
+              <div class="card-title"><i class="ti ti-settings-automation"></i> Operation Mode</div>
+              <div class="policy-kv">
+                <label class="cfg-field"><span class="cfg-label">System mode</span><select x-model="cfg.app.operation_mode" class="cfg-select"><option>automatic</option><option>manual</option></select><span class="cfg-help">Automatic mode requires auto_apply. Manual mode allows operator-triggered apply only.</span></label>
+                <label class="cfg-toggle cfg-subtle"><span><b>Auto Apply</b><span class="cfg-help">Required in automatic mode.</span></span><input type="checkbox" x-model="cfg.app.auto_apply"></label>
+                <label class="cfg-toggle cfg-subtle"><span><b>Optional Auto Backup</b><span class="cfg-help">Disabled is valid storage-saving mode.</span></span><input type="checkbox" x-model="cfg.app.backup_before_apply"></label>
+                <label class="cfg-field"><span class="cfg-label">Backup retention</span><input type="number" x-model.number="cfg.app.backup_retention" class="cfg-input"><span class="cfg-help">Used only when backups are being created.</span></label>
+              </div>
+            </div>
             <div class="card">
               <div class="card-title"><i class="ti ti-alert-triangle"></i> Policy Conflict Resolver</div>
               {% if policy_conflicts.total %}
-              <p class="text-sm" style="color:var(--muted);margin-bottom:10px">{{ policy_conflicts.total }} conflict(s) detected. Fix high/critical items before production auto-apply.</p>
               <div style="display:grid;gap:8px">
-                {% for c in policy_conflicts.conflicts[:3] %}
-                <div class="cfg-subtle" style="border-color:{{ 'rgba(239,68,68,.45)' if c.severity in ['critical','high'] else 'var(--br0)' }}">
-                  <div style="display:flex;justify-content:space-between;gap:8px"><b>{{ c.title }}</b><span class="badge {{ 'b-err' if c.severity in ['critical','high'] else 'b-warn' }}">{{ c.severity }}</span></div>
-                  <div class="cfg-help"><b>Fix:</b> {{ c.recommendation }}</div>
-                </div>
-                {% endfor %}
-                {% if policy_conflicts.total > 3 %}<div class="cfg-help">+{{ policy_conflicts.total - 3 }} more conflict(s). Use Preview Impact / Dry Run for full context.</div>{% endif %}
+                {% for c in policy_conflicts.conflicts[:3] %}<div class="cfg-subtle"><div style="display:flex;justify-content:space-between;gap:8px"><b>{{ c.title }}</b><span class="badge {{ 'b-err' if c.severity in ['critical','high'] else 'b-warn' }}">{{ c.severity }}</span></div><div class="cfg-help"><b>Fix:</b> {{ c.recommendation }}</div></div>{% endfor %}
               </div>
               {% else %}<div class="empty-state" style="padding:12px"><i class="ti ti-circle-check"></i> No policy conflicts detected.</div>{% endif %}
             </div>
             <div class="card">
               <div class="card-title"><i class="ti ti-id-badge"></i> Client Identity Handling</div>
-              <div style="display:grid;gap:8px">
-                {% for item in identity_report.sources %}
-                <div class="op-line"><strong>{{ item.label }}</strong><span>{{ item.identity }} · {{ item.stability }}</span></div>
-                {% endfor %}
-              </div>
-              <div class="note" style="margin-top:10px"><b>Reminder:</b> Grace is safest for stable identities like PPPoE usernames. DHCP private/random MAC can appear as a new client.</div>
+              <div style="display:grid;gap:8px">{% for item in identity_report.sources %}<div class="op-line"><strong>{{ item.label }}</strong><span>{{ item.identity }} · {{ item.stability }}</span></div>{% endfor %}</div>
+              <div class="note" style="margin-top:10px"><b>Grace:</b> optional only. Safest for PPPoE usernames; risky for DHCP randomized MAC.</div>
             </div>
           </div>
 
-          <div class="grid lg:grid-cols-2 gap-3">
-            <div class="card">
-              <div class="card-title"><i class="ti ti-template"></i> Preset / Core Cleanup</div>
-              <div class="grid md:grid-cols-2 gap-3">
-                <label class="cfg-field"><span class="cfg-label">Policy mode</span><select x-model="cfg.policies.mode" class="cfg-select"><option>conservative</option><option>balanced</option><option>aggressive</option><option>custom</option></select><span class="cfg-help">Manual policy edits should use custom. Presets can be applied from the full Policy Center.</span></label>
-                <label class="cfg-toggle cfg-subtle"><span><b>Cleanup policy engine</b><span class="cfg-help">Evaluate cleanup reasons before deleting rows or applying LibreQoS.</span></span><input type="checkbox" x-model="cfg.policies.cleanup.enabled" @change="markPolicyCustom()"></label>
-                <label class="cfg-field"><span class="cfg-label">Global default action</span><select x-model="cfg.policies.cleanup.global_default_action" @change="markPolicyCustom()" class="cfg-select"><template x-for="a in policyActions()"><option :value="a" x-text="a"></option></template></select></label>
-                <label class="cfg-field"><span class="cfg-label">Confirmation expires hours</span><input type="number" x-model.number="cfg.policies.cleanup.confirmation_expires_hours" @input="markPolicyCustom()" class="cfg-input"></label>
-                <label class="cfg-field"><span class="cfg-label">Confirmed cleanup apply mode</span><select x-model="cfg.policies.cleanup.apply_confirmed_cleanup" @change="markPolicyCustom()" class="cfg-select"><option>next_run</option><option>immediate</option></select></label>
-                <label class="cfg-toggle cfg-subtle"><span><b>Allow immediate cleanup</b><span class="cfg-help">Master switch for same-cycle row deletion.</span></span><input type="checkbox" x-model="cfg.policies.cleanup.allow_immediate_cleanup" @change="markPolicyCustom()"></label>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-title"><i class="ti ti-alert-triangle"></i> Mass Removal Guards</div>
-              <div class="grid md:grid-cols-2 gap-3">
-                <label class="cfg-toggle cfg-subtle"><span><b>Node guard enabled</b></span><input type="checkbox" x-model="cfg.policies.node_cleanup_guard.enabled" @change="markPolicyCustom()"></label>
-                <label class="cfg-field"><span class="cfg-label">Node threshold %</span><input type="number" x-model.number="cfg.policies.node_cleanup_guard.threshold_percent" @input="markPolicyCustom()" class="cfg-input"></label>
-                <label class="cfg-field"><span class="cfg-label">Min node size</span><input type="number" x-model.number="cfg.policies.node_cleanup_guard.min_node_size" @input="markPolicyCustom()" class="cfg-input"></label>
-                <label class="cfg-field"><span class="cfg-label">Min removed count</span><input type="number" x-model.number="cfg.policies.node_cleanup_guard.min_removed_count" @input="markPolicyCustom()" class="cfg-input"></label>
-                <label class="cfg-field"><span class="cfg-label">Node guard action</span><select x-model="cfg.policies.node_cleanup_guard.action" @change="markPolicyCustom()" class="cfg-select"><template x-for="a in policyActions()"><option :value="a" x-text="a"></option></template></select></label>
-                <label class="cfg-toggle cfg-subtle"><span><b>Small-node guard enabled</b></span><input type="checkbox" x-model="cfg.policies.small_node_guard.enabled" @change="markPolicyCustom()"></label>
-              </div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title"><i class="ti ti-database-cog"></i> Per-Source Cleanup Policies</div>
-            <div style="display:grid;gap:10px">
-              <template x-for="src in ['pppoe','dhcp','hotspot','static']" :key="src">
-                <div class="cfg-subtle">
-                  <div class="flex items-center justify-between gap-3 mb-3"><b x-text="src.toUpperCase()"></b><label class="cfg-toggle gap-2"><span class="text-sm" style="color:var(--muted)">Enabled</span><input type="checkbox" x-model="cfg.policies.cleanup_sources[src].enabled" @change="markPolicyCustom()"></label></div>
-                  <div class="grid md:grid-cols-3 gap-3">
-                    <label class="cfg-field"><span class="cfg-label">Normal inactive</span><select x-model="cfg.policies.cleanup_sources[src].normal_inactive_action" @change="markPolicyCustom()" class="cfg-select"><template x-for="a in policyActions()"><option :value="a" x-text="a"></option></template></select></label>
-                    <label class="cfg-field"><span class="cfg-label">Source disabled</span><select x-model="cfg.policies.cleanup_sources[src].source_disabled_action" @change="markPolicyCustom()" class="cfg-select"><template x-for="a in policyActions()"><option :value="a" x-text="a"></option></template></select></label>
-                    <label class="cfg-field"><span class="cfg-label">Collector failed</span><select x-model="cfg.policies.cleanup_sources[src].collector_failed_action" @change="markPolicyCustom()" class="cfg-select"><template x-for="a in policyActions()"><option :value="a" x-text="a"></option></template></select></label>
-                    <label class="cfg-field"><span class="cfg-label">Zero result</span><select x-model="cfg.policies.cleanup_sources[src].zero_result_action" @change="markPolicyCustom()" class="cfg-select"><template x-for="a in policyActions()"><option :value="a" x-text="a"></option></template></select></label>
-                    <label class="cfg-field"><span class="cfg-label">Mass removal</span><select x-model="cfg.policies.cleanup_sources[src].mass_removal_action" @change="markPolicyCustom()" class="cfg-select"><template x-for="a in policyActions()"><option :value="a" x-text="a"></option></template></select></label>
-                    <label class="cfg-toggle cfg-subtle"><span><b>Respect percentage guards</b></span><input type="checkbox" x-model="cfg.policies.cleanup_sources[src].respect_percentage_guards" @change="markPolicyCustom()"></label>
-                  </div>
+          <div class="policy-layout">
+            <aside class="policy-tree card">
+              {% set tree = [
+                ('overview','ti-layout-dashboard','Overview'),('general_core','ti-settings-cog','General Core'),('pppoe','ti-plug-connected','PPPoE'),('dhcp','ti-network','DHCP'),('hotspot','ti-wifi','Hotspot'),('static','ti-file-lock','Static'),('cleanup_lifecycle','ti-history-toggle','Cleanup Lifecycle'),('mass_removal','ti-percentage','Mass Removal'),('apply_guards','ti-shield-check','Apply Guards'),('auto_apply','ti-player-play','Auto-Apply'),('backup_policy','ti-archive','Backup Policy'),('topology_data','ti-topology-star-3','Topology/Data'),('speed_resolution','ti-adjustments-bolt','Speed Resolution'),('advanced','ti-code','Advanced')
+              ] %}
+              {% for key,icon,label in tree %}<button type="button" class="policy-tree-btn" :class="psec==='{{ key }}' && 'active'" @click="psec='{{ key }}'"><span><i class="ti {{ icon }}"></i> {{ label }}</span></button>{% endfor %}
+            </aside>
+            <main class="cfg-section">
+              <div x-show="psec==='overview'" class="card">
+                <div class="card-title"><i class="ti ti-layout-dashboard"></i> Policy Overview</div>
+                <div class="grid md:grid-cols-3 gap-3">
+                  <div class="cfg-subtle"><span class="policy-required">Required</span><h3 style="margin:8px 0 4px;color:var(--txt)">Auto Apply</h3><p class="text-sm" style="color:var(--muted)">Required when operation_mode is automatic. If disabled, Production Readiness is blocked.</p><div class="policy-path">app.auto_apply</div></div>
+                  <div class="cfg-subtle"><span class="policy-required">Optional</span><h3 style="margin:8px 0 4px;color:var(--txt)">Auto Backup</h3><p class="text-sm" style="color:var(--muted)">Disabled is allowed to reduce storage growth. Manual backup before major updates is still recommended.</p><div class="policy-path">app.backup_before_apply</div></div>
+                  <div class="cfg-subtle"><span class="policy-required">Required</span><h3 style="margin:8px 0 4px;color:var(--txt)">Policy Paths</h3><p class="text-sm" style="color:var(--muted)">All policy paths are validated by policy_path_audit and migration checks.</p><div class="policy-path">scripts/policy_path_audit.py</div></div>
                 </div>
-              </template>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title"><i class="ti ti-info-circle"></i> Single source of truth</div>
-            <p class="text-sm" style="color:var(--muted)">The same policy block appears in Advanced Raw JSON and is used by Dry Run, Dashboard policy decision cards, cleanup confirmation workflow, and runtime policy state. Setup & Repair should diagnose policy/config health and link to documentation instead of duplicating long manuals.</p>
+              </div>
+              {{ policy_group('General Core','ti-settings-cog',['Preset','Cleanup Core','Collector Guards','Recommendations','Policy Decision Trace'],'Core cleanup, collector, recommendation, and decision-trace behavior.') }}
+              {{ policy_group('PPPoE','ti-plug-connected',['PPPoE Cleanup','PPPoE Stale Lifecycle'],'PPPoE identity is username. Optional grace is safest here if enabled.') }}
+              {{ policy_group('DHCP','ti-network',['DHCP Cleanup','DHCP Stale Lifecycle'],'DHCP identity is DHCP server + MAC. Grace is disabled by default to avoid ghost rows with randomized MAC.') }}
+              {{ policy_group('Hotspot','ti-wifi',['Hotspot Cleanup','Hotspot Stale Lifecycle'],'Hotspot behavior depends on username/voucher vs MAC-based logins.') }}
+              {{ policy_group('Static','ti-file-lock',['Static/manual rows Cleanup','Static/manual rows Stale Lifecycle'],'Manual/static rows should normally be preserved.') }}
+              {{ policy_group('Cleanup Lifecycle','ti-history-toggle',['Stale Lifecycle Core'],'Optional source-aware stale lifecycle. Grace remains off unless explicitly enabled.') }}
+              {{ policy_group('Mass Removal','ti-percentage',['Mass Removal Guards'],'Node, source, and small-node cleanup safety thresholds.') }}
+              {{ policy_group('Apply Guards','ti-shield-check',['Apply Guards','Collector Guards'],'Pre-apply safety gates for collector failures, missing parents, duplicate IPs, and invalid speeds.') }}
+              {{ policy_group('Auto Apply','ti-player-play',['Policy-Aware Auto Apply'],'Risk-aware auto-apply policy. Automatic operation mode still requires app.auto_apply enabled.') }}
+              {{ policy_group('Backup Policy','ti-archive',['Backup Policy'],'Auto-backup is optional. This section controls whether disabled backup mode should be considered policy-required or only informational.') }}
+              {{ policy_group('Topology/Data','ti-topology-star-3',['Topology Guards','Data Quality Guards','Anomaly Detection'],'Topology, parent-node, fallback speed, and anomaly warnings.') }}
+              <div x-show="psec==='speed_resolution'" x-cloak class="card">
+                <div class="card-title"><i class="ti ti-adjustments-bolt"></i> Speed Resolution Policy</div>
+                <p class="text-sm" style="color:var(--muted)">This is the operator-readable priority ladder used when resolving subscriber speed limits. It is intentionally visible here because speed source quality affects policy warnings and readiness.</p>
+                <div class="grid lg:grid-cols-3 gap-3">
+                  <div class="cfg-subtle"><b>PPPoE priority</b><div class="policy-ladder"><div>Secret/comment speed</div><div>Profile comment</div><div>Profile name</div><div>Profile rate-limit</div><div>Global PPP fallback</div></div></div>
+                  <div class="cfg-subtle"><b>DHCP priority</b><div class="policy-ladder"><div>Static lease comment</div><div>DHCP server comment</div><div>DHCP server name</div><div>DHCP server configured speed</div><div>Global DHCP fallback</div></div></div>
+                  <div class="cfg-subtle"><b>Hotspot priority</b><div class="policy-ladder"><div>Active/user comment</div><div>User profile comment</div><div>Profile name</div><div>Profile rate-limit</div><div>Global Hotspot fallback</div></div></div>
+                </div>
+              </div>
+              <div x-show="psec==='advanced'" x-cloak class="card">
+                <div class="card-title"><i class="ti ti-code"></i> Advanced Policy JSON</div>
+                <p class="text-sm" style="color:var(--muted)">The hierarchy is the primary operator UI. Advanced Raw JSON remains available for full inspection and emergency edits.</p>
+                <div class="btn-row"><button type="button" class="btn btn-primary" @click="openRaw()"><i class="ti ti-code"></i> Open Raw JSON</button><a class="btn" href="/docs/search?q=policy+path+reference"><i class="ti ti-book"></i> Policy Path Reference</a></div>
+              </div>
+            </main>
           </div>
         </section>
 

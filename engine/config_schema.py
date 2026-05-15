@@ -15,7 +15,7 @@ from engine.policy_defaults import CLEANUP_ACTIONS, POLICY_PRESETS, smart_policy
 from engine.policy_schema import POLICY_SCHEMA, get_by_path, normalize_policies
 from rules.network_mode import VALID_NETWORK_MODES
 
-CONFIG_SCHEMA_VERSION = 9
+CONFIG_SCHEMA_VERSION = 10
 
 
 def deep_merge(base: dict, override: dict) -> dict:
@@ -53,6 +53,15 @@ def migrate_config_schema(cfg: dict) -> tuple[dict, list[str]]:
     # config.json bypasses the full config_loader DEFAULT_CONFIG merge. Keep
     # these fragments local to avoid circular imports with config_loader.
     default_fragments = {
+        "app": {
+            "name": "LQoSync",
+            "operation_mode": "automatic",
+            "auto_apply": True,
+            "dry_run_default": False,
+            "backup_before_apply": False,
+            "backup_retention": 10,
+            "file_drift_policy": "overwrite_with_backup",
+        },
         "notifications": {
             "enabled": True,
             "internal_center_enabled": True,
@@ -182,9 +191,12 @@ def validate_schema(cfg: dict) -> dict[str, Any]:
         errors.append(f"network_mode invalid: {cfg.get('network_mode')}")
 
     app = cfg.get("app", {}) or {}
-    if app.get("auto_apply") and not app.get("backup_before_apply", True):
-        warnings.append("auto_apply is enabled while backup_before_apply is disabled")
-        recommendations.append("Enable backup_before_apply before live auto-apply.")
+    operation_mode = str(app.get("operation_mode") or "automatic").strip().lower()
+    if operation_mode not in {"automatic", "manual"}:
+        errors.append(f"app.operation_mode invalid: {operation_mode}")
+    if operation_mode == "automatic" and not app.get("auto_apply", True):
+        errors.append("app.auto_apply is required when app.operation_mode is automatic")
+        recommendations.append("Enable app.auto_apply or change app.operation_mode to manual.")
 
     paths = cfg.get("paths", {}) or {}
     for key in ("shaped_devices_csv", "network_json", "runtime_state", "policy_state", "audit_log"):

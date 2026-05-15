@@ -283,16 +283,16 @@ def compute_setup_repair_report(
         category="release",
     )
 
-    backup_enabled = bool((cfg.get("app") or {}).get("backup_before_apply", True))
+    backup_enabled = bool((cfg.get("app") or {}).get("backup_before_apply", False))
     auto_apply = bool((cfg.get("app") or {}).get("auto_apply", True))
     _add_check(
         checks,
         key="backup_readiness",
-        title="Backup before apply",
-        status="ok" if backup_enabled else ("warn" if auto_apply else "info"),
+        title="Optional auto-backup before apply",
+        status="ok",
         detail=f"backup_before_apply={backup_enabled}, auto_apply={auto_apply}",
-        why="Backups make rollback safer when generated files change.",
-        fix="Enable app.backup_before_apply before production auto-apply.",
+        why="Auto-backup before apply is optional. Disabling it reduces storage growth but also reduces automatic rollback convenience.",
+        fix="Leave disabled for storage-saving mode, or enable app.backup_before_apply when you want automatic rollback points for every apply.",
         category="safety",
     )
 

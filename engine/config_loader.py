@@ -17,10 +17,11 @@ DEFAULT_CONFIG = {
     "preserve_network_config": False,
     "app": {
         "name": "LQoSync",
+        "operation_mode": "automatic",  # automatic | manual
         "auto_apply": True,
         "dry_run_default": False,
-        "backup_before_apply": True,
-        "backup_retention": 30,
+        "backup_before_apply": False,  # optional storage-saving default; manual backups still available
+        "backup_retention": 10,
         "file_drift_policy": "overwrite_with_backup",  # overwrite_with_backup | warn_only | block
     },
     "paths": {

@@ -731,6 +731,12 @@ def config_page():
             data = json.loads(raw)
             previous = load_config(CONFIG_PATH)
             previous_mode = ((previous.get("policies") or {}).get("mode") if isinstance(previous.get("policies"), dict) else None)
+            # Policy Overview controls include a few app.* runtime settings.
+            # They must still turn preset mode into Custom when edited from
+            # Config Center → Policies. This protects server-side saves even if
+            # browser JS misses markPolicyCustom().
+            if previous_mode in {"conservative", "balanced", "aggressive"} and policy_context_changed(previous, data):
+                data.setdefault("policies", {})["mode"] = "custom"
             data = reconcile_policy_mode(data)
             new_mode = ((data.get("policies") or {}).get("mode") if isinstance(data.get("policies"), dict) else None)
             save_config(data, CONFIG_PATH, backup_existing=True)

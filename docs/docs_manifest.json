@@ -374,5 +374,11 @@
     "file": "docs/content/custom_policy_mode_persistence.md",
     "anchor": "custom-policy-mode-persistence-hotfix",
     "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center \u2192 Policies."
+  },
+  "policy_overview_custom_wiring_hotfix": {
+    "title": "Policy Overview Custom Wiring Hotfix",
+    "file": "docs/content/policy_overview_custom_wiring_hotfix.md",
+    "anchor": "policy-overview-custom-wiring-hotfix",
+    "summary": "v2.70.10 fixes Custom policy mode for Operation Mode, Auto Apply, Optional Auto Backup, and Backup Retention changes inside Config Center Policies."
   }
 }

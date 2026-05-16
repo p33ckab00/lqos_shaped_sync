@@ -1,3 +1,14 @@
+# Release Notes
+
+## v2.70.10-rc1 — Policy Overview Custom Wiring Hotfix
+
+- Fixes Config Center → Policies so Policy Overview controls also switch the visible policy mode to Custom.
+- Operation Mode, Auto Apply, Optional Auto Backup, and Backup Retention now call markPolicyCustom() when changed in the Policy Hierarchy UI.
+- Adds server-side protection in /config save: if policy-adjacent app.* settings changed while a named preset was active, policies.mode is saved as custom.
+- Extends UI wiring audit so this Custom-mode wiring is checked in release/regression/stable validation.
+
+This is a Config Center save/UX hotfix only. It does not change MikroTik collection, cleanup execution, generated file formats, scheduler timing, backup implementation, Telegram delivery, or LibreQoS apply mechanics.
+
 # LQoSync Release Notes
 
 ## v2.70.9-rc1 - Custom Policy Mode Persistence Hotfix

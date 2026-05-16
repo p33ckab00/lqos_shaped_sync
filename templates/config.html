@@ -225,10 +225,10 @@ function cfgEditor(initial) {
             <div class="card-title"><i class="ti ti-apps"></i> Application Settings</div>
             <div class="grid md:grid-cols-2 gap-3">
               <label class="cfg-field"><span class="cfg-label">App name</span><input x-model="cfg.app.name" class="cfg-input"></label>
-              <label class="cfg-field"><span class="cfg-label">Operation mode</span><select x-model="cfg.app.operation_mode" class="cfg-select"><option>automatic</option><option>manual</option></select><span class="cfg-help">Automatic requires Auto Apply. Manual treats Auto Apply as optional.</span></label>
-              <label class="cfg-field"><span class="cfg-label">Backup retention</span><input type="number" x-model.number="cfg.app.backup_retention" class="cfg-input"><span class="cfg-help">Used only when backups are created.</span></label>
-              <label class="cfg-toggle cfg-subtle"><span><b>Auto Apply</b><span class="cfg-help">Required in automatic mode.</span></span><input type="checkbox" x-model="cfg.app.auto_apply"></label>
-              <label class="cfg-toggle cfg-subtle"><span><b>Optional Auto Backup</b><span class="cfg-help">Disabled is valid storage-saving mode.</span></span><input type="checkbox" x-model="cfg.app.backup_before_apply"></label>
+              <label class="cfg-field"><span class="cfg-label">Operation mode</span><select x-model="cfg.app.operation_mode" @change="markPolicyCustom()" class="cfg-select"><option>automatic</option><option>manual</option></select><span class="cfg-help">Automatic requires Auto Apply. Manual treats Auto Apply as optional.</span></label>
+              <label class="cfg-field"><span class="cfg-label">Backup retention</span><input type="number" x-model.number="cfg.app.backup_retention" @input="markPolicyCustom()" class="cfg-input"><span class="cfg-help">Used only when backups are created.</span></label>
+              <label class="cfg-toggle cfg-subtle"><span><b>Auto Apply</b><span class="cfg-help">Required in automatic mode.</span></span><input type="checkbox" x-model="cfg.app.auto_apply" @change="markPolicyCustom()"></label>
+              <label class="cfg-toggle cfg-subtle"><span><b>Optional Auto Backup</b><span class="cfg-help">Disabled is valid storage-saving mode.</span></span><input type="checkbox" x-model="cfg.app.backup_before_apply" @change="markPolicyCustom()"></label>
               <label class="cfg-toggle cfg-subtle"><span><b>Dry-run Default</b><span class="cfg-help">Preview only. Never writes files or applies LibreQoS.</span></span><input type="checkbox" x-model="cfg.app.dry_run_default"></label>
               <label class="cfg-field"><span class="cfg-label">File Drift Policy</span><select x-model="cfg.app.file_drift_policy" class="cfg-select"><option>overwrite_with_backup</option><option>warn_only</option><option>block</option></select></label>
             </div>
@@ -399,10 +399,10 @@ function cfgEditor(initial) {
             <div class="card">
               <div class="card-title"><i class="ti ti-settings-automation"></i> Operation Mode</div>
               <div class="policy-kv">
-                <label class="cfg-field"><span class="cfg-label">System mode</span><select x-model="cfg.app.operation_mode" class="cfg-select"><option>automatic</option><option>manual</option></select><span class="cfg-help">Automatic mode requires auto_apply. Manual mode allows operator-triggered apply only.</span></label>
-                <label class="cfg-toggle cfg-subtle"><span><b>Auto Apply</b><span class="cfg-help">Required in automatic mode.</span></span><input type="checkbox" x-model="cfg.app.auto_apply"></label>
-                <label class="cfg-toggle cfg-subtle"><span><b>Optional Auto Backup</b><span class="cfg-help">Disabled is valid storage-saving mode.</span></span><input type="checkbox" x-model="cfg.app.backup_before_apply"></label>
-                <label class="cfg-field"><span class="cfg-label">Backup retention</span><input type="number" x-model.number="cfg.app.backup_retention" class="cfg-input"><span class="cfg-help">Used only when backups are being created.</span></label>
+                <label class="cfg-field"><span class="cfg-label">System mode</span><select x-model="cfg.app.operation_mode" @change="markPolicyCustom()" class="cfg-select"><option>automatic</option><option>manual</option></select><span class="cfg-help">Automatic mode requires auto_apply. Manual mode allows operator-triggered apply only.</span></label>
+                <label class="cfg-toggle cfg-subtle"><span><b>Auto Apply</b><span class="cfg-help">Required in automatic mode.</span></span><input type="checkbox" x-model="cfg.app.auto_apply" @change="markPolicyCustom()"></label>
+                <label class="cfg-toggle cfg-subtle"><span><b>Optional Auto Backup</b><span class="cfg-help">Disabled is valid storage-saving mode.</span></span><input type="checkbox" x-model="cfg.app.backup_before_apply" @change="markPolicyCustom()"></label>
+                <label class="cfg-field"><span class="cfg-label">Backup retention</span><input type="number" x-model.number="cfg.app.backup_retention" @input="markPolicyCustom()" class="cfg-input"><span class="cfg-help">Used only when backups are being created.</span></label>
               </div>
             </div>
             <div class="card">

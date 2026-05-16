@@ -67,3 +67,8 @@ LQoSync v2.70.8 aligns Conservative, Balanced, and Aggressive presets so they do
 ## v2.70.9 Custom Policy Mode Persistence
 
 Config Center → Policies now shows Custom as a visible policy state beside Conservative, Balanced, and Aggressive. Manual policy edits change the UI state to Custom immediately, and server-side save preserves explicit `policies.mode = custom`. Named presets still stay named when exact, and edited named presets reconcile to Custom.
+
+
+## v2.70.10 Policy Overview Custom Wiring Hotfix
+
+Changing Operation Mode, Auto Apply, Optional Auto Backup, or Backup Retention inside Config Center → Policies now marks `policies.mode` as `custom` and remains custom after save. Server-side save also detects these policy-adjacent `app.*` changes so the mode is protected even if browser JS misses the change event.

@@ -159,6 +159,18 @@ def check_config_center_state_wiring(root: str | Path) -> dict[str, Any]:
             problems.append("Policy preset button has hard-coded btn-primary instead of dynamic active binding")
             break
 
+    # Policy Overview has policy-adjacent app.* controls. They must mark the
+    # policy state as Custom, otherwise operators can change Auto Apply /
+    # optional Auto Backup while the UI still says Balanced/Aggressive.
+    for needle in (
+        'x-model="cfg.app.operation_mode" @change="markPolicyCustom()"',
+        'x-model="cfg.app.auto_apply" @change="markPolicyCustom()"',
+        'x-model="cfg.app.backup_before_apply" @change="markPolicyCustom()"',
+        'x-model.number="cfg.app.backup_retention" @input="markPolicyCustom()"',
+    ):
+        if needle not in config:
+            problems.append("Policy Overview app.* control missing Custom-mode wiring: " + needle)
+
     # Raw JSON and normal config save must still share one hidden config_json source.
     if 'name="config_json"' not in config or 'x-ref="configJson"' not in config or "syncHidden()" not in config:
         problems.append("Config save form is not clearly wired to the normalized config_json hidden field")
@@ -173,7 +185,7 @@ def check_config_center_state_wiring(root: str | Path) -> dict[str, Any]:
             "Keep Config Center nav, policy tree, preset active state, and save form bound to current config state.",
         ))
     else:
-        items.append(UIWiringItem("config.center_state", "Config Center UI state wiring", "ok", "Config tabs, policy tree panels, dynamic preset active state, and config save binding are consistent.", "config_ui"))
+        items.append(UIWiringItem("config.center_state", "Config Center UI state wiring", "ok", "Config tabs, policy tree panels, dynamic preset active state, Policy Overview Custom-mode controls, and config save binding are consistent.", "config_ui"))
     return {"items": [i.to_dict() for i in items], "summary": _summary(items)}
 
 

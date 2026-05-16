@@ -276,10 +276,11 @@ def compute_release_integrity(root: str | Path | None = None) -> dict[str, Any]:
     }
 
 
-def repair_config_defaults(config_path: str | Path) -> dict[str, Any]:
+def repair_config_defaults(config_path: str | Path, *, actor: str = "system") -> dict[str, Any]:
     """Deep-merge current config with latest defaults and persist it safely."""
-    from engine.config_loader import load_config, save_config
+    from engine.config_loader import load_config
     from engine.config_schema import migrate_config_schema, validate_schema
+    from engine.config_writer import write_config_snapshot
 
     config_path = Path(config_path)
     before_raw = {}
@@ -287,8 +288,15 @@ def repair_config_defaults(config_path: str | Path) -> dict[str, Any]:
         before_raw = json.loads(config_path.read_text(encoding="utf-8"))
     cfg = load_config(str(config_path))
     migrated, notes = migrate_config_schema(cfg)
-    save_config(migrated, str(config_path), backup_existing=True)
-    after = load_config(str(config_path))
+    result = write_config_snapshot(
+        str(config_path),
+        migrated,
+        actor=actor,
+        action="smart_defaults_repair",
+        details={"migration_notes": notes},
+        backup_existing=True,
+    )
+    after = result.config
     schema = validate_schema(after)
     return {
         "ok": not schema.get("errors"),

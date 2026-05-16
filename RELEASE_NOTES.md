@@ -1,5 +1,16 @@
 # Release Notes
 
+## v2.70.11-rc1 — Config Truth Layer + Live Save Audit
+
+- Routes every runtime config write through one canonical config-write pipeline.
+- Keeps Config Center live-save behavior while adding revision checks so stale tabs cannot silently overwrite newer config.json values.
+- Adds masked field-level config audit diffs with changed paths, previous/new values, effectivity, and explanation metadata.
+- Adds inline effectivity to Config Change Preview and Policy field cards.
+- Removes the known stale `templates/routers.html` and `app.py.pre_reports_route_fix` package files now that compatibility routes point to the canonical UI.
+- Preserves existing routes, config.json source-of-truth behavior, and network-layout semantics for network_mode / flat_network / no_parent.
+
+This release strengthens config truth and auditability without changing MikroTik collection behavior, generated file formats, scheduler timing, cleanup semantics, Telegram delivery, or LibreQoS apply mechanics.
+
 ## v2.70.10-rc1 — Policy Overview Custom Wiring Hotfix
 
 - Fixes Config Center → Policies so Policy Overview controls also switch the visible policy mode to Custom.

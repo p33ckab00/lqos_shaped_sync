@@ -5,6 +5,8 @@ window.initialSchemaReport = {{ schema_report | tojson }};
 window.routerOverview = {{ router_overview | tojson }};
 window.initialConfigTab = {{ initial_tab | tojson }};
 window.policySchemaPaths = {{ policy_schema_paths | tojson }};
+window.initialConfigRevision = {{ config_revision | tojson }};
+window.configFieldRules = {{ config_field_rules | tojson }};
 function cfgEditor(initial) {
   const blankFactor = () => ({max_plan_mbps: 9999, download_factor: 1.0, upload_factor: 1.0});
   const blankDhcp = () => ({
@@ -64,7 +66,7 @@ function cfgEditor(initial) {
     cfg: ensure(JSON.parse(JSON.stringify(initial))),
     tab: (window.initialConfigTab || 'overview'), routerIndex: 0, rawDraft: '', rawError: '', showRawEditor: false,
     schemaReport: window.initialSchemaReport || {}, simulation: null, simLoading: false, simError: '',
-    liveSaveTimer: null, liveSaveInFlight: false, liveSaveQueued: false, liveSaveState: 'saved', liveSaveMessage: 'Loaded from config.json.', lastSavedAt: '',
+    liveSaveTimer: null, liveSaveInFlight: false, liveSaveQueued: false, liveSaveState: 'saved', liveSaveMessage: 'Loaded from config.json.', lastSavedAt: '', configRevision: window.initialConfigRevision || '',
     get routers(){ return this.cfg.routers || []; },
     get currentRouter(){ return this.routers[this.routerIndex] || null; },
     get jsonText(){ this.normalizeNetworkMode(); return JSON.stringify(this.cfg, null, 2); },
@@ -82,7 +84,7 @@ function cfgEditor(initial) {
     },
     syncHidden(){ this.normalizeNetworkMode(); this.cfg = ensure(this.cfg); if(this.shouldForceCustomPolicy()) this.cfg.policies.mode = 'custom'; if(this.$refs.configJson) this.$refs.configJson.value = this.jsonText; },
     clone(value){ return JSON.parse(JSON.stringify(value)); },
-    liveSavedConfig(saved){ this.cfg = ensure(this.clone(saved)); window.initialConfig = this.clone(this.cfg); if(this.routerIndex >= this.cfg.routers.length) this.routerIndex = Math.max(0, this.cfg.routers.length - 1); },
+    liveSavedConfig(saved, revision=''){ this.cfg = ensure(this.clone(saved)); window.initialConfig = this.clone(this.cfg); if(revision){ this.configRevision = revision; window.initialConfigRevision = revision; } if(this.routerIndex >= this.cfg.routers.length) this.routerIndex = Math.max(0, this.cfg.routers.length - 1); },
     liveStatusClass(){ return this.liveSaveState === 'failed' ? 'b-err' : (this.liveSaveState === 'saving' ? 'b-warn' : 'b-ok'); },
     liveStatusLabel(){ return this.liveSaveState === 'failed' ? 'Save failed' : (this.liveSaveState === 'saving' ? 'Saving live' : 'Saved live'); },
     queueLiveSave(reason='change', immediate=false){
@@ -110,16 +112,25 @@ function cfgEditor(initial) {
       this.liveSaveState = 'saving';
       this.liveSaveMessage = 'Writing config.json…';
       try{
-        const res = await lqosJsonFetch('/api/config', payload, {method:'PUT'});
+        const res = await lqosJsonFetch('/api/config', {config: payload, expected_revision: this.configRevision}, {method:'PUT'});
         const data = await res.json();
+        if(res.status === 409 && data.error === 'config_revision_conflict'){
+          this.liveSaveState = 'failed';
+          this.liveSaveMessage = 'External config change detected. UI refreshed from latest config.json; re-apply your change if still needed.';
+          this.liveSavedConfig(data.config || {}, data.revision || '');
+          this.liveSaveQueued = false;
+          return;
+        }
         if(!res.ok || data.ok === false) throw new Error(data.error || ('HTTP ' + res.status));
         if(this.liveSaveQueued){
           // A newer operator edit happened while this write was in flight.
           // Keep the newer local UI state, but advance the saved baseline so the
           // follow-up write compares against the exact config now on disk.
           window.initialConfig = this.clone(data.config || payload);
+          this.configRevision = data.revision || this.configRevision;
+          window.initialConfigRevision = this.configRevision;
         } else {
-          this.liveSavedConfig(data.config || payload);
+          this.liveSavedConfig(data.config || payload, data.revision || '');
         }
         this.liveSaveState = 'saved';
         this.lastSavedAt = new Date().toLocaleTimeString();
@@ -146,6 +157,7 @@ function cfgEditor(initial) {
     removeDhcp(router, i){ if(confirm('Remove DHCP server entry from config.json? This does not touch MikroTik.')) { router.dhcp.servers.splice(i,1); this.queueLiveSave('dhcp_removed', true); } },
     markPolicyCustom(){ this.cfg.policies ||= {}; if(this.cfg.policies.mode !== 'custom') this.cfg.policies.mode = 'custom'; },
     policyContextPaths(){ return ['app.operation_mode','app.auto_apply','app.backup_before_apply','app.backup_retention','scheduler.enabled','scheduler.apply_cooldown_seconds','libreqos.run_only_when_files_changed','libreqos.retry_if_last_apply_failed','libreqos.run_mode','preflight.enabled','preflight.duplicate_ip_policy','preflight.missing_parent_policy','preflight.invalid_bandwidth_policy','defaults.duplicate_ip_policy']; },
+    metaForPath(path){ const p=String(path || ''); return (window.configFieldRules || []).find(r => p === r.prefix || p.startsWith(r.prefix)) || {effectivity_label:'Next config read', explanation:'config.json is the source of truth; readers use the saved value on their next read.'}; },
     policyContextChanged(){ const before = window.initialConfig || {}; const after = this.cfg || {}; const get=(obj,path)=>String(path).split('.').reduce((o,k)=>(o && o[k] !== undefined ? o[k] : undefined), obj); const paths=[...(window.policySchemaPaths || []), ...this.policyContextPaths()]; return paths.some(path => JSON.stringify(get(before,path)) !== JSON.stringify(get(after,path))); },
     shouldForceCustomPolicy(){ const mode = (this.cfg?.policies?.mode || 'balanced'); return ['conservative','balanced','aggressive'].includes(mode) && this.policyContextChanged(); },
     policyActions(){ return ['preserve_rows','warn_only','cleanup_immediate','cleanup_next_run','require_confirm_immediate','require_confirm_next_run','block_cleanup','block_apply']; },
@@ -200,7 +212,7 @@ function cfgEditor(initial) {
       if(JSON.stringify(before.routers||[])!==JSON.stringify(after.routers||[])) out.push({path:'routers',label:'Router/source settings',before:(before.routers||[]).length+' router(s)',after:(after.routers||[]).length+' router(s)'});
       return out;
     },
-    configDiffHtml(){ const changes=this.changedPaths(); if(!changes.length) return '<div class="cfg-help">No important changes detected yet. Saving will still normalize config.json safely.</div>'; return changes.slice(0,8).map(c=>`<div class="op-line"><strong>${c.label}</strong><span>${JSON.stringify(c.before)} → ${JSON.stringify(c.after)}</span></div>`).join('') + (changes.length>8?`<div class="cfg-help">+${changes.length-8} more changed groups</div>`:''); },
+    configDiffHtml(){ const changes=this.changedPaths(); if(!changes.length) return '<div class="cfg-help">No important changes detected yet. Saving will still normalize config.json safely.</div>'; return changes.slice(0,8).map(c=>{ const meta=this.metaForPath(c.path); return `<div class="cfg-subtle"><div class="op-line"><strong>${c.label}</strong><span>${JSON.stringify(c.before)} → ${JSON.stringify(c.after)}</span></div><div class="cfg-help"><b>Effective:</b> ${meta.effectivity_label}. ${meta.explanation}</div></div>`; }).join('') + (changes.length>8?`<div class="cfg-help">+${changes.length-8} more changed groups</div>`:''); },
     async simulateConfig(){
       this.syncHidden(); this.simLoading=true; this.simError=''; this.simulation=null;
       try{
@@ -237,7 +249,7 @@ function cfgEditor(initial) {
         <span class="badge" :class="liveStatusClass()" x-text="liveStatusLabel()"></span>
       </div>
     </div>
-    <div class="note"><b>Live persistence:</b> <span x-text="liveSaveMessage"></span> The next sync cycle rereads saved <code>config.json</code>; in-flight cycles finish with the snapshot they already started with.</div>
+    <div class="note"><b>Live persistence:</b> <span x-text="liveSaveMessage"></span> The next sync cycle rereads saved <code>config.json</code>; in-flight cycles finish with the snapshot they already started with. <span class="mono">rev <span x-text="(configRevision || '').slice(0,12)"></span></span></div>
 
     {% if config_errors %}<div class="card" style="border-color:rgba(239,68,68,.4)"><div class="card-title text-err"><i class="ti ti-alert-triangle"></i> Config Errors</div><ul class="list-disc ml-6 text-sm">{% for e in config_errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
     {% if config_warnings %}<div class="card" style="border-color:rgba(245,158,11,.45)"><div class="card-title text-warn"><i class="ti ti-alert-circle"></i> Warnings</div><ul class="list-disc ml-6 text-sm">{% for w in config_warnings %}<li>{{ w }}</li>{% endfor %}</ul></div>{% endif %}
@@ -411,7 +423,7 @@ function cfgEditor(initial) {
             {% else %}
             <label class="cfg-field"><span class="cfg-label">Current value</span><input class="cfg-input" :value="getPath({{ f.path|tojson }})" @input="setPath({{ f.path|tojson }}, $event.target.value)"></label>
             {% endif %}
-            <div class="cfg-help"><b>Setup guidance:</b> {{ f.setup_guidance or 'Visible operator policy setting saved to config.json.' }} {% if f.risk_note %}<br><b>Risk note:</b> {{ f.risk_note }}{% endif %}</div>
+            <div class="cfg-help"><b>Effective:</b> {{ f.effectivity or 'Next sync cycle' }}.<br><b>Setup guidance:</b> {{ f.setup_guidance or 'Visible operator policy setting saved to config.json.' }} {% if f.risk_note %}<br><b>Risk note:</b> {{ f.risk_note }}{% endif %}</div>
           </div>
           {%- endmacro %}
 

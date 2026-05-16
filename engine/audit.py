@@ -18,13 +18,14 @@ def audit_path(config: dict) -> Path:
     return log_file.parent / "audit.jsonl"
 
 
-def write_audit(config: dict, action: str, actor: str = "system", details: dict[str, Any] | None = None):
+def write_audit(config: dict, action: str, actor: str = "system", details: dict[str, Any] | None = None, summary: str | None = None):
     path = audit_path(config)
     path.parent.mkdir(parents=True, exist_ok=True)
     event = {
         "ts": datetime.now(timezone.utc).isoformat(),
         "actor": actor or "system",
         "action": action,
+        "summary": summary or "",
         "details": details or {},
     }
     with path.open("a", encoding="utf-8") as f:

@@ -380,5 +380,11 @@
     "file": "docs/content/policy_overview_custom_wiring_hotfix.md",
     "anchor": "policy-overview-custom-wiring-hotfix",
     "summary": "v2.70.10 fixes Custom policy mode for Operation Mode, Auto Apply, Optional Auto Backup, and Backup Retention changes inside Config Center Policies."
+  },
+  "config.truth_layer_live_audit": {
+    "title": "Config Truth Layer + Live Save Audit",
+    "file": "docs/content/config_truth_layer.md",
+    "anchor": "config-truth-layer--live-save-audit",
+    "summary": "v2.70.11-rc1 canonical config writes, stale-write rejection, field-level audit diffs, and inline effectivity."
   }
 }

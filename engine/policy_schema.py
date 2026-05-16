@@ -17,7 +17,7 @@ POLICY_ACTION_CHOICES = list(CLEANUP_ACTIONS)
 PRESET_CHOICES = ["conservative", "balanced", "aggressive", "custom"]
 
 
-def field(path: str, label: str, field_type: str, *, section: str, description: str = "", choices: list[str] | None = None, recommended: Any = None, risk: str = "medium", minimum: int | float | None = None, maximum: int | float | None = None, setup_guidance: str = "", risk_note: str = "") -> dict[str, Any]:
+def field(path: str, label: str, field_type: str, *, section: str, description: str = "", choices: list[str] | None = None, recommended: Any = None, risk: str = "medium", minimum: int | float | None = None, maximum: int | float | None = None, setup_guidance: str = "", risk_note: str = "", effectivity: str = "Next sync cycle") -> dict[str, Any]:
     return {
         "path": path,
         "label": label,
@@ -26,6 +26,7 @@ def field(path: str, label: str, field_type: str, *, section: str, description: 
         "description": description,
         "setup_guidance": setup_guidance,
         "risk_note": risk_note,
+        "effectivity": effectivity,
         "choices": choices or [],
         "recommended": recommended,
         "risk": risk,

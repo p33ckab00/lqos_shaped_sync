@@ -12,6 +12,7 @@ import ast
 import copy
 import json
 import re
+import tempfile
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Any
@@ -86,7 +87,7 @@ EXPECTED_TEMPLATE_CONTEXTS = {
     "operations.html": {"cfg", "state", "services", "groups", "last", "apply_runs", "apply_pagination", "selected_unit", "lines", "journal_lines_count", "journal", "backups", "backup_pagination", "audit_events", "audit_pagination", "active_tab", "user"},
     "reports.html": {"cfg", "state", "report", "user"},
     "lifecycle.html": {"cfg", "state", "policy_state", "summary", "report", "events", "client_items", "selected_code", "user"},
-    "config.html": {"config_json", "config", "config_errors", "config_warnings", "schema_report", "schema_version", "policy_conflicts", "identity_report", "telegram", "initial_tab", "user"},
+    "config.html": {"config_json", "config", "config_errors", "config_warnings", "schema_report", "schema_version", "policy_conflicts", "identity_report", "telegram", "router_overview", "policy_hierarchy", "policy_schema_paths", "config_revision", "config_field_rules", "initial_tab", "user"},
     "setup_repair.html": {"cfg", "state", "report", "services", "config_errors", "config_warnings", "user"},
     "setup_wizard.html": {"cfg", "state", "report", "wizard", "network_modes", "services", "config_errors", "config_warnings", "user"},
     "network_layout.html": {"network", "node_math", "config", "nodes_flat", "shaped_rows", "user"},
@@ -320,6 +321,89 @@ def check_policy_behavior_regressions(root: str | Path) -> dict[str, Any]:
     return {"items": [i.to_dict() for i in items], "summary": _summary(items)}
 
 
+def check_config_write_pipeline_regressions(root: str | Path) -> dict[str, Any]:
+    root = Path(root)
+    items: list[RegressionItem] = []
+    failures = []
+    try:
+        from engine.config_loader import load_config, save_config
+        from engine.config_writer import ConfigRevisionConflict, config_revision, write_config_snapshot
+        from engine.setup_repair import apply_policy_preset
+
+        base = _load_example_config(root)
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg_path = Path(tmp) / "config.json"
+            base.setdefault("paths", {})["audit_log"] = str(Path(tmp) / "audit.jsonl")
+            base["paths"]["log_file"] = str(Path(tmp) / "app.log")
+            save_config(base, str(cfg_path), backup_existing=False)
+            base = load_config(str(cfg_path))
+            before_rev = config_revision(base)
+
+            proposed = copy.deepcopy(base)
+            proposed.setdefault("policies", {}).setdefault("cleanup_sources", {}).setdefault("pppoe", {})["normal_inactive_action"] = "preserve_rows"
+            result = write_config_snapshot(
+                str(cfg_path),
+                proposed,
+                actor="regression",
+                action="config_autosaved",
+                expected_revision=before_rev,
+                backup_existing=False,
+            )
+            if result.revision == before_rev:
+                failures.append("config revision should change after a real field update")
+            if not any(c.get("path") == "policies.cleanup_sources.pppoe.normal_inactive_action" for c in result.changes):
+                failures.append("field-level audit diff missing changed PPPoE policy path")
+
+            preset_cfg = apply_policy_preset(result.config, "aggressive")
+            preset_result = write_config_snapshot(
+                str(cfg_path),
+                preset_cfg,
+                actor="regression",
+                action="policy_preset_applied",
+                expected_revision=result.revision,
+                backup_existing=False,
+                preserve_requested_policy_mode=True,
+            )
+            if (preset_result.config.get("policies") or {}).get("mode") != "aggressive":
+                failures.append("explicit preset apply should preserve requested named mode")
+
+            router_cfg = copy.deepcopy(preset_result.config)
+            router_cfg.setdefault("routers", [{}])[0]["password"] = "super-secret-password"
+            router_result = write_config_snapshot(
+                str(cfg_path),
+                router_cfg,
+                actor="regression",
+                action="config_autosaved",
+                expected_revision=preset_result.revision,
+                backup_existing=False,
+            )
+            if "super-secret-password" in json.dumps(router_result.changes):
+                failures.append("nested router passwords must stay masked in field-level config diffs")
+
+            stale = copy.deepcopy(router_result.config)
+            stale.setdefault("app", {})["backup_retention"] = 11
+            try:
+                write_config_snapshot(
+                    str(cfg_path),
+                    stale,
+                    actor="regression",
+                    action="config_autosaved",
+                    expected_revision=before_rev,
+                    backup_existing=False,
+                )
+                failures.append("stale config revision should raise ConfigRevisionConflict")
+            except ConfigRevisionConflict:
+                pass
+    except Exception as exc:
+        failures.append(f"config writer test crashed: {exc}")
+
+    if failures:
+        items.append(RegressionItem("config.write_pipeline", "Config write pipeline", "fail", "; ".join(failures), "config", "Review config_writer revision/audit behavior."))
+    else:
+        items.append(RegressionItem("config.write_pipeline", "Config write pipeline", "ok", "Canonical writes emit field diffs and reject stale revisions", "config"))
+    return {"items": [i.to_dict() for i in items], "summary": _summary(items)}
+
+
 def check_operations_center_regressions(root: str | Path) -> dict[str, Any]:
     root = Path(root)
     items: list[RegressionItem] = []
@@ -390,6 +474,7 @@ def compute_regression_suite(root: str | Path | None = None) -> dict[str, Any]:
         "routes": check_route_regressions(root),
         "templates": check_template_context_regressions(root),
         "config_migration": check_config_migration_regressions(root),
+        "config_write_pipeline": check_config_write_pipeline_regressions(root),
         "policy_behavior": check_policy_behavior_regressions(root),
         "policy_path_audit": audit_policy_and_paths(root),
         "policy_preset_audit": audit_policy_presets(root),

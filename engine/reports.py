@@ -143,7 +143,23 @@ def _policy_report(state: dict[str, Any], policy_state: dict[str, Any]) -> dict[
 
 
 def _config_change_report(audit_events: list[dict[str, Any]]) -> dict[str, Any]:
-    actions = {"config_saved", "policy_settings_saved", "policy_preset_applied", "scheduler_settings_saved", "dhcp_server_toggled", "network_layout_saved"}
+    actions = {
+        "config_saved",
+        "config_autosaved",
+        "policy_settings_saved",
+        "policy_preset_applied",
+        "wizard_policy_preset_applied",
+        "scheduler_settings_saved",
+        "api_scheduler_intervals_saved",
+        "dhcp_server_toggled",
+        "dhcp_discovered",
+        "wizard_network_mode_saved",
+        "telegram_notifications_saved",
+        "setup_wizard_completed",
+        "setup_wizard_reset",
+        "smart_defaults_repair",
+        "network_layout_saved",
+    }
     events = [ev for ev in audit_events if _action(ev) in actions][-100:]
     by_action: dict[str, int] = {}
     by_actor: dict[str, int] = {}

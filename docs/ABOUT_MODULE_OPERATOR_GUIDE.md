@@ -821,3 +821,8 @@ Config Center → Policies now shows Custom as a visible policy state beside Con
 ## v2.70.10 Policy Overview Custom Wiring Hotfix
 
 Changing Operation Mode, Auto Apply, Optional Auto Backup, or Backup Retention inside Config Center → Policies now marks `policies.mode` as `custom` and remains custom after save. Server-side save also detects these policy-adjacent `app.*` changes so the mode is protected even if browser JS misses the change event.
+
+
+## v2.70.11-rc1 Config Truth Layer + Live Save Audit
+
+LQoSync v2.70.11-rc1 keeps Config Center live-save behavior but routes every runtime config write through one canonical pipeline. Live writes now carry a config revision so stale tabs cannot silently overwrite newer `config.json` values, real config writes record masked field-level audit diffs, Config Change Preview shows when important changes become effective, and Policy field cards show next-cycle effectivity. Existing routes and network-layout behavior remain unchanged.

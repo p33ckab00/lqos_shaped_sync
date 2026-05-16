@@ -92,3 +92,5 @@ LQoSync v2.67 adds a clearer owner/admin/operator/viewer role model. Owner contr
 - [Policy Preset Alignment + Save Semantics](content/policy_preset_alignment_save_semantics.md) — preset alignment, custom-save reconciliation, and policy preset audit.
 
 - [Custom Policy Mode Persistence Hotfix](content/custom_policy_mode_persistence.md) — v2.70.9 visible Custom policy state and save semantics.
+
+- [Config Truth Layer + Live Save Audit](content/config_truth_layer.md) — v2.70.11-rc1 canonical config writes, stale-write rejection, field-level audit diffs, and inline effectivity.

@@ -19,6 +19,10 @@ def _is_sensitive_path(path: str) -> bool:
 def mask_if_sensitive(path: str, value: Any) -> Any:
     if _is_sensitive_path(path) and value not in (None, ""):
         return "********"
+    if isinstance(value, dict):
+        return {k: mask_if_sensitive(f"{path}.{k}" if path else str(k), v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [mask_if_sensitive(f"{path}.{idx}" if path else str(idx), item) for idx, item in enumerate(value)]
     return value
 
 

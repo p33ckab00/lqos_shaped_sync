@@ -94,8 +94,8 @@ def check_policy_preset_wiring(root: str | Path) -> dict[str, Any]:
     problems = []
     if '@app.route("/policy/apply-preset/<preset>"' not in app:
         problems.append("missing POST /policy/apply-preset/<preset> route")
-    if "def policy_apply_preset" not in app or "save_config(new_cfg" not in app:
-        problems.append("policy preset route does not clearly save new config")
+    if "def policy_apply_preset" not in app or "_write_config(" not in app or 'action="policy_preset_applied"' not in app:
+        problems.append("policy preset route does not clearly save new config through the canonical writer")
     for preset in ("conservative", "balanced", "aggressive"):
         if f"applyPolicyPreset('{preset}')" not in config:
             problems.append(f"Config Center missing {preset} preset button")
@@ -117,7 +117,7 @@ def check_policy_preset_wiring(root: str | Path) -> dict[str, Any]:
     if problems:
         items.append(UIWiringItem("policy.preset_wiring", "Policy preset wiring", "fail", "; ".join(problems), "policy", "Wire preset buttons inside Config Center → Policies and keep policies.mode managed."))
     else:
-        items.append(UIWiringItem("policy.preset_wiring", "Policy preset wiring", "ok", "Config Center preset buttons, Custom state badge, dynamic active state, backend route, save_config, and managed policies.mode are wired.", "policy"))
+        items.append(UIWiringItem("policy.preset_wiring", "Policy preset wiring", "ok", "Config Center preset buttons, Custom state badge, dynamic active state, backend route, canonical config writer, and managed policies.mode are wired.", "policy"))
     return {"items": [i.to_dict() for i in items], "summary": _summary(items)}
 
 

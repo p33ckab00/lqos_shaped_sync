@@ -1,5 +1,13 @@
 # Release Notes
 
+## v2.70.13-rc1 — Advanced JSON + Field Guide UI Polish
+
+- Widens the admin/owner Advanced JSON workspace and gives the field guide the larger desktop pane.
+- Improves Field Guide readability with a wider path list, roomier detail panel, and aligned What / Why / When / Who / Where / How rows.
+- Reduces the JSON editor font size slightly so more live config fits on screen.
+
+This is a UI polish release only. It does not change config save semantics, field-guide meaning, permissions, generated files, scheduler timing, policy behavior, or LibreQoS apply mechanics.
+
 ## v2.70.12-rc1 — Config Guidance + Role-Aware Navigation
 
 - Adds one shared config-guide registry for the Advanced JSON inspector and bundled documentation.

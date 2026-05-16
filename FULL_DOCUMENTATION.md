@@ -7426,3 +7426,8 @@ normalize → validate → reconcile preset/custom → diff → audit → save c
 ## v2.70.12-rc1 Config Guidance + Role-Aware Navigation
 
 LQoSync v2.70.12-rc1 adds a shared Config Field Guide used by both bundled install/operator documentation and the admin/owner-only Advanced JSON inspector. The inspector answers What / Why / When / Who / Where / How, plus default/recommended value, risk, and related paths for guided config paths. Operator/viewer sidebars now hide admin-only Lifecycle and Reports destinations instead of exposing links that would lead to 403 pages, while backend route guards remain authoritative.
+
+
+## v2.70.13-rc1 Advanced JSON + Field Guide UI Polish
+
+LQoSync v2.70.13-rc1 widens the Advanced JSON workspace, gives the Field Guide the larger desktop pane, aligns the What / Why / When / Who / Where / How answers into easier scan rows, and slightly reduces JSON editor text size so more config remains visible at once.

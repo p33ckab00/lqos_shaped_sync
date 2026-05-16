@@ -335,8 +335,8 @@ def check_config_field_guide_wiring(root: str | Path) -> dict[str, Any]:
         problems.append("config_page does not pass shared guide entries")
     if "window.configFieldGuide" not in config or "Advanced JSON + Field Guide" not in config:
         problems.append("Config Center is missing Advanced JSON field-guide UI")
-    for needle in ("What:", "Why:", "When:", "Who:", "Where:", "How:"):
-        if needle not in config:
+    for needle in ("What", "Why", "When", "Who", "Where", "How"):
+        if f"<b>{needle}</b>" not in config:
             problems.append(f"Config Center guide missing {needle}")
     if "render_config_field_guide_markdown" not in guide:
         problems.append("shared config guide renderer missing")

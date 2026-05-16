@@ -398,5 +398,11 @@
     "file": "docs/content/config_guidance_role_navigation.md",
     "anchor": "config-guidance--role-aware-navigation",
     "summary": "v2.70.12-rc1 Advanced JSON WH/HOW inspector, generated config guide docs, and hidden admin-only sidebar links for lower roles."
+  },
+  "config.advanced_json_field_guide_ui_polish": {
+    "title": "Advanced JSON + Field Guide UI Polish",
+    "file": "docs/content/advanced_json_field_guide_ui_polish.md",
+    "anchor": "advanced-json--field-guide-ui-polish",
+    "summary": "v2.70.13-rc1 wider Advanced JSON workspace, wider Field Guide pane, aligned WH/HOW rows, and smaller JSON editor text."
   }
 }

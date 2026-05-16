@@ -99,6 +99,15 @@ def check_policy_preset_wiring(root: str | Path) -> dict[str, Any]:
     for preset in ("conservative", "balanced", "aggressive"):
         if f"applyPolicyPreset('{preset}')" not in config:
             problems.append(f"Config Center missing {preset} preset button")
+        if f"policyPresetClass('{preset}')" not in config:
+            problems.append(f"Config Center missing dynamic active class for {preset} preset button")
+    for line in config.splitlines():
+        if "applyPolicyPreset(" in line and "btn btn-primary" in line:
+            # Hard-coded primary on a preset button recreates the bug where Current=aggressive but Balanced is highlighted.
+            problems.append("policy preset buttons contain hard-coded btn-primary instead of cfg.policies.mode-driven active state")
+            break
+    if "policyPresetActive(preset)" not in config or "policyPresetLabel()" not in config:
+        problems.append("Config Center missing preset active/label helpers tied to cfg.policies.mode")
     if "/policy/apply-preset/" not in config:
         problems.append("Config Center preset JS is not wired to /policy/apply-preset")
     if "policies.mode" in config and "Preset mode is controlled by the preset buttons" not in config:
@@ -106,9 +115,64 @@ def check_policy_preset_wiring(root: str | Path) -> dict[str, Any]:
     if problems:
         items.append(UIWiringItem("policy.preset_wiring", "Policy preset wiring", "fail", "; ".join(problems), "policy", "Wire preset buttons inside Config Center → Policies and keep policies.mode managed."))
     else:
-        items.append(UIWiringItem("policy.preset_wiring", "Policy preset wiring", "ok", "Config Center preset buttons, backend route, save_config, and managed policies.mode are wired.", "policy"))
+        items.append(UIWiringItem("policy.preset_wiring", "Policy preset wiring", "ok", "Config Center preset buttons, dynamic active state, backend route, save_config, and managed policies.mode are wired.", "policy"))
     return {"items": [i.to_dict() for i in items], "summary": _summary(items)}
 
+
+def check_config_center_state_wiring(root: str | Path) -> dict[str, Any]:
+    """Check Config Center dynamic UI state consistency.
+
+    This catches visual-state bugs where an underlying config value is correct
+    but the highlighted button/tab/panel does not follow it.
+    """
+    root = Path(root)
+    items: list[UIWiringItem] = []
+    config = _read(root, "templates/config.html")
+    problems = []
+
+    # Main Config Center tabs: every nav button should have a matching x-show section.
+    nav_tabs = set(re.findall(r"@click=\"tab='([^']+)'\"", config))
+    section_tabs = set(re.findall(r"x-show=\"tab==='([^']+)'", config))
+    missing_sections = sorted(t for t in nav_tabs if t not in section_tabs)
+    if missing_sections:
+        problems.append("Config nav tabs without matching section: " + ", ".join(missing_sections))
+
+    # Policy tree sections: every tree key should have a matching psec panel.
+    tree_match = re.search(r"\{% set tree = \[(.*?)\] %\}", config, re.DOTALL)
+    tree_keys = set(re.findall(r"\('([^']+)'\s*,", tree_match.group(1) if tree_match else ""))
+    psec_sections = set(re.findall(r"x-show=\"psec==='([^']+)'", config))
+    # Policy groups are produced by the policy_group(title, ...) macro, so add those generated psec ids too.
+    macro_titles = re.findall(r"policy_group\('([^']+)'", config)
+    for title in macro_titles:
+        psec_sections.add(title.lower().replace(" ", "_").replace("/", "_"))
+    missing_psec = sorted(k for k in tree_keys if k not in psec_sections)
+    if missing_psec:
+        problems.append("Policy tree items without matching panel: " + ", ".join(missing_psec))
+
+    # Preset active state must follow cfg.policies.mode, not a hard-coded primary button.
+    if "policyPresetClass(preset)" not in config or "policyPresetActive(preset)" not in config:
+        problems.append("Policy preset active state helpers are missing")
+    for line in config.splitlines():
+        if "applyPolicyPreset(" in line and "btn btn-primary" in line:
+            problems.append("Policy preset button has hard-coded btn-primary instead of dynamic active binding")
+            break
+
+    # Raw JSON and normal config save must still share one hidden config_json source.
+    if 'name="config_json"' not in config or 'x-ref="configJson"' not in config or "syncHidden()" not in config:
+        problems.append("Config save form is not clearly wired to the normalized config_json hidden field")
+
+    if problems:
+        items.append(UIWiringItem(
+            "config.center_state",
+            "Config Center UI state wiring",
+            "fail",
+            "; ".join(problems),
+            "config_ui",
+            "Keep Config Center nav, policy tree, preset active state, and save form bound to current config state.",
+        ))
+    else:
+        items.append(UIWiringItem("config.center_state", "Config Center UI state wiring", "ok", "Config tabs, policy tree panels, dynamic preset active state, and config save binding are consistent.", "config_ui"))
+    return {"items": [i.to_dict() for i in items], "summary": _summary(items)}
 
 def check_compatibility_route_wiring(root: str | Path) -> dict[str, Any]:
     root = Path(root)
@@ -177,6 +241,7 @@ def audit_ui_wiring(root: str | Path | None = None) -> dict[str, Any]:
     sections = {
         "role_visibility": check_role_visibility(root),
         "policy_preset": check_policy_preset_wiring(root),
+        "config_center_state": check_config_center_state_wiring(root),
         "compatibility_routes": check_compatibility_route_wiring(root),
         "owner_links": check_owner_only_links(root),
         "stale_files": check_stale_files(root),

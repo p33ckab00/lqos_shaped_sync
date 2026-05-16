@@ -82,3 +82,5 @@ LQoSync v2.67 adds a clearer owner/admin/operator/viewer role model. Owner contr
 - [Policy Preset Wiring Hotfix](content/policy_preset_wiring_hotfix.md) — Config Center policy preset apply controls and managed preset-mode behavior.
 
 - [UI Wiring Audit + Role Visibility Hotfix](content/ui_wiring_audit_role_visibility.md) — v2.70.4-rc1 role visibility, compact route ownership, policy preset wiring, and stale file checks.
+
+- [Settings UI State Wiring Hotfix](content/settings_ui_state_wiring_hotfix.md) — v2.70.5-rc1 Config Center preset active-state and settings UI wiring audit fix.

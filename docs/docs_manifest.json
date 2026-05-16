@@ -194,6 +194,13 @@
       "path": "docs/content/ui_wiring_audit_role_visibility.md",
       "category": "Stable Release",
       "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation."
+    },
+    {
+      "id": "settings_ui_state_wiring_hotfix",
+      "title": "Settings UI State Wiring Hotfix",
+      "path": "docs/content/settings_ui_state_wiring_hotfix.md",
+      "category": "UI Wiring",
+      "summary": "v2.70.5-rc1 fixes Config Center preset active-state mismatch and adds deeper Config Center state wiring audit coverage."
     }
   ],
   "docs": [
@@ -231,6 +238,13 @@
       "path": "docs/content/ui_wiring_audit_role_visibility.md",
       "category": "Stable Release",
       "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation."
+    },
+    {
+      "id": "settings_ui_state_wiring_hotfix",
+      "title": "Settings UI State Wiring Hotfix",
+      "path": "docs/content/settings_ui_state_wiring_hotfix.md",
+      "category": "UI Wiring",
+      "summary": "v2.70.5-rc1 fixes Config Center preset active-state mismatch and adds deeper Config Center state wiring audit coverage."
     }
   ],
   "backup_restore_center_polish": {
@@ -316,5 +330,11 @@
     "file": "docs/content/ui_wiring_audit_role_visibility.md",
     "anchor": "ui-wiring-audit--role-visibility-hotfix",
     "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation."
+  },
+  "settings_ui_state_wiring_hotfix": {
+    "title": "Settings UI State Wiring Hotfix",
+    "file": "docs/content/settings_ui_state_wiring_hotfix.md",
+    "anchor": "settings-ui-state-wiring-hotfix",
+    "summary": "v2.70.5-rc1 fixes Config Center preset active-state mismatch and adds deeper Config Center state wiring audit coverage."
   }
 }

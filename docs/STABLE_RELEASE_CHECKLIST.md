@@ -42,3 +42,8 @@ This hotfix adds `scripts/cleanup_stale_files.py` for older ZIP/manual installs 
 ## v2.70.4-rc1 UI Wiring Audit + Role Visibility Hotfix
 
 LQoSync v2.70.4-rc1 adds `scripts/ui_wiring_audit.py` and fixes role-visibility gaps after owner/admin/operator/viewer hardening. Admin-capable actions now use `role_at_least(user.role, 'admin')`, operator dry-run actions use `role_at_least(user.role, 'operator')`, owner-only Update Center links are gated, Config Center policy preset wiring is audited, and stale files such as `app.py.pre_reports_route_fix` are removed from stable packages.
+
+
+## v2.70.5 Settings UI State Wiring Hotfix
+
+LQoSync v2.70.5-rc1 fixes the Config Center → Policies preset active-state mismatch. The active Conservative/Balanced/Aggressive button now follows `cfg.policies.mode`, so `Current: aggressive` highlights Aggressive, `Current: balanced` highlights Balanced, and `Current: conservative` highlights Conservative. The UI wiring audit now also checks Config Center nav/section pairing, policy tree/panel pairing, preset active-state binding, and normalized config save binding.

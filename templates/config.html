@@ -86,6 +86,9 @@ function cfgEditor(initial) {
     removeDhcp(router, i){ if(confirm('Remove DHCP server entry from config.json? This does not touch MikroTik.')) router.dhcp.servers.splice(i,1); },
     markPolicyCustom(){ this.cfg.policies ||= {}; if(this.cfg.policies.mode !== 'custom') this.cfg.policies.mode = 'custom'; },
     policyActions(){ return ['preserve_rows','warn_only','cleanup_immediate','cleanup_next_run','require_confirm_immediate','require_confirm_next_run','block_cleanup','block_apply']; },
+    policyPresetActive(preset){ return (this.cfg?.policies?.mode || 'balanced') === preset; },
+    policyPresetClass(preset){ return this.policyPresetActive(preset) ? 'btn-primary' : ''; },
+    policyPresetLabel(){ return (this.cfg?.policies?.mode || 'balanced').replace('_',' '); },
     getPath(path){ return String(path).split('.').reduce((obj,key)=>obj ? obj[key] : undefined, this.cfg); },
     setPath(path, value){ const parts=String(path).split('.'); let cur=this.cfg; for(let i=0;i<parts.length-1;i++){ if(cur[parts[i]]===undefined || cur[parts[i]]===null || typeof cur[parts[i]]!=='object') cur[parts[i]]={}; cur=cur[parts[i]]; } cur[parts[parts.length-1]]=value; this.markPolicyCustom(); },
     policyRiskClass(risk){ return risk==='critical' ? 'b-err' : (risk==='high' ? 'b-warn' : (risk==='medium' ? 'b-dhcp' : 'b-ok')); },
@@ -372,12 +375,12 @@ function cfgEditor(initial) {
               <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
                 <div>
                   <div style="font-weight:800;color:var(--txt)"><i class="ti ti-shield-cog"></i> Policy Preset</div>
-                  <div class="cfg-help">Current: <b x-text="cfg.policies.mode || 'balanced'"></b>. Applying a preset writes directly to saved <code>config.json → policies</code>. Manual edits remain <code>custom</code> after saving.</div>
+                  <div class="cfg-help">Current: <b x-text="policyPresetLabel()"></b>. Applying a preset writes directly to saved <code>config.json → policies</code>. Manual edits remain <code>custom</code> after saving.</div>
                 </div>
                 <div class="btn-row">
-                  <button type="button" class="btn" @click="applyPolicyPreset('conservative')"><i class="ti ti-lock"></i> Conservative</button>
-                  <button type="button" class="btn btn-primary" @click="applyPolicyPreset('balanced')"><i class="ti ti-balance"></i> Balanced</button>
-                  <button type="button" class="btn" @click="applyPolicyPreset('aggressive')"><i class="ti ti-bolt"></i> Aggressive</button>
+                  <button type="button" class="btn" :class="policyPresetClass('conservative')" :aria-pressed="policyPresetActive('conservative')" @click="applyPolicyPreset('conservative')"><i class="ti ti-lock"></i> Conservative</button>
+                  <button type="button" class="btn" :class="policyPresetClass('balanced')" :aria-pressed="policyPresetActive('balanced')" @click="applyPolicyPreset('balanced')"><i class="ti ti-balance"></i> Balanced</button>
+                  <button type="button" class="btn" :class="policyPresetClass('aggressive')" :aria-pressed="policyPresetActive('aggressive')" @click="applyPolicyPreset('aggressive')"><i class="ti ti-bolt"></i> Aggressive</button>
                 </div>
               </div>
             </div>

@@ -1,5 +1,16 @@
 # Release Notes
 
+## v2.70.5-rc1 — Settings UI State Wiring Hotfix
+
+- Fixed Config Center → Policies preset active-state mismatch where `Current: aggressive` could display while the Balanced button remained highlighted.
+- Policy preset buttons now derive active styling from `cfg.policies.mode` through `policyPresetActive()`, `policyPresetClass()`, and `policyPresetLabel()`.
+- Extended `engine/ui_wiring_audit.py` to validate Config Center dynamic UI state, including nav tab/section pairing, policy tree/panel pairing, preset active-state binding, and normalized config save binding.
+- Updated `scripts/ui_wiring_audit.py` output to include the Config Center UI state wiring check.
+- Updated documentation, docs manifest, documentation index, README, full documentation, operator guide, stable checklist, upgrade guide, and version metadata to 2.70.5-rc1.
+
+This is a UI/UX wiring hotfix only. It does not change MikroTik collection, cleanup policy execution, generated file formats, scheduler timing, backup implementation, Telegram delivery, or LibreQoS apply mechanics.
+
+
 ## v2.70.4-rc1 — UI Wiring Audit + Role Visibility Hotfix
 
 - Added `engine/ui_wiring_audit.py` and `scripts/ui_wiring_audit.py` for deeper static UI wiring validation.

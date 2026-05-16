@@ -89,6 +89,8 @@ function cfgEditor(initial) {
     policyPresetActive(preset){ return (this.cfg?.policies?.mode || 'balanced') === preset; },
     policyPresetClass(preset){ return this.policyPresetActive(preset) ? 'btn-primary' : ''; },
     policyPresetLabel(){ return (this.cfg?.policies?.mode || 'balanced').replace('_',' '); },
+    policyIsCustom(){ return (this.cfg?.policies?.mode || 'balanced') === 'custom'; },
+    customPolicyClass(){ return this.policyIsCustom() ? 'btn-primary' : ''; },
     asBool(value){ return value === true || value === 1 || value === '1' || String(value).toLowerCase() === 'true' || String(value).toLowerCase() === 'yes' || String(value).toLowerCase() === 'on'; },
     getPath(path){ return String(path).split('.').reduce((obj,key)=>obj ? obj[key] : undefined, this.cfg); },
     setPath(path, value){ const parts=String(path).split('.'); let cur=this.cfg; for(let i=0;i<parts.length-1;i++){ if(cur[parts[i]]===undefined || cur[parts[i]]===null || typeof cur[parts[i]]!=='object') cur[parts[i]]={}; cur=cur[parts[i]]; } cur[parts[parts.length-1]]=value; this.markPolicyCustom(); },
@@ -376,14 +378,19 @@ function cfgEditor(initial) {
               <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
                 <div>
                   <div style="font-weight:800;color:var(--txt)"><i class="ti ti-shield-cog"></i> Policy Preset</div>
-                  <div class="cfg-help">Current: <b x-text="policyPresetLabel()"></b>. Applying a preset writes directly to saved <code>config.json → policies</code>. Manual edits remain <code>custom</code> after saving.</div>
+                  <div class="cfg-help">Current: <b x-text="policyPresetLabel()"></b>. Applying a preset writes directly to saved <code>config.json → policies</code>. Manual policy edits become and stay <code>custom</code> after saving until you apply a named preset again.</div>
                 </div>
                 <div class="btn-row">
                   <button type="button" class="btn" :class="policyPresetClass('conservative')" :aria-pressed="policyPresetActive('conservative')" @click="applyPolicyPreset('conservative')"><i class="ti ti-lock"></i> Conservative</button>
                   <button type="button" class="btn" :class="policyPresetClass('balanced')" :aria-pressed="policyPresetActive('balanced')" @click="applyPolicyPreset('balanced')"><i class="ti ti-balance"></i> Balanced</button>
                   <button type="button" class="btn" :class="policyPresetClass('aggressive')" :aria-pressed="policyPresetActive('aggressive')" @click="applyPolicyPreset('aggressive')"><i class="ti ti-bolt"></i> Aggressive</button>
+                  <span class="btn" :class="customPolicyClass()" :aria-pressed="policyIsCustom()" title="Custom is created by manual policy edits and saved to config.json → policies."><i class="ti ti-adjustments-cog"></i> Custom</span>
                 </div>
               </div>
+            </div>
+            <div x-show="policyIsCustom()" x-cloak class="cfg-subtle" style="margin-top:10px;border-color:rgba(0,200,150,.35);background:rgba(0,200,150,.08)">
+              <div style="font-weight:800;color:var(--txt)"><i class="ti ti-adjustments-cog"></i> Customized policies active</div>
+              <div class="cfg-help">Your policy block is saved as <code>custom</code>. LQoSync will keep this custom state across Config Center saves. Use Conservative, Balanced, or Aggressive only when you want to replace the policy block with a preset.</div>
             </div>
             <div class="btn-row" style="margin-top:10px"><a class="btn btn-primary" href="/sync/dry-run"><i class="ti ti-eye"></i> Preview Impact / Dry Run</a><a class="btn" href="/docs/search?q=policy+hierarchy"><i class="ti ti-book"></i> Policy docs</a><button type="button" class="btn" @click="openRaw()"><i class="ti ti-code"></i> Raw JSON</button></div>
           </div>

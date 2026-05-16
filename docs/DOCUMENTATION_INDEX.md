@@ -90,3 +90,5 @@ LQoSync v2.67 adds a clearer owner/admin/operator/viewer role model. Owner contr
 - [LibreQoS Apply Failure Visibility](content/apply_failure_visibility.md) — v2.70.7-rc1 diagnostic workflow for failed LibreQoS apply runs.
 
 - [Policy Preset Alignment + Save Semantics](content/policy_preset_alignment_save_semantics.md) — preset alignment, custom-save reconciliation, and policy preset audit.
+
+- [Custom Policy Mode Persistence Hotfix](content/custom_policy_mode_persistence.md) — v2.70.9 visible Custom policy state and save semantics.

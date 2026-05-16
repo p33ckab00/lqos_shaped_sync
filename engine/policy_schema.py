@@ -507,20 +507,32 @@ def closest_preset(cfg: dict) -> dict[str, Any]:
 
 
 def reconcile_policy_mode(cfg: dict) -> dict:
-    """Normalize policies and mark mode=custom when saved values no longer match the selected preset.
+    """Normalize policies and preserve true Custom mode on save.
 
-    This is a server-side safety net for Config Center saves. The UI already marks
-    manual policy field edits as custom, but raw JSON edits, browser edge cases, or
-    old forms can leave policies.mode saying conservative/balanced/aggressive even
-    when the actual policy block differs.
+    Rules:
+    - If policies.mode is ``custom``, keep it custom. Custom is an explicit
+      operator preference and should not disappear just because the values happen
+      to be close to, or even equal to, a named preset.
+    - If policies.mode is conservative/balanced/aggressive and the policy block
+      differs from that preset, change it to custom.
+    - If policies.mode is invalid or missing, change it to custom after defaults
+      are merged.
+
+    This is a server-side safety net for Config Center saves, Advanced Raw JSON
+    edits, browser edge cases, and old forms.
     """
     normalize_policies(cfg)
-    mode = ((cfg.get("policies") or {}).get("mode") or "balanced").strip().lower()
+    mode = str(((cfg.get("policies") or {}).get("mode") or "balanced")).strip().lower()
+    if mode == "custom":
+        cfg.setdefault("policies", {})["mode"] = "custom"
+        return cfg
     if mode in {"conservative", "balanced", "aggressive"}:
         diffs = [d for d in policy_diff_from_preset(cfg, mode, limit=10000) if d.get("path") != "policies.mode"]
         if diffs:
             cfg.setdefault("policies", {})["mode"] = "custom"
-    elif mode not in POLICY_PRESETS:
+        else:
+            cfg.setdefault("policies", {})["mode"] = mode
+    else:
         cfg.setdefault("policies", {})["mode"] = "custom"
     return cfg
 

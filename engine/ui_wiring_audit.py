@@ -108,6 +108,8 @@ def check_policy_preset_wiring(root: str | Path) -> dict[str, Any]:
             break
     if "policyPresetActive(preset)" not in config or "policyPresetLabel()" not in config:
         problems.append("Config Center missing preset active/label helpers tied to cfg.policies.mode")
+    if "policyIsCustom()" not in config or "customPolicyClass()" not in config or "Customized policies active" not in config:
+        problems.append("Config Center missing visible Custom policy state and active custom badge")
     if "/policy/apply-preset/" not in config:
         problems.append("Config Center preset JS is not wired to /policy/apply-preset")
     if "policies.mode" in config and "Preset mode is controlled by the preset buttons" not in config:
@@ -115,7 +117,7 @@ def check_policy_preset_wiring(root: str | Path) -> dict[str, Any]:
     if problems:
         items.append(UIWiringItem("policy.preset_wiring", "Policy preset wiring", "fail", "; ".join(problems), "policy", "Wire preset buttons inside Config Center → Policies and keep policies.mode managed."))
     else:
-        items.append(UIWiringItem("policy.preset_wiring", "Policy preset wiring", "ok", "Config Center preset buttons, dynamic active state, backend route, save_config, and managed policies.mode are wired.", "policy"))
+        items.append(UIWiringItem("policy.preset_wiring", "Policy preset wiring", "ok", "Config Center preset buttons, Custom state badge, dynamic active state, backend route, save_config, and managed policies.mode are wired.", "policy"))
     return {"items": [i.to_dict() for i in items], "summary": _summary(items)}
 
 

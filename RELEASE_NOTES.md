@@ -1,5 +1,20 @@
 # LQoSync Release Notes
 
+## v2.70.9-rc1 - Custom Policy Mode Persistence Hotfix
+
+### Fixed
+
+- Restores Custom as a visible policy state in Config Center → Policies.
+- Adds a Custom state badge beside Conservative, Balanced, and Aggressive so customized policies do not appear to disappear.
+- Preserves explicit `policies.mode = custom` on Config Center save. Custom is now treated as an operator preference, not auto-converted back to a named preset.
+- Keeps named preset behavior intact: exact Conservative/Balanced/Aggressive stays named, while edited named presets reconcile to `custom`.
+- Updates Policy Preset Audit to verify exact named presets, edited named presets, and explicit custom preservation.
+- Updates UI Wiring Audit to verify visible Custom policy state wiring.
+
+### Notes
+
+This is a policy UI/save-semantics hotfix. It does not change MikroTik collection, cleanup policy execution, generated file formats, scheduler timing, backup implementation, Telegram delivery, or LibreQoS apply mechanics.
+
 ## v2.70.8-rc1 - Policy Preset Alignment + Save Semantics Hotfix
 
 ### Fixed

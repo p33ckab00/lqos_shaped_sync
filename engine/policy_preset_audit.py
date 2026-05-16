@@ -89,15 +89,20 @@ def audit_policy_presets(root: str | Path | None = None) -> dict[str, Any]:
         if bad:
             conflict_failures.append(f"{preset}: " + "; ".join(c.get("title", "conflict") for c in bad[:3]))
 
-        # Server-side save reconciliation: exact preset remains preset; edited preset becomes custom.
+        # Server-side save reconciliation: exact named preset remains preset; edited preset becomes custom; explicit custom is preserved.
         exact = reconcile_policy_mode(applied.copy())
         if ((exact.get("policies") or {}).get("mode") != preset):
-            reconcile_failures.append(f"{preset}: exact preset reconciled to {(exact.get('policies') or {}).get('mode')}")
+            reconcile_failures.append(f"{preset}: exact named preset reconciled to {(exact.get('policies') or {}).get('mode')}")
         edited = json.loads(json.dumps(applied))
         edited.setdefault("policies", {}).setdefault("cleanup_sources", {}).setdefault("dhcp", {})["zero_result_action"] = "warn_only"
         edited = reconcile_policy_mode(edited)
         if ((edited.get("policies") or {}).get("mode") != "custom"):
-            reconcile_failures.append(f"{preset}: edited policy did not reconcile to custom")
+            reconcile_failures.append(f"{preset}: edited named preset did not reconcile to custom")
+        explicit_custom = json.loads(json.dumps(applied))
+        explicit_custom.setdefault("policies", {})["mode"] = "custom"
+        explicit_custom = reconcile_policy_mode(explicit_custom)
+        if ((explicit_custom.get("policies") or {}).get("mode") != "custom"):
+            reconcile_failures.append(f"{preset}: explicit custom mode was not preserved")
 
     if mode_failures:
         items.append(PresetAuditItem("preset.mode", "Preset mode alignment", "fail", "; ".join(mode_failures), "policy_preset", "Ensure apply_policy_preset sets policies.mode to the selected preset."))
@@ -120,8 +125,8 @@ def audit_policy_presets(root: str | Path | None = None) -> dict[str, Any]:
         items.append(PresetAuditItem("preset.preference_preservation", "Preset preserves user preferences", "ok", "Preset apply preserves app.backup_before_apply and notification preferences outside policies."))
 
     if reconcile_failures:
-        items.append(PresetAuditItem("preset.custom_reconcile", "Custom mode reconciliation", "fail", "; ".join(reconcile_failures), "policy_preset", "Server-side Config Center save should keep exact presets and mark edited presets as custom."))
+        items.append(PresetAuditItem("preset.custom_reconcile", "Custom mode reconciliation", "fail", "; ".join(reconcile_failures), "policy_preset", "Server-side Config Center save should keep exact named presets, mark edited named presets as custom, and preserve explicit custom mode."))
     else:
-        items.append(PresetAuditItem("preset.custom_reconcile", "Custom mode reconciliation", "ok", "Exact presets remain named presets; manual policy edits reconcile to custom."))
+        items.append(PresetAuditItem("preset.custom_reconcile", "Custom mode reconciliation", "ok", "Exact named presets remain named presets; manual edits reconcile to custom; explicit custom mode is preserved."))
 
     return {"items": [i.to_dict() for i in items], "summary": _summary(items), "verdict": "pass" if not any(i.status == "fail" for i in items) else "fail"}

@@ -4,6 +4,7 @@ import secrets
 import subprocess
 import io
 import zipfile
+from copy import deepcopy
 from pathlib import Path
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Response, abort
 from dotenv import load_dotenv
@@ -86,6 +87,26 @@ def current_user():
     """Return the currently logged-in user dict, or None."""
     user = session.get("user")
     return user if isinstance(user, dict) else None
+
+
+def _save_config_with_policy_reconcile(data: dict, *, backup_existing: bool = True) -> tuple[dict, str | None, str | None]:
+    """Persist config while keeping preset/custom semantics consistent.
+
+    Config Center's main form already treated manual policy edits as a move from
+    a named preset into ``custom``. Other write paths historically called
+    ``save_config`` directly, which let scheduler/API changes keep a stale named
+    preset label even after policy-affecting values changed. Centralizing the
+    reconciliation here keeps every policy-context save path honest.
+    """
+    previous = load_config(CONFIG_PATH)
+    previous_mode = ((previous.get("policies") or {}).get("mode") if isinstance(previous.get("policies"), dict) else None)
+    prepared = deepcopy(data)
+    if previous_mode in {"conservative", "balanced", "aggressive"} and policy_context_changed(previous, prepared):
+        prepared.setdefault("policies", {})["mode"] = "custom"
+    prepared = reconcile_policy_mode(prepared)
+    new_mode = ((prepared.get("policies") or {}).get("mode") if isinstance(prepared.get("policies"), dict) else None)
+    save_config(prepared, CONFIG_PATH, backup_existing=backup_existing)
+    return prepared, previous_mode, new_mode
 
 
 def login_required(view_func):
@@ -534,7 +555,7 @@ def scheduler_action(action):
     else:
         flash("Invalid scheduler action.")
         return redirect(url_for("dashboard"))
-    save_config(cfg, CONFIG_PATH)
+    cfg, _previous_mode, _new_mode = _save_config_with_policy_reconcile(cfg)
     write_audit(cfg, f"scheduler_{action}", actor=current_user().get("username"))
     flash(message)
     return redirect(url_for("dashboard"))
@@ -548,7 +569,7 @@ def scheduler_settings():
     for key in ("active_interval_seconds", "idle_interval_seconds", "error_retry_interval_seconds", "apply_cooldown_seconds"):
         if key in request.form:
             sched[key] = int(request.form.get(key) or 0)
-    save_config(cfg, CONFIG_PATH)
+    _save_config_with_policy_reconcile(cfg)
     flash("Scheduler settings saved.")
     return redirect(url_for("config_page"))
 
@@ -729,17 +750,7 @@ def config_page():
         raw = request.form.get("config_json", "")
         try:
             data = json.loads(raw)
-            previous = load_config(CONFIG_PATH)
-            previous_mode = ((previous.get("policies") or {}).get("mode") if isinstance(previous.get("policies"), dict) else None)
-            # Policy Overview controls include a few app.* runtime settings.
-            # They must still turn preset mode into Custom when edited from
-            # Config Center → Policies. This protects server-side saves even if
-            # browser JS misses markPolicyCustom().
-            if previous_mode in {"conservative", "balanced", "aggressive"} and policy_context_changed(previous, data):
-                data.setdefault("policies", {})["mode"] = "custom"
-            data = reconcile_policy_mode(data)
-            new_mode = ((data.get("policies") or {}).get("mode") if isinstance(data.get("policies"), dict) else None)
-            save_config(data, CONFIG_PATH, backup_existing=True)
+            _saved, previous_mode, new_mode = _save_config_with_policy_reconcile(data, backup_existing=True)
             write_audit(load_config(CONFIG_PATH), "config_saved", actor=current_user().get("username"), details={"previous_policy_mode": previous_mode, "policy_mode": new_mode})
             if previous_mode != new_mode and new_mode == "custom":
                 flash("config.json saved. Policy mode changed to Custom because saved policy values differ from the selected preset.")
@@ -2000,11 +2011,11 @@ def api_scheduler_action(action):
             return jsonify({"ok": False, "blocked": True, "error": "setup_not_ready", "blockers": blockers, "wizard": wizard}), 409
         sched["enabled"] = True
         cfg.setdefault("setup_wizard", {})["first_run_completed"] = True
-        save_config(cfg, CONFIG_PATH)
+        _save_config_with_policy_reconcile(cfg)
         return jsonify({"ok": True, "scheduler_enabled": True, "setup_complete": True})
     if action in ("disable", "pause"):
         sched["enabled"] = False
-        save_config(cfg, CONFIG_PATH)
+        _save_config_with_policy_reconcile(cfg)
         return jsonify({"ok": True, "scheduler_enabled": False})
     if action == "run-now":
         if _manual_sync_blocked(cfg):
@@ -2024,7 +2035,7 @@ def api_scheduler_intervals():
     for key in allowed:
         if key in data and data[key] not in (None, ""):
             sched[key] = int(data[key])
-    save_config(cfg, CONFIG_PATH)
+    _save_config_with_policy_reconcile(cfg)
     return jsonify({"ok": True, "scheduler": sched})
 
 
@@ -2035,8 +2046,8 @@ def api_config():
         return jsonify(load_config(CONFIG_PATH))
     try:
         data = request.get_json(force=True)
-        save_config(data, CONFIG_PATH)
-        return jsonify({"ok": True})
+        _saved, previous_mode, new_mode = _save_config_with_policy_reconcile(data)
+        return jsonify({"ok": True, "previous_policy_mode": previous_mode, "policy_mode": new_mode})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 400
 

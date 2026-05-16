@@ -62,6 +62,7 @@ function cfgEditor(initial) {
   return {
     cfg: ensure(JSON.parse(JSON.stringify(initial))),
     tab: (window.initialConfigTab || 'overview'), routerIndex: 0, rawDraft: '', rawError: '', showRawEditor: false,
+    schemaReport: window.initialSchemaReport || {}, simulation: null, simLoading: false, simError: '',
     get routers(){ return this.cfg.routers || []; },
     get currentRouter(){ return this.routers[this.routerIndex] || null; },
     get jsonText(){ this.normalizeNetworkMode(); return JSON.stringify(this.cfg, null, 2); },

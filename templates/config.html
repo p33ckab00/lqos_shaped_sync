@@ -64,6 +64,7 @@ function cfgEditor(initial) {
     cfg: ensure(JSON.parse(JSON.stringify(initial))),
     tab: (window.initialConfigTab || 'overview'), routerIndex: 0, rawDraft: '', rawError: '', showRawEditor: false,
     schemaReport: window.initialSchemaReport || {}, simulation: null, simLoading: false, simError: '',
+    liveSaveTimer: null, liveSaveInFlight: false, liveSaveQueued: false, liveSaveState: 'saved', liveSaveMessage: 'Loaded from config.json.', lastSavedAt: '',
     get routers(){ return this.cfg.routers || []; },
     get currentRouter(){ return this.routers[this.routerIndex] || null; },
     get jsonText(){ this.normalizeNetworkMode(); return JSON.stringify(this.cfg, null, 2); },
@@ -79,13 +80,70 @@ function cfgEditor(initial) {
     networkModeLabel(){
       return {router_children: 'Normal hierarchy: router root + service/plan child nodes', deep_hierarchy: 'Deep hierarchy: routers can be nested under parent nodes', custom_hierarchy: 'Custom hierarchy: topology editor / virtual grouping mode', flat_router_root: 'Flat: all generated circuits under router root', flat_no_parent: 'Flat: blank Parent Node, no generated node tree'}[this.cfg.network_mode] || 'Hierarchy';
     },
-    syncHidden(){ this.normalizeNetworkMode(); this.cfg = ensure(this.cfg); if(this.shouldForceCustomPolicy()) this.cfg.policies.mode = 'custom'; this.$refs.configJson.value = this.jsonText; },
+    syncHidden(){ this.normalizeNetworkMode(); this.cfg = ensure(this.cfg); if(this.shouldForceCustomPolicy()) this.cfg.policies.mode = 'custom'; if(this.$refs.configJson) this.$refs.configJson.value = this.jsonText; },
+    clone(value){ return JSON.parse(JSON.stringify(value)); },
+    liveSavedConfig(saved){ this.cfg = ensure(this.clone(saved)); window.initialConfig = this.clone(this.cfg); if(this.routerIndex >= this.cfg.routers.length) this.routerIndex = Math.max(0, this.cfg.routers.length - 1); },
+    liveStatusClass(){ return this.liveSaveState === 'failed' ? 'b-err' : (this.liveSaveState === 'saving' ? 'b-warn' : 'b-ok'); },
+    liveStatusLabel(){ return this.liveSaveState === 'failed' ? 'Save failed' : (this.liveSaveState === 'saving' ? 'Saving live' : 'Saved live'); },
+    queueLiveSave(reason='change', immediate=false){
+      this.liveSaveMessage = 'Pending live save…';
+      if(this.liveSaveTimer) clearTimeout(this.liveSaveTimer);
+      const delay = immediate ? 0 : 650;
+      this.liveSaveTimer = setTimeout(() => this.saveLiveConfig(reason), delay);
+    },
+    queueLiveSaveFromEvent(event){
+      const el = event?.target;
+      if(!el || !['INPUT','SELECT','TEXTAREA'].includes(el.tagName)) return;
+      if(el.type === 'hidden') return;
+      // Number fields can pass through an empty intermediate state while the
+      // operator is typing; wait for a complete value or blur/change event.
+      if(event.type === 'input' && el.type === 'number' && el.value === '') return;
+      const immediate = event.type === 'change' || el.type === 'checkbox' || el.tagName === 'SELECT';
+      this.queueLiveSave('field_change', immediate);
+    },
+    async saveLiveConfig(reason='change'){
+      if(this.liveSaveTimer){ clearTimeout(this.liveSaveTimer); this.liveSaveTimer = null; }
+      if(this.liveSaveInFlight){ this.liveSaveQueued = true; return; }
+      this.syncHidden();
+      const payload = this.clone(this.cfg);
+      this.liveSaveInFlight = true;
+      this.liveSaveState = 'saving';
+      this.liveSaveMessage = 'Writing config.json…';
+      try{
+        const res = await lqosJsonFetch('/api/config', payload, {method:'PUT'});
+        const data = await res.json();
+        if(!res.ok || data.ok === false) throw new Error(data.error || ('HTTP ' + res.status));
+        if(this.liveSaveQueued){
+          // A newer operator edit happened while this write was in flight.
+          // Keep the newer local UI state, but advance the saved baseline so the
+          // follow-up write compares against the exact config now on disk.
+          window.initialConfig = this.clone(data.config || payload);
+        } else {
+          this.liveSavedConfig(data.config || payload);
+        }
+        this.liveSaveState = 'saved';
+        this.lastSavedAt = new Date().toLocaleTimeString();
+        this.liveSaveMessage = 'Saved to config.json' + (this.lastSavedAt ? ' at ' + this.lastSavedAt : '') + '.';
+      }catch(e){
+        this.liveSaveState = 'failed';
+        this.liveSaveMessage = 'Save failed: ' + e;
+        // Keep the page honest: failed writes fall back to the last confirmed
+        // server snapshot instead of displaying a value that is not active.
+        this.cfg = ensure(this.clone(window.initialConfig || {}));
+      }finally{
+        this.liveSaveInFlight = false;
+        if(this.liveSaveQueued){
+          this.liveSaveQueued = false;
+          this.queueLiveSave('queued_change', true);
+        }
+      }
+    },
     openRaw(){ this.rawDraft = this.jsonText; this.rawError=''; this.showRawEditor = true; },
-    applyRaw(){ try { this.cfg = ensure(JSON.parse(this.rawDraft)); this.rawError=''; this.showRawEditor=false; if(this.routerIndex >= this.cfg.routers.length) this.routerIndex = 0; } catch(e) { this.rawError = e.message; } },
-    addRouter(){ this.cfg.routers.push(blankRouter()); this.routerIndex = this.cfg.routers.length - 1; this.tab = 'router'; },
-    removeRouter(i){ if(confirm('Remove router from config.json? This does not touch MikroTik.')) { this.cfg.routers.splice(i,1); this.routerIndex = Math.max(0, Math.min(this.routerIndex, this.cfg.routers.length-1)); } },
-    addDhcp(router){ router.dhcp ||= {enabled: true, servers: []}; router.dhcp.servers.push(blankDhcp()); },
-    removeDhcp(router, i){ if(confirm('Remove DHCP server entry from config.json? This does not touch MikroTik.')) router.dhcp.servers.splice(i,1); },
+    applyRaw(){ try { this.cfg = ensure(JSON.parse(this.rawDraft)); this.rawError=''; this.showRawEditor=false; if(this.routerIndex >= this.cfg.routers.length) this.routerIndex = 0; this.queueLiveSave('raw_json', true); } catch(e) { this.rawError = e.message; } },
+    addRouter(){ this.cfg.routers.push(blankRouter()); this.routerIndex = this.cfg.routers.length - 1; this.tab = 'router'; this.queueLiveSave('router_added', true); },
+    removeRouter(i){ if(confirm('Remove router from config.json? This does not touch MikroTik.')) { this.cfg.routers.splice(i,1); this.routerIndex = Math.max(0, Math.min(this.routerIndex, this.cfg.routers.length-1)); this.queueLiveSave('router_removed', true); } },
+    addDhcp(router){ router.dhcp ||= {enabled: true, servers: []}; router.dhcp.servers.push(blankDhcp()); this.queueLiveSave('dhcp_added', true); },
+    removeDhcp(router, i){ if(confirm('Remove DHCP server entry from config.json? This does not touch MikroTik.')) { router.dhcp.servers.splice(i,1); this.queueLiveSave('dhcp_removed', true); } },
     markPolicyCustom(){ this.cfg.policies ||= {}; if(this.cfg.policies.mode !== 'custom') this.cfg.policies.mode = 'custom'; },
     policyContextPaths(){ return ['app.operation_mode','app.auto_apply','app.backup_before_apply','app.backup_retention','scheduler.enabled','scheduler.apply_cooldown_seconds','libreqos.run_only_when_files_changed','libreqos.retry_if_last_apply_failed','libreqos.run_mode','preflight.enabled','preflight.duplicate_ip_policy','preflight.missing_parent_policy','preflight.invalid_bandwidth_policy','defaults.duplicate_ip_policy']; },
     policyContextChanged(){ const before = window.initialConfig || {}; const after = this.cfg || {}; const get=(obj,path)=>String(path).split('.').reduce((o,k)=>(o && o[k] !== undefined ? o[k] : undefined), obj); const paths=[...(window.policySchemaPaths || []), ...this.policyContextPaths()]; return paths.some(path => JSON.stringify(get(before,path)) !== JSON.stringify(get(after,path))); },
@@ -98,7 +156,7 @@ function cfgEditor(initial) {
     customPolicyClass(){ return this.policyIsCustom() ? 'btn-primary' : ''; },
     asBool(value){ return value === true || value === 1 || value === '1' || String(value).toLowerCase() === 'true' || String(value).toLowerCase() === 'yes' || String(value).toLowerCase() === 'on'; },
     getPath(path){ return String(path).split('.').reduce((obj,key)=>obj ? obj[key] : undefined, this.cfg); },
-    setPath(path, value){ const parts=String(path).split('.'); let cur=this.cfg; for(let i=0;i<parts.length-1;i++){ if(cur[parts[i]]===undefined || cur[parts[i]]===null || typeof cur[parts[i]]!=='object') cur[parts[i]]={}; cur=cur[parts[i]]; } cur[parts[parts.length-1]]=value; this.markPolicyCustom(); },
+    setPath(path, value){ const parts=String(path).split('.'); let cur=this.cfg; for(let i=0;i<parts.length-1;i++){ if(cur[parts[i]]===undefined || cur[parts[i]]===null || typeof cur[parts[i]]!=='object') cur[parts[i]]={}; cur=cur[parts[i]]; } cur[parts[parts.length-1]]=value; this.markPolicyCustom(); this.queueLiveSave('policy_path'); },
     policyRiskClass(risk){ return risk==='critical' ? 'b-err' : (risk==='high' ? 'b-warn' : (risk==='medium' ? 'b-dhcp' : 'b-ok')); },
     notifyLevelOptions(){ return ['critical','warning','info']; },
     eventToggleOptions(){ return [
@@ -124,8 +182,8 @@ function cfgEditor(initial) {
         window.location = '/config?tab=policies';
       }catch(e){ alert('Policy preset apply failed: ' + e); }
     },
-    addFactor(router){ router.pppoe ||= {factor_rules: []}; router.pppoe.factor_rules.push(blankFactor()); },
-    removeFactor(router, i){ router.pppoe.factor_rules.splice(i,1); },
+    addFactor(router){ router.pppoe ||= {factor_rules: []}; router.pppoe.factor_rules.push(blankFactor()); this.queueLiveSave('factor_added', true); },
+    removeFactor(router, i){ router.pppoe.factor_rules.splice(i,1); this.queueLiveSave('factor_removed', true); },
     submitTest(){ this.syncHidden(); this.$refs.testRouterIdx.value = String(this.routerIndex ?? 0); this.$refs.testPayload.value = this.jsonText; this.$refs.testForm.submit(); },
     submitDiscover(){ this.syncHidden(); this.$refs.discoverRouterIdx.value = String(this.routerIndex ?? 0); this.$refs.discoverPayload.value = this.jsonText; this.$refs.discoverForm.submit(); },
     changedPaths(){
@@ -153,7 +211,6 @@ function cfgEditor(initial) {
       }catch(e){ this.simError = String(e); }
       this.simLoading=false;
     },
-    confirmSave(form){ this.syncHidden(); const changes=this.changedPaths(); let msg='Save normalized config.json?'; if(changes.length){ msg+='\n\nChange preview:'; changes.slice(0,10).forEach(c=>{msg+=`\n- ${c.label}: ${JSON.stringify(c.before)} -> ${JSON.stringify(c.after)}`;}); if(changes.length>10) msg+=`\n- +${changes.length-10} more`; } else { msg+='\n\nNo important changes detected; config will still be normalized.'; } msg+='\n\nRecommended after major changes: run Dry Run Preview before enabling scheduler auto-apply.'; if(confirm(msg)) form.submit(); },
     nodePreview(template, values){ return (template || '').replaceAll('{router}', values.router || '').replaceAll('{server}', values.server || '').replaceAll('{profile}', values.profile || 'Tier-15M').replaceAll('{plan}', values.plan || '15M'); }
   }
 }
@@ -167,19 +224,20 @@ function cfgEditor(initial) {
 </style>
 
 <div x-data="cfgEditor(window.initialConfig)" class="space-y-4">
-  <form method="post" @submit.prevent="confirmSave($el)" class="space-y-4">{{ csrf_field()|safe }}
+  <form method="post" @submit.prevent @input="queueLiveSaveFromEvent($event)" @change="queueLiveSaveFromEvent($event)" class="space-y-4">{{ csrf_field()|safe }}
     <input type="hidden" name="config_json" x-ref="configJson">
 
     <div class="page-header">
       <div>
         <div class="page-title" style="font-size:22px">Config Center</div>
-        <div class="page-subtitle">Professional config.json control plane. UI fields, network mode, LibreQoS runner, and raw JSON are mirrored live.</div>
+        <div class="page-subtitle">Live config.json control plane. UI values are loaded from disk and ordinary field changes persist back to disk automatically.</div>
       </div>
       <div class="btn-row">
         <button type="button" @click="openRaw()" class="btn"><i class="ti ti-code"></i>Raw JSON</button>
-        <button class="btn btn-primary"><i class="ti ti-device-floppy"></i>Normalize & Save</button>
+        <span class="badge" :class="liveStatusClass()" x-text="liveStatusLabel()"></span>
       </div>
     </div>
+    <div class="note"><b>Live persistence:</b> <span x-text="liveSaveMessage"></span> The next sync cycle rereads saved <code>config.json</code>; in-flight cycles finish with the snapshot they already started with.</div>
 
     {% if config_errors %}<div class="card" style="border-color:rgba(239,68,68,.4)"><div class="card-title text-err"><i class="ti ti-alert-triangle"></i> Config Errors</div><ul class="list-disc ml-6 text-sm">{% for e in config_errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
     {% if config_warnings %}<div class="card" style="border-color:rgba(245,158,11,.45)"><div class="card-title text-warn"><i class="ti ti-alert-circle"></i> Warnings</div><ul class="list-disc ml-6 text-sm">{% for w in config_warnings %}<li>{{ w }}</li>{% endfor %}</ul></div>{% endif %}
@@ -661,7 +719,7 @@ function cfgEditor(initial) {
         </div>
         <div class="card">
           <div class="flex items-center justify-between mb-3"><div class="card-title" style="margin-bottom:0"><i class="ti ti-code"></i> Live Raw JSON</div><button type="button" @click="openRaw()" class="btn" style="padding:5px 9px">Edit</button></div>
-          <p class="text-xs" style="color:var(--muted);margin-bottom:10px">This is the exact normalized payload posted to config.json on save.</p>
+          <p class="text-xs" style="color:var(--muted);margin-bottom:10px">This is the exact live config snapshot currently reflected by the UI and written back to config.json after each successful change.</p>
           <pre class="cfg-json" x-text="jsonText"></pre>
         </div>
         <div class="card" x-show="currentRouter" x-cloak>
@@ -679,7 +737,7 @@ function cfgEditor(initial) {
     <div class="card w-full max-w-5xl" style="max-height:92vh;overflow:auto">
       <div class="flex items-center justify-between mb-3"><div class="text-xl font-bold">Editable Raw JSON</div><button type="button" @click="showRawEditor=false" class="btn">Close</button></div>
       <textarea x-model="rawDraft" class="cfg-textarea mono" style="height:65vh"></textarea>
-      <div class="mt-3 flex justify-between items-center gap-3"><div class="text-err text-sm" x-text="rawError"></div><div class="btn-row"><button type="button" @click="rawDraft=jsonText" class="btn">Reset from UI</button><button type="button" @click="applyRaw()" class="btn btn-primary">Apply Raw to UI</button></div></div>
+      <div class="mt-3 flex justify-between items-center gap-3"><div class="text-err text-sm" x-text="rawError"></div><div class="btn-row"><button type="button" @click="rawDraft=jsonText" class="btn">Reset from UI</button><button type="button" @click="applyRaw()" class="btn btn-primary">Apply Raw & Save Live</button></div></div>
     </div>
   </div>
 </div>

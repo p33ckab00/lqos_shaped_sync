@@ -2049,8 +2049,9 @@ def api_config():
         return jsonify(load_config(CONFIG_PATH))
     try:
         data = request.get_json(force=True)
-        _saved, previous_mode, new_mode = _save_config_with_policy_reconcile(data)
-        return jsonify({"ok": True, "previous_policy_mode": previous_mode, "policy_mode": new_mode})
+        saved, previous_mode, new_mode = _save_config_with_policy_reconcile(data)
+        write_audit(saved, "config_autosaved", actor=(current_user() or {}).get("username"), details={"previous_policy_mode": previous_mode, "policy_mode": new_mode})
+        return jsonify({"ok": True, "previous_policy_mode": previous_mode, "policy_mode": new_mode, "config": saved})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 400
 

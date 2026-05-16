@@ -33,7 +33,12 @@ from engine.production_readiness import compute_production_readiness
 from engine.apply_diagnostics import get_apply_diagnostic
 from engine.stable_release import compute_stable_release_check
 from engine.router_overview import compute_router_overview
-from engine.notifications import telegram_settings_summary, send_test_message, dispatch_telegram_notifications
+from engine.notifications import (
+    telegram_settings_summary,
+    send_test_message,
+    dispatch_telegram_notifications,
+    build_force_apply_notifications,
+)
 from engine.docs_search import search_docs, build_docs_index, get_doc
 from engine.config_simulator import simulate_config_change
 from engine.reports import compute_operator_report, report_to_csv, report_to_markdown
@@ -1391,9 +1396,15 @@ def notifications_center():
                 pass
         tg["send_digest"] = bool(request.form.get("send_digest"))
         tg["send_individual"] = bool(request.form.get("send_individual"))
+        tg["safety_alerts_enabled"] = bool(request.form.get("safety_alerts_enabled"))
+        tg["activity_journal_enabled"] = bool(request.form.get("activity_journal_enabled"))
+        tg["activity_send_digest"] = bool(request.form.get("activity_send_digest"))
+        tg["activity_send_individual"] = bool(request.form.get("activity_send_individual"))
+        tg["activity_silent_messages"] = bool(request.form.get("activity_silent_messages"))
         for key in [
             "notify_on_apply_failed", "notify_on_policy_block", "notify_on_confirmation_required",
             "notify_on_update_available", "notify_on_source_health_warning", "notify_on_performance_slow",
+            "notify_on_client_changes", "notify_on_apply_success", "notify_on_files_written",
         ]:
             tg[key] = bool(request.form.get(key))
         _write_config(
@@ -1424,7 +1435,7 @@ def notifications_send_current():
     services = all_service_status(cfg)
     apply_runs = list_apply_runs(cfg, limit=25)
     report = compute_health_report(cfg, state, policy_state=policy_state, services=services, apply_runs=apply_runs)
-    result = dispatch_telegram_notifications(cfg, report.get("notifications", []), force=bool(request.form.get("force")), title="LQoSync current health alerts")
+    result = dispatch_telegram_notifications(cfg, report.get("notifications", []), force=bool(request.form.get("force")), title="LQoSync current health alerts", lane="alerts")
     write_audit(cfg, "telegram_current_alerts_sent", actor=(current_user() or {}).get("username"), details={"ok": result.get("ok"), "sent": result.get("sent"), "reason": result.get("reason")})
     if result.get("ok"):
         flash(f"Telegram current alerts sent: {result.get('sent', 0)} item(s).")
@@ -1904,6 +1915,20 @@ def api_restart_service_group(group):
     return jsonify(res)
 
 
+def _dispatch_force_apply_telegram(cfg, lq, *, actor=None):
+    """Best-effort Telegram feed for direct/manual LibreQoS apply routes."""
+    try:
+        alerts, activity = build_force_apply_notifications(lq, reason="force_apply")
+        if alerts:
+            dispatch = dispatch_telegram_notifications(cfg, alerts, lane="alerts", title="LQoSync safety alerts")
+            write_audit(cfg, "telegram_runtime_alerts", actor=actor, details={"ok": dispatch.get("ok"), "sent": dispatch.get("sent"), "reason": dispatch.get("reason"), "events": [item.get("event") for item in alerts]})
+        if activity:
+            dispatch = dispatch_telegram_notifications(cfg, activity, lane="activity", title="LQoSync activity journal")
+            write_audit(cfg, "telegram_runtime_activity", actor=actor, details={"ok": dispatch.get("ok"), "sent": dispatch.get("sent"), "reason": dispatch.get("reason"), "events": [item.get("event") for item in activity]})
+    except Exception as exc:
+        write_audit(cfg, "telegram_runtime_force_apply_failed", actor=actor, details={"error": str(exc)})
+
+
 @app.route("/libreqos/force-apply", methods=["POST"])
 @admin_required
 def libreqos_force_apply():
@@ -1923,6 +1948,7 @@ def libreqos_force_apply():
         last_libreqos_run_id=lq.get("run_id"),
     )
     write_audit(cfg, "libreqos_force_apply", actor=current_user().get("username"), details={"ok": lq.get("ok"), "exit_code": lq.get("exit_code"), "run_id": lq.get("run_id")})
+    _dispatch_force_apply_telegram(cfg, lq, actor=current_user().get("username"))
     if lq.get("ok"):
         flash("LibreQoS force apply completed.")
         return redirect(url_for("operations_center", tab="apply"))
@@ -1948,6 +1974,7 @@ def api_libreqos_force_apply():
         last_libreqos_run_id=lq.get("run_id"),
     )
     write_audit(cfg, "api_libreqos_force_apply", actor=current_user().get("username"), details={"ok": lq.get("ok"), "exit_code": lq.get("exit_code"), "run_id": lq.get("run_id")})
+    _dispatch_force_apply_telegram(cfg, lq, actor=current_user().get("username"))
     return jsonify(lq)
 
 

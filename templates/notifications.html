@@ -2,7 +2,7 @@
 <div class="page-header">
   <div>
     <div class="page-title">Telegram Notifications</div>
-    <div class="page-subtitle">Optional Telegram delivery for LQoSync health alerts, policy blocks, apply failures, and confirmation-needed events.</div>
+    <div class="page-subtitle">Optional Telegram delivery for urgent safety alerts plus digest-first activity journal events.</div>
   </div>
   <div class="btn-row">
     <a class="btn" href="/#source-health-performance"><i class="ti ti-layout-dashboard"></i> Dashboard health</a>
@@ -30,8 +30,13 @@
       {{ csrf_field()|safe }}
       <div class="guide-grid">
         <label class="notif-toggle"><input type="checkbox" name="telegram_enabled" {{ 'checked' if telegram.enabled else '' }}><span><b>Enable Telegram delivery</b><div class="notif-help">When enabled and configured, LQoSync can send selected health alerts to Telegram.</div></span></label>
+        <label class="notif-toggle"><input type="checkbox" name="safety_alerts_enabled" {{ 'checked' if telegram.safety_alerts_enabled else '' }}><span><b>Enable safety alerts</b><div class="notif-help">Urgent runtime events such as policy blocks and failed applies.</div></span></label>
         <label class="notif-toggle"><input type="checkbox" name="send_digest" {{ 'checked' if telegram.send_digest else '' }}><span><b>Send digest</b><div class="notif-help">Recommended. Sends one grouped message instead of many messages.</div></span></label>
         <label class="notif-toggle"><input type="checkbox" name="send_individual" {{ 'checked' if telegram.send_individual else '' }}><span><b>Send individual messages</b><div class="notif-help">Advanced. May be noisy on active networks.</div></span></label>
+        <label class="notif-toggle"><input type="checkbox" name="activity_journal_enabled" {{ 'checked' if telegram.activity_journal_enabled else '' }}><span><b>Enable activity journal</b><div class="notif-help">Client changes and successful apply events from the live runtime.</div></span></label>
+        <label class="notif-toggle"><input type="checkbox" name="activity_send_digest" {{ 'checked' if telegram.activity_send_digest else '' }}><span><b>Activity digest</b><div class="notif-help">Recommended for an operator journal.</div></span></label>
+        <label class="notif-toggle"><input type="checkbox" name="activity_send_individual" {{ 'checked' if telegram.activity_send_individual else '' }}><span><b>Activity individual messages</b><div class="notif-help">Enable only when you want a live line per event.</div></span></label>
+        <label class="notif-toggle"><input type="checkbox" name="activity_silent_messages" {{ 'checked' if telegram.activity_silent_messages else '' }}><span><b>Silent activity messages</b><div class="notif-help">Keeps journal traffic quiet while safety alerts stay audible.</div></span></label>
       </div>
 
       <div class="notif-form-grid">
@@ -64,7 +69,10 @@
             ('notify_on_confirmation_required','Cleanup confirmation required'),
             ('notify_on_update_available','Update available'),
             ('notify_on_source_health_warning','Source health warning'),
-            ('notify_on_performance_slow','Performance slow')
+            ('notify_on_performance_slow','Performance slow'),
+            ('notify_on_client_changes','Client records changed'),
+            ('notify_on_apply_success','LibreQoS apply completed'),
+            ('notify_on_files_written','Generated files changed')
           ] %}
           <label class="notif-toggle"><input type="checkbox" name="{{ key }}" {{ 'checked' if tgcfg.get(key, true) else '' }}><span><b>{{ label }}</b><div class="notif-help">Allow this category to be delivered when matching candidates exist.</div></span></label>
           {% endfor %}

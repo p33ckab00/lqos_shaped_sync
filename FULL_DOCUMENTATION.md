@@ -7436,3 +7436,14 @@ LQoSync v2.70.13-rc1 widens the Advanced JSON workspace, gives the Field Guide t
 ## v2.70.14-rc1 Policy Tree Desktop Alignment Hotfix
 
 LQoSync v2.70.14-rc1 restores horizontal icon + label alignment in the desktop Policy Center tree. The Field Guide keeps its stacked list styling, but that styling is now scoped away from ordinary Policy Center navigation buttons; the mobile Policy Center layout remains unchanged.
+
+## v2.71.0 Telegram Runtime Notifications
+
+LQoSync v2.71.0 turns Telegram into a live runtime feed with two independent lanes:
+
+```text
+Safety Alerts     = policy blocks, confirmation holds, failed applies
+Activity Journal  = client changes, generated-file changes, successful applies
+```
+
+Real sync cycles and manual force-apply routes now emit Telegram candidates directly. The journal lane is informational, digest-first, and silent by default; alert-level filtering still governs the urgent lane. Lane-specific dedupe state keeps operator-history traffic from suppressing urgent safety alerts.

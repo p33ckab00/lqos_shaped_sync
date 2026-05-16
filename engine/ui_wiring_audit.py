@@ -393,6 +393,39 @@ def check_apply_failure_visibility(root: str | Path) -> dict[str, Any]:
     return {"items": [i.to_dict() for i in items], "summary": _summary(items)}
 
 
+def check_notification_lane_wiring(root: str | Path) -> dict[str, Any]:
+    """Ensure Telegram exposes separate safety and activity lanes in the UI/runtime."""
+    root = Path(root)
+    items: list[UIWiringItem] = []
+    app = _read(root, "app.py")
+    config = _read(root, "templates/config.html")
+    notifications = _read(root, "engine/notifications.py")
+    run_cycle = _read(root, "engine/run_cycle.py")
+    problems = []
+    for needle in ("Safety Alerts", "Activity Journal", "safetyEventToggleOptions()", "activityEventToggleOptions()"):
+        if needle not in config:
+            problems.append(f"Config Center missing {needle}")
+    for needle in ("build_runtime_safety_notifications", "build_runtime_activity_notifications", 'lane == "activity"'):
+        if needle not in notifications:
+            problems.append(f"notification engine missing {needle}")
+    if '_dispatch_runtime_telegram(config, result, lane="alerts")' not in run_cycle or '_dispatch_runtime_telegram(config, result, lane="activity")' not in run_cycle:
+        problems.append("run_cycle missing both Telegram runtime lanes")
+    if "build_force_apply_notifications" not in app:
+        problems.append("force-apply routes are not wired into Telegram runtime notifications")
+    if problems:
+        items.append(UIWiringItem(
+            "notifications.lanes",
+            "Telegram lane wiring",
+            "fail",
+            "; ".join(problems),
+            "notifications",
+            "Keep Safety Alerts and Activity Journal visible in Config Center and fed by runtime events.",
+        ))
+    else:
+        items.append(UIWiringItem("notifications.lanes", "Telegram lane wiring", "ok", "Config Center, sync runtime, and force-apply routes expose both Telegram lanes.", "notifications"))
+    return {"items": [i.to_dict() for i in items], "summary": _summary(items)}
+
+
 def audit_ui_wiring(root: str | Path | None = None) -> dict[str, Any]:
     root = Path(root or Path(__file__).resolve().parents[1])
     sections = {
@@ -401,6 +434,7 @@ def audit_ui_wiring(root: str | Path | None = None) -> dict[str, Any]:
         "config_center_state": check_config_center_state_wiring(root),
         "checkbox_state": check_checkbox_state_wiring(root),
         "apply_failure_visibility": check_apply_failure_visibility(root),
+        "notification_lanes": check_notification_lane_wiring(root),
         "compatibility_routes": check_compatibility_route_wiring(root),
         "owner_links": check_owner_only_links(root),
         "admin_sidebar_links": check_admin_only_sidebar_links(root),

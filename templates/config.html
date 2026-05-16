@@ -46,7 +46,7 @@ function cfgEditor(initial) {
     cfg.preflight.enabled ??= true; cfg.preflight.duplicate_ip_policy ??= 'warn_and_skip'; cfg.preflight.missing_parent_policy ??= 'block'; cfg.preflight.invalid_bandwidth_policy ??= 'block';
     cfg.ui.refresh_seconds ??= 5; cfg.ui.show_raw_json_editor ??= true; cfg.ui.default_theme ??= 'light';
     cfg.services.units ??= ['lqosd','lqos_scheduler','lqos_shaped_sync']; cfg.services.legacy_optional_units ??= ['lqos_node_manager']; cfg.services.show_legacy_optional_not_installed ??= false; cfg.services.restart_groups ??= {libreqos_core: ['lqosd','lqos_scheduler']}; cfg.services.journal_lines_default ??= 100; cfg.services.unit_metadata ??= {lqos_node_manager:{label:'Legacy Web UI service',role:'legacy_optional',note:'Older LibreQoS installs only. Newer installs usually use lqosd for the Web UI.'}};
-    cfg.notifications ||= {}; cfg.notifications.telegram ||= {}; let tg=cfg.notifications.telegram; tg.enabled ??= false; tg.bot_token ??= ''; tg.chat_id ??= ''; tg.base_url ??= ''; tg.parse_mode ??= 'HTML'; tg.notify_levels ??= ['critical','warning']; tg.timeout_seconds ??= 10; tg.minimum_interval_seconds ??= 60; tg.dedupe_window_minutes ??= 60; tg.max_items_per_digest ??= 10; tg.send_digest ??= true; tg.send_individual ??= false; ['notify_on_apply_failed','notify_on_policy_block','notify_on_confirmation_required','notify_on_update_available','notify_on_source_health_warning','notify_on_performance_slow'].forEach(k => tg[k] ??= true);
+    cfg.notifications ||= {}; cfg.notifications.telegram ||= {}; let tg=cfg.notifications.telegram; tg.enabled ??= false; tg.bot_token ??= ''; tg.chat_id ??= ''; tg.base_url ??= ''; tg.parse_mode ??= 'HTML'; tg.notify_levels ??= ['critical','warning']; tg.timeout_seconds ??= 10; tg.minimum_interval_seconds ??= 60; tg.dedupe_window_minutes ??= 60; tg.max_items_per_digest ??= 10; tg.safety_alerts_enabled ??= true; tg.send_digest ??= true; tg.send_individual ??= false; tg.activity_journal_enabled ??= true; tg.activity_send_digest ??= true; tg.activity_send_individual ??= false; tg.activity_silent_messages ??= true; ['notify_on_apply_failed','notify_on_policy_block','notify_on_confirmation_required','notify_on_update_available','notify_on_source_health_warning','notify_on_performance_slow','notify_on_client_changes','notify_on_apply_success','notify_on_files_written'].forEach(k => tg[k] ??= true);
     cfg.policies ||= {}; cfg.policies.mode ??= 'balanced'; cfg.policies.cleanup ||= {}; cfg.policies.cleanup.enabled ??= true; cfg.policies.cleanup.global_default_action ??= 'require_confirm_next_run'; cfg.policies.cleanup.confirmation_expires_hours ??= 24; cfg.policies.cleanup.apply_confirmed_cleanup ??= 'next_run'; cfg.policies.cleanup.allow_immediate_cleanup ??= true;
     cfg.policies.cleanup_sources ||= {}; ['pppoe','dhcp','hotspot','static'].forEach(src => { cfg.policies.cleanup_sources[src] ||= {}; let p=cfg.policies.cleanup_sources[src]; p.enabled ??= true; p.normal_inactive_action ??= (src==='pppoe'?'cleanup_next_run':(src==='static'?'preserve_rows':'cleanup_immediate')); p.source_disabled_action ??= (src==='static'?'preserve_rows':'require_confirm_next_run'); p.collector_failed_action ??= 'preserve_rows'; p.zero_result_action ??= (src==='static'?'preserve_rows':'block_cleanup'); p.mass_removal_action ??= (src==='static'?'preserve_rows':'require_confirm_next_run'); p.respect_percentage_guards ??= (src==='pppoe'||src==='static'); });
     cfg.policies.node_cleanup_guard ||= {}; cfg.policies.node_cleanup_guard.enabled ??= true; cfg.policies.node_cleanup_guard.threshold_percent ??= 30; cfg.policies.node_cleanup_guard.min_node_size ??= 10; cfg.policies.node_cleanup_guard.min_removed_count ??= 3; cfg.policies.node_cleanup_guard.action ??= 'require_confirm_next_run';
@@ -188,13 +188,18 @@ function cfgEditor(initial) {
     setPath(path, value){ const parts=String(path).split('.'); let cur=this.cfg; for(let i=0;i<parts.length-1;i++){ if(cur[parts[i]]===undefined || cur[parts[i]]===null || typeof cur[parts[i]]!=='object') cur[parts[i]]={}; cur=cur[parts[i]]; } cur[parts[parts.length-1]]=value; this.markPolicyCustom(); this.queueLiveSave('policy_path'); },
     policyRiskClass(risk){ return risk==='critical' ? 'b-err' : (risk==='high' ? 'b-warn' : (risk==='medium' ? 'b-dhcp' : 'b-ok')); },
     notifyLevelOptions(){ return ['critical','warning','info']; },
-    eventToggleOptions(){ return [
+    safetyEventToggleOptions(){ return [
       ['notify_on_apply_failed','LibreQoS apply failed'],
       ['notify_on_policy_block','Policy block / high risk'],
       ['notify_on_confirmation_required','Cleanup confirmation required'],
       ['notify_on_update_available','Update available'],
       ['notify_on_source_health_warning','Source health warning'],
       ['notify_on_performance_slow','Performance slow']
+    ]; },
+    activityEventToggleOptions(){ return [
+      ['notify_on_client_changes','Client records changed'],
+      ['notify_on_apply_success','LibreQoS apply completed'],
+      ['notify_on_files_written','Generated files changed']
     ]; },
     async testSavedTelegram(){ try{ const res=await lqosJsonFetch('/api/notifications/telegram/test', {}); const data=await res.json(); alert(data.ok ? 'Telegram test sent successfully.' : ('Telegram test failed: ' + (data.error || data.reason || JSON.stringify(data)))); }catch(e){ alert('Telegram test failed: ' + e); } },
     async applyPolicyPreset(preset){
@@ -560,16 +565,14 @@ function cfgEditor(initial) {
         <section x-show="tab==='notifications'" x-cloak class="cfg-section">
           <div class="card" style="border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.07)">
             <div class="card-title"><i class="ti ti-bell-cog"></i> Notification Settings — Config Center</div>
-            <p class="text-sm" style="color:var(--muted)">Telegram delivery settings now live in config.json under <code>notifications.telegram</code>. Dashboard remains the live alert surface; this tab controls how alerts are delivered.</p>
+            <p class="text-sm" style="color:var(--muted)">Telegram delivery settings now live in config.json under <code>notifications.telegram</code>. Runtime delivery has two lanes: <b>Safety Alerts</b> for urgent conditions and an <b>Activity Journal</b> for digest-first operational updates.</p>
             <div class="btn-row" style="margin-top:10px"><button type="button" class="btn btn-primary" @click="testSavedTelegram()"><i class="ti ti-brand-telegram"></i> Test saved Telegram</button><a class="btn" href="/docs/search?q=telegram"><i class="ti ti-book"></i> Telegram docs</a></div>
           </div>
           <div class="grid lg:grid-cols-2 gap-3">
             <div class="card">
-              <div class="card-title"><i class="ti ti-brand-telegram"></i> Telegram Delivery</div>
+              <div class="card-title"><i class="ti ti-brand-telegram"></i> Telegram Connection</div>
               <div class="grid md:grid-cols-2 gap-3">
                 <label class="cfg-toggle cfg-subtle"><span><b>Enable Telegram</b><span class="cfg-help">When off, internal Dashboard notifications still work but Telegram delivery is disabled.</span></span><input type="checkbox" x-model="cfg.notifications.telegram.enabled"></label>
-                <label class="cfg-toggle cfg-subtle"><span><b>Send digest</b><span class="cfg-help">Recommended. Combines current alerts into one Telegram message.</span></span><input type="checkbox" x-model="cfg.notifications.telegram.send_digest"></label>
-                <label class="cfg-toggle cfg-subtle"><span><b>Send individual messages</b><span class="cfg-help">Can be noisy. Usually keep disabled unless you want one message per alert.</span></span><input type="checkbox" x-model="cfg.notifications.telegram.send_individual"></label>
                 <label class="cfg-field"><span class="cfg-label">Parse mode</span><select x-model="cfg.notifications.telegram.parse_mode" class="cfg-select"><option>HTML</option><option>Markdown</option><option></option></select></label>
                 <label class="cfg-field md:col-span-2"><span class="cfg-label">Bot token</span><input x-model="cfg.notifications.telegram.bot_token" type="password" class="cfg-input mono" placeholder="123456:ABC..."><span class="cfg-help">Stored in config.json. Protect config file permissions and avoid sharing raw config screenshots.</span></label>
                 <label class="cfg-field"><span class="cfg-label">Chat ID</span><input x-model="cfg.notifications.telegram.chat_id" class="cfg-input mono" placeholder="-1001234567890"></label>
@@ -587,10 +590,31 @@ function cfgEditor(initial) {
               </div>
             </div>
           </div>
-          <div class="card">
-            <div class="card-title"><i class="ti ti-bell-ringing"></i> Event Filters</div>
-            <div class="grid md:grid-cols-3 gap-3">
-              <template x-for="item in eventToggleOptions()" :key="item[0]"><label class="cfg-toggle cfg-subtle"><span><b x-text="item[1]"></b></span><input type="checkbox" x-model="cfg.notifications.telegram[item[0]]"></label></template>
+          <div class="grid lg:grid-cols-2 gap-3">
+            <div class="card">
+              <div class="card-title"><i class="ti ti-shield-exclamation"></i> Safety Alerts</div>
+              <p class="text-sm" style="color:var(--muted)">Urgent runtime conditions. These honor <code>notify_levels</code> and are meant to be hard to miss.</p>
+              <div class="grid md:grid-cols-2 gap-3" style="margin-top:10px">
+                <label class="cfg-toggle cfg-subtle"><span><b>Enable safety alerts</b></span><input type="checkbox" x-model="cfg.notifications.telegram.safety_alerts_enabled"></label>
+                <label class="cfg-toggle cfg-subtle"><span><b>Send digest</b><span class="cfg-help">Recommended. Combines current alert candidates into one message.</span></span><input type="checkbox" x-model="cfg.notifications.telegram.send_digest"></label>
+                <label class="cfg-toggle cfg-subtle"><span><b>Send individual messages</b><span class="cfg-help">Can be noisy. Usually keep disabled unless you want one message per alert.</span></span><input type="checkbox" x-model="cfg.notifications.telegram.send_individual"></label>
+              </div>
+              <div class="grid md:grid-cols-2 gap-3" style="margin-top:10px">
+                <template x-for="item in safetyEventToggleOptions()" :key="item[0]"><label class="cfg-toggle cfg-subtle"><span><b x-text="item[1]"></b></span><input type="checkbox" x-model="cfg.notifications.telegram[item[0]]"></label></template>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title"><i class="ti ti-notes"></i> Activity Journal</div>
+              <p class="text-sm" style="color:var(--muted)">Meaningful operational updates such as client changes and successful applies. This lane is digest-first and defaults to silent Telegram delivery to avoid alarm fatigue.</p>
+              <div class="grid md:grid-cols-2 gap-3" style="margin-top:10px">
+                <label class="cfg-toggle cfg-subtle"><span><b>Enable activity journal</b></span><input type="checkbox" x-model="cfg.notifications.telegram.activity_journal_enabled"></label>
+                <label class="cfg-toggle cfg-subtle"><span><b>Send digest</b><span class="cfg-help">Recommended for operator journaling.</span></span><input type="checkbox" x-model="cfg.notifications.telegram.activity_send_digest"></label>
+                <label class="cfg-toggle cfg-subtle"><span><b>Send individual messages</b><span class="cfg-help">Enable only if you want a live journal line per event.</span></span><input type="checkbox" x-model="cfg.notifications.telegram.activity_send_individual"></label>
+                <label class="cfg-toggle cfg-subtle"><span><b>Silent activity messages</b><span class="cfg-help">Keeps journal updates quiet while safety alerts remain audible.</span></span><input type="checkbox" x-model="cfg.notifications.telegram.activity_silent_messages"></label>
+              </div>
+              <div class="grid md:grid-cols-2 gap-3" style="margin-top:10px">
+                <template x-for="item in activityEventToggleOptions()" :key="item[0]"><label class="cfg-toggle cfg-subtle"><span><b x-text="item[1]"></b></span><input type="checkbox" x-model="cfg.notifications.telegram[item[0]]"></label></template>
+              </div>
             </div>
           </div>
         </section>

@@ -15,7 +15,7 @@ from engine.policy_defaults import CLEANUP_ACTIONS, POLICY_PRESETS, smart_policy
 from engine.policy_schema import POLICY_SCHEMA, get_by_path, normalize_policies
 from rules.network_mode import VALID_NETWORK_MODES
 
-CONFIG_SCHEMA_VERSION = 12
+CONFIG_SCHEMA_VERSION = 13
 
 
 def deep_merge(base: dict, override: dict) -> dict:
@@ -76,14 +76,22 @@ def migrate_config_schema(cfg: dict) -> tuple[dict, list[str]]:
                 "minimum_interval_seconds": 60,
                 "dedupe_window_minutes": 60,
                 "max_items_per_digest": 10,
+                "safety_alerts_enabled": True,
                 "send_digest": True,
                 "send_individual": False,
+                "activity_journal_enabled": True,
+                "activity_send_digest": True,
+                "activity_send_individual": False,
+                "activity_silent_messages": True,
                 "notify_on_apply_failed": True,
                 "notify_on_policy_block": True,
                 "notify_on_confirmation_required": True,
                 "notify_on_update_available": True,
                 "notify_on_source_health_warning": True,
                 "notify_on_performance_slow": True,
+                "notify_on_client_changes": True,
+                "notify_on_apply_success": True,
+                "notify_on_files_written": True,
             },
         },
         "setup_wizard": {
@@ -112,7 +120,7 @@ def migrate_config_schema(cfg: dict) -> tuple[dict, list[str]]:
             "cleanup_stale_files_script": "/opt/lqosync/scripts/cleanup_stale_files.py",
         },
         "stable_release": {
-            "target": "v2.70 Stable Release Candidate",
+            "target": "v2.71 Telegram Runtime Notifications",
             "feature_freeze": True,
             "allow_new_sidebar_modules": False,
             "require_release_check": True,

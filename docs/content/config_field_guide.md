@@ -226,15 +226,28 @@ For dynamic arrays such as routers and DHCP servers, `[]` means “each item in 
 ## `notifications.telegram.` — Telegram delivery
 
 - **Section:** Notifications
-- **What:** Controls outbound Telegram delivery, filtering, dedupe, and digest behavior.
-- **Why:** It decides which internal alerts leave the WebUI and how noisy they are.
+- **What:** Controls outbound Telegram delivery, filtering, dedupe, Safety Alerts, and the Activity Journal.
+- **Why:** It decides which runtime events leave the WebUI, which are urgent, and which become quiet operator-journal entries.
 - **When effective:** Next notification dispatch. Changes Telegram delivery behavior for future notifications.
 - **Who should change it:** Admin or owner
 - **Where used:** Config Center → Notifications
-- **How to use it safely:** Start with digest delivery and warning/critical levels, test once, then tune noise controls.
+- **How to use it safely:** Keep Safety Alerts enabled for urgent conditions, keep Activity Journal digest-first for operational visibility, test once, then tune noise controls.
 - **Default / recommended:** `Varies by deployment`
 - **Risk:** Low to medium except for secret fields; bad settings mostly create silence or alert fatigue.
 - **Related paths:** `notifications.`
+
+## `notifications.telegram.activity_journal_enabled` — Telegram activity journal
+
+- **Section:** Notifications
+- **What:** Turns the digest-first operator journal lane on or off.
+- **Why:** Operators often need proof of what changed even when nothing is wrong.
+- **When effective:** Next notification dispatch. Changes Telegram delivery behavior for future notifications.
+- **Who should change it:** Admin or owner
+- **Where used:** Config Center → Notifications → Activity Journal
+- **How to use it safely:** Keep enabled when you want client-change/apply-success visibility; prefer digest mode for low-noise operation.
+- **Default / recommended:** `true`
+- **Risk:** Low: disabling it removes convenience/history, not safety gates.
+- **Related paths:** `notifications.telegram.notify_on_client_changes`, `notifications.telegram.notify_on_apply_success`
 
 ## `notifications.telegram.bot_token` — Telegram bot token
 
@@ -248,6 +261,43 @@ For dynamic arrays such as routers and DHCP servers, `[]` means “each item in 
 - **Default / recommended:** `empty until configured`
 - **Risk:** Critical secret: disclosure allows message-sending abuse through the bot.
 - **Related paths:** `notifications.telegram.chat_id`
+
+## `notifications.telegram.notify_on_apply_success` — Telegram successful-apply journal events
+
+- **Section:** Notifications
+- **What:** Allows successful LibreQoS apply confirmations into the Activity Journal.
+- **Why:** A successful file write is not the same as a successful LibreQoS apply; this confirms the final actuation step.
+- **When effective:** Next notification dispatch. Changes Telegram delivery behavior for future notifications.
+- **Who should change it:** Admin or owner
+- **Where used:** Config Center → Notifications → Activity Journal
+- **How to use it safely:** Keep enabled when operators need positive confirmation that live shaping was applied.
+- **Default / recommended:** `true`
+- **Risk:** Low: visibility-only.
+
+## `notifications.telegram.notify_on_client_changes` — Telegram client-change journal events
+
+- **Section:** Notifications
+- **What:** Allows client add/update/remove summaries into the Activity Journal.
+- **Why:** This makes the runtime feed explain what changed in shaped client records after a real cycle.
+- **When effective:** Next notification dispatch. Changes Telegram delivery behavior for future notifications.
+- **Who should change it:** Admin or owner
+- **Where used:** Config Center → Notifications → Activity Journal
+- **How to use it safely:** Keep enabled if operators should see client movement without opening Audit Logs.
+- **Default / recommended:** `true`
+- **Risk:** Low: can add message volume on busy networks.
+
+## `notifications.telegram.safety_alerts_enabled` — Telegram safety alerts
+
+- **Section:** Notifications
+- **What:** Turns the urgent Telegram lane on or off.
+- **Why:** Policy blocks, confirmation holds, and failed applies need a delivery lane that is hard to miss.
+- **When effective:** Next notification dispatch. Changes Telegram delivery behavior for future notifications.
+- **Who should change it:** Admin or owner
+- **Where used:** Config Center → Notifications → Safety Alerts
+- **How to use it safely:** Keep enabled in production; tune exact event filters below it rather than disabling the whole lane.
+- **Default / recommended:** `true`
+- **Risk:** Medium: disabling it can hide time-sensitive failures outside the WebUI.
+- **Related paths:** `notifications.telegram.notify_on_apply_failed`, `notifications.telegram.notify_on_policy_block`
 
 ## `insights.` — Smart insights
 

@@ -404,6 +404,75 @@ def check_config_write_pipeline_regressions(root: str | Path) -> dict[str, Any]:
     return {"items": [i.to_dict() for i in items], "summary": _summary(items)}
 
 
+def check_notification_runtime_regressions(root: str | Path) -> dict[str, Any]:
+    root = Path(root)
+    items: list[RegressionItem] = []
+    failures = []
+    try:
+        from engine.notifications import (
+            build_runtime_activity_notifications,
+            build_runtime_safety_notifications,
+            filter_notification_candidates,
+        )
+
+        cfg = _load_example_config(root)
+        success = type("R", (), {
+            "status": "success",
+            "started_at": "2026-05-16T00:00:00+00:00",
+            "files_changed": True,
+            "libreqos_triggered": True,
+            "libreqos_exit_code": 0,
+            "diff": {
+                "client_change_summary": {
+                    "counts": {"added": 1, "updated": 0, "removed": 0, "total": 1},
+                    "summary_text": "+1 added",
+                    "clients_preview": "alice",
+                },
+                "libreqos_run_id": "run-ok",
+                "libreqos_apply_reason": "files_changed",
+            },
+        })()
+        activity = build_runtime_activity_notifications(success)
+        activity_events = {item.get("event") for item in activity}
+        if {"client_changes", "apply_success"} - activity_events:
+            failures.append("success runtime should emit client_changes and apply_success activity events")
+        # Activity entries are informational; alert-level filtering must not
+        # silently erase them when production alerts stay warning+critical.
+        filtered_activity = filter_notification_candidates(cfg, activity, lane="activity")
+        if len(filtered_activity) != len(activity):
+            failures.append("activity lane must not be filtered out by warning/critical alert levels")
+
+        blocked = type("R", (), {
+            "status": "policy_blocked",
+            "started_at": "2026-05-16T00:01:00+00:00",
+            "diff": {
+                "policy_decision": {
+                    "risk_level": "high",
+                    "risk_score": 80,
+                    "blocked_reasons": [{"message": "missing parent"}],
+                    "requires_confirmation": False,
+                }
+            },
+        })()
+        safety_events = {item.get("event") for item in build_runtime_safety_notifications(blocked)}
+        if "policy_block" not in safety_events:
+            failures.append("policy blocked runtime should emit policy_block safety event")
+
+        run_cycle_text = (root / "engine" / "run_cycle.py").read_text(encoding="utf-8", errors="ignore")
+        if '_dispatch_runtime_telegram(config, result, lane="alerts")' not in run_cycle_text:
+            failures.append("run_cycle missing runtime safety alert dispatch")
+        if '_dispatch_runtime_telegram(config, result, lane="activity")' not in run_cycle_text:
+            failures.append("run_cycle missing runtime activity journal dispatch")
+    except Exception as exc:
+        failures.append(f"notification runtime test crashed: {exc}")
+
+    if failures:
+        items.append(RegressionItem("notifications.runtime", "Telegram runtime event wiring", "fail", "; ".join(failures), "notifications", "Keep runtime alert/activity candidate generation and dispatch wiring intact."))
+    else:
+        items.append(RegressionItem("notifications.runtime", "Telegram runtime event wiring", "ok", "Runtime safety alerts and digest-first activity events are generated and wired.", "notifications"))
+    return {"items": [i.to_dict() for i in items], "summary": _summary(items)}
+
+
 def check_operations_center_regressions(root: str | Path) -> dict[str, Any]:
     root = Path(root)
     items: list[RegressionItem] = []
@@ -475,6 +544,7 @@ def compute_regression_suite(root: str | Path | None = None) -> dict[str, Any]:
         "templates": check_template_context_regressions(root),
         "config_migration": check_config_migration_regressions(root),
         "config_write_pipeline": check_config_write_pipeline_regressions(root),
+        "notifications_runtime": check_notification_runtime_regressions(root),
         "policy_behavior": check_policy_behavior_regressions(root),
         "policy_path_audit": audit_policy_and_paths(root),
         "policy_preset_audit": audit_policy_presets(root),

@@ -832,3 +832,6 @@ LQoSync v2.70.12-rc1 adds a shared Config Field Guide used by both the install/o
 LQoSync v2.70.13-rc1 polishes the Advanced JSON workspace by widening the modal, giving the Field Guide more width, aligning WH/HOW answers for faster scanning, and slightly reducing JSON editor text size so the guide becomes easier to use during real admin work.
 
 LQoSync v2.70.14-rc1 fixes a desktop-only Policy Center presentation regression. The left policy tree now shows horizontal icons and labels again on desktop, while Field Guide list styling remains separate and the mobile layout stays as-is.
+## v2.71.0 Telegram Runtime Notifications
+
+LQoSync v2.71.0 makes Telegram a real runtime feed instead of only a test/manual-send surface. Safety Alerts now carry urgent policy/apply conditions, while a separate digest-first Activity Journal reports client changes and successful LibreQoS applies from live runtime paths. The two lanes keep independent dedupe state so quiet journal traffic cannot suppress an urgent alert.

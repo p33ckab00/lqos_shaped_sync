@@ -40,10 +40,10 @@
     },
     "selective_fields": true
   },
-  "config_schema_version": 12,
+  "config_schema_version": 13,
   "config_validation": {
     "block_save_on_schema_errors": true,
-    "schema_version": 12,
+    "schema_version": 13,
     "show_config_health": true,
     "simulate_before_save": true,
     "validate_before_save": true
@@ -94,6 +94,10 @@
     "enabled": true,
     "internal_center_enabled": true,
     "telegram": {
+      "activity_journal_enabled": true,
+      "activity_send_digest": true,
+      "activity_send_individual": false,
+      "activity_silent_messages": true,
       "base_url": "",
       "bot_token": "",
       "chat_id": "",
@@ -106,12 +110,16 @@
         "warning"
       ],
       "notify_on_apply_failed": true,
+      "notify_on_apply_success": true,
+      "notify_on_client_changes": true,
       "notify_on_confirmation_required": true,
+      "notify_on_files_written": true,
       "notify_on_performance_slow": true,
       "notify_on_policy_block": true,
       "notify_on_source_health_warning": true,
       "notify_on_update_available": true,
       "parse_mode": "HTML",
+      "safety_alerts_enabled": true,
       "send_digest": true,
       "send_individual": false,
       "timeout_seconds": 10
@@ -140,6 +148,7 @@
     "lock_file": "/opt/lqosync/state/lqosync.lock",
     "log_file": "/opt/lqosync/logs/lqos_shaped_sync.log",
     "network_json": "/opt/libreqos/src/network.json",
+    "notification_state": "/opt/lqosync/state/notification_state.json",
     "policy_state": "/opt/lqosync/state/policy_state.json",
     "runtime_state": "/opt/lqosync/state/runtime_state.json",
     "shaped_devices_csv": "/opt/libreqos/src/ShapedDevices.csv"
@@ -515,7 +524,7 @@
     "require_regression_check": true,
     "require_release_check": true,
     "require_stable_release_check": true,
-    "target": "v2.70 Stable Release Candidate"
+    "target": "v2.71 Telegram Runtime Notifications"
   },
   "topology": {
     "allow_custom_edit": true,

@@ -102,8 +102,8 @@
   "notifications.telegram": {
     "title": "Telegram Notifications",
     "file": "docs/content/telegram_notifications.md",
-    "anchor": "v258-telegram-notifications",
-    "summary": "v2.58 optional Telegram delivery for internal health, policy, apply, and source notification candidates."
+    "anchor": "v271-telegram-notifications",
+    "summary": "v2.71 Telegram Safety Alerts plus digest-first Activity Journal runtime delivery."
   },
   "docs.search_ui_polish": {
     "title": "Documentation Search + UI/Mobile Polish",
@@ -373,7 +373,7 @@
     "title": "Custom Policy Mode Persistence Hotfix",
     "file": "docs/content/custom_policy_mode_persistence.md",
     "anchor": "custom-policy-mode-persistence-hotfix",
-    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center \u2192 Policies."
+    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center → Policies."
   },
   "policy_overview_custom_wiring_hotfix": {
     "title": "Policy Overview Custom Wiring Hotfix",
@@ -410,5 +410,11 @@
     "file": "docs/content/policy_tree_desktop_alignment_hotfix.md",
     "anchor": "policy-tree-desktop-alignment-hotfix",
     "summary": "v2.70.14-rc1 restores desktop horizontal icon/label alignment while keeping mobile Policy Center layout unchanged."
+  },
+  "notifications.telegram_runtime_feed": {
+    "title": "Telegram Runtime Feed — Safety Alerts + Activity Journal",
+    "file": "docs/content/telegram_runtime_feed.md",
+    "anchor": "telegram-runtime-feed--safety-alerts--activity-journal",
+    "summary": "v2.71 live runtime wiring for client-change, apply-success, policy-block, confirmation, and apply-failure Telegram events."
   }
 }

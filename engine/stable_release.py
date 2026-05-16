@@ -1,9 +1,8 @@
-"""Stable Release Candidate checks for LQoSync.
+"""Release-readiness checks for LQoSync.
 
-v2.70 is a feature-freeze / production-stabilization release. These helpers are
-read-only and classify routes, compatibility aliases, deprecated templates, and
-pre/post-update checks so operators can validate a release without adding more UI
-surface area.
+These helpers are read-only and classify routes, compatibility aliases,
+deprecated templates, and pre/post-update checks so operators can validate a
+release without adding more UI surface area.
 """
 from __future__ import annotations
 
@@ -18,7 +17,7 @@ from engine.policy_path_audit import audit_policy_and_paths
 from engine.ui_wiring_audit import audit_ui_wiring
 from engine.policy_preset_audit import audit_policy_presets
 
-STABLE_RELEASE_TARGET = "v2.70 Stable Release Candidate"
+STABLE_RELEASE_TARGET = "v2.71 Telegram Runtime Notifications"
 FEATURE_FREEZE_POLICY = {
     "status": "active",
     "allowed": [
@@ -234,8 +233,8 @@ def compute_stable_release_check(root: str | Path | None = None) -> dict[str, An
         items.append(StableItem("policy.preset_audit", "Policy preset audit", "ok", f"OK={preset_audit['summary'].get('ok')}", "policy"))
 
     version = (root / "VERSION").read_text(encoding="utf-8", errors="ignore").strip() if (root / "VERSION").exists() else "unknown"
-    if not version.startswith("2.70"):
-        items.append(StableItem("version.rc", "Stable release version", "warn", f"VERSION is {version}; expected 2.70.x for RC", "release", "Update VERSION and release notes before packaging v2.70."))
+    if not version.startswith("2.71"):
+        items.append(StableItem("version.rc", "Stable release version", "warn", f"VERSION is {version}; expected 2.71.x for current release", "release", "Update VERSION and release notes before packaging v2.71."))
     else:
         items.append(StableItem("version.rc", "Stable release version", "ok", f"VERSION={version}", "release"))
 

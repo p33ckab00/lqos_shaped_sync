@@ -1,5 +1,15 @@
 # Release Notes
 
+## v2.71.0 — Telegram Runtime Notifications
+
+- Adds two Telegram lanes: urgent **Safety Alerts** and digest-first **Activity Journal** updates.
+- Wires real runtime events into Telegram from sync cycles and manual force-apply routes, including client changes, successful applies, policy blocks, confirmation holds, and apply failures.
+- Stores dedupe/rate-limit state per lane so journal traffic cannot suppress urgent alerts.
+- Adds Config Center controls, Advanced JSON field-guide entries, documentation, and regression/UI wiring checks for the new runtime feed.
+- Bumps `config_schema_version` to 13 and updates the current release line to `2.71.0`.
+
+This release changes notification behavior only. It does not change MikroTik collection logic, cleanup decisions, generated file formats, router/network hierarchy behavior, or LibreQoS apply execution semantics.
+
 ## v2.70.14-rc1 — Policy Tree Desktop Alignment Hotfix
 
 - Restores horizontal icon + label alignment in the desktop Policy Center tree.

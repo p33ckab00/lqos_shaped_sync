@@ -35,6 +35,11 @@ from engine.policy_engine import (
 )
 from engine.insights import compute_smart_insights
 from engine.lifecycle import update_lifecycle_state
+from engine.notifications import (
+    build_runtime_activity_notifications,
+    build_runtime_safety_notifications,
+    dispatch_telegram_notifications,
+)
 
 
 class Timeline:
@@ -140,6 +145,45 @@ def _run_libreqos_apply(config: dict, state_path: str, result: SyncResult, timel
     else:
         _mark_libreqos_state(state_path, result, False, reason, lq.get("run_id"))
     return lq
+
+
+def _dispatch_runtime_telegram(config: dict, result: SyncResult, *, lane: str) -> dict:
+    """Best-effort Telegram dispatch for real runtime events.
+
+    Notification failure must never fail a production sync cycle. We still
+    write one audit row whenever a real runtime candidate existed, so operators
+    can distinguish "no event happened" from "Telegram had nothing / was
+    disabled / failed to send."
+    """
+    try:
+        if lane == "activity":
+            candidates = build_runtime_activity_notifications(result)
+            title = "LQoSync activity journal"
+            action = "telegram_runtime_activity"
+        else:
+            candidates = build_runtime_safety_notifications(result)
+            title = "LQoSync safety alerts"
+            action = "telegram_runtime_alerts"
+        if not candidates:
+            return {"ok": True, "skipped": True, "reason": "no_runtime_candidates", "sent": 0, "lane": lane}
+        outcome = dispatch_telegram_notifications(config, candidates, lane=lane, title=title)
+        write_audit(
+            config,
+            action,
+            details={
+                "ok": outcome.get("ok"),
+                "sent": outcome.get("sent", 0),
+                "reason": outcome.get("reason"),
+                "events": [item.get("event") for item in candidates],
+            },
+        )
+        return outcome
+    except Exception as exc:
+        try:
+            write_audit(config, f"telegram_runtime_{lane}_failed", details={"error": str(exc)})
+        except Exception:
+            pass
+        return {"ok": False, "error": str(exc), "sent": 0, "lane": lane}
 
 
 def _run_cycle_unlocked(mode="apply", config_path=None):
@@ -414,6 +458,7 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
             log_event(config, "error", f"Policy blocked sync: {policy_decision.verdict} risk={policy_decision.risk_level}")
             write_audit(config, "policy_blocked", details={"policy_decision": policy_decision.to_dict(), "timings": result.timings})
             update_state(state_path, sync_running=False, scheduler_state="error", last_run=result.to_dict(), last_error="policy_blocked")
+            _dispatch_runtime_telegram(config, result, lane="alerts")
             return result
 
         if result.errors:
@@ -472,6 +517,7 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
                 result.timings["cycle_total"] = round((time.perf_counter() - cycle_start) * 1000, 3)
                 log_event(config, "error", f"LibreQoS failed: reason={apply_reason} exit={result.libreqos_exit_code} stderr={result.libreqos_stderr[:500]}")
                 update_state(state_path, sync_running=False, scheduler_state="error", last_run=result.to_dict(), last_error="libreqos_failed")
+                _dispatch_runtime_telegram(config, result, lane="alerts")
                 return result
         elif files_were_written:
             # This can only happen when app.auto_apply=false. Keep pending state
@@ -495,6 +541,8 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
             last_error=None,
             last_file_hashes={"csv": result.file_hashes["proposed_csv"], "network": result.file_hashes["proposed_network"]},
         )
+        _dispatch_runtime_telegram(config, result, lane="alerts")
+        _dispatch_runtime_telegram(config, result, lane="activity")
         return result
     except Exception as e:
         result.errors.append(str(e))

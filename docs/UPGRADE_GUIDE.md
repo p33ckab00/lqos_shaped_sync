@@ -68,3 +68,13 @@ Config Center → Policies now shows Custom as a visible policy state beside Con
 ## v2.70.10 Policy Overview Custom Wiring Hotfix
 
 Changing Operation Mode, Auto Apply, Optional Auto Backup, or Backup Retention inside Config Center → Policies now marks `policies.mode` as `custom` and remains custom after save. Server-side save also detects these policy-adjacent `app.*` changes so the mode is protected even if browser JS misses the change event.
+
+## v2.71.0 Telegram Runtime Notifications
+
+After upgrading, open **Config Center → Notifications** and verify both lanes:
+
+- keep **Safety Alerts** enabled for urgent policy/apply conditions
+- keep **Activity Journal** digest-first if operators want client-change and apply-success visibility
+- run **Test saved Telegram** for credentials, then verify a real sync/apply produces `telegram_runtime_activity` or `telegram_runtime_alerts` audit rows when relevant events occur
+
+A successful test message proves transport only; the new runtime audit rows prove live event wiring.

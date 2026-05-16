@@ -53,6 +53,36 @@ USERS_PATH = os.getenv("USERS_PATH") or "users.json"
 ensure_users_file(USERS_PATH)
 
 
+def _cfg_get_path(cfg: dict, path: str, default=None):
+    """Read a dotted config path safely, e.g. app.auto_apply."""
+    cur = cfg if isinstance(cfg, dict) else {}
+    for part in path.split("."):
+        if not isinstance(cur, dict) or part not in cur:
+            return default
+        cur = cur.get(part)
+    return cur
+
+
+def policy_context_changed(previous: dict, current: dict) -> bool:
+    """Return True when Policy Overview runtime controls changed.
+
+    These app.* fields are shown in Config Center -> Policies as policy
+    semantics even though they live under app.* for runtime compatibility.
+    When a named policy preset is active, changing any of these should move
+    the saved policy mode to custom.
+    """
+    tracked_paths = (
+        "app.operation_mode",
+        "app.auto_apply",
+        "app.backup_before_apply",
+        "app.backup_retention",
+    )
+    return any(
+        _cfg_get_path(previous, path) != _cfg_get_path(current, path)
+        for path in tracked_paths
+    )
+
+
 def _startup_config_normalize():
     """Persist missing safe defaults into config.json at process startup.
 

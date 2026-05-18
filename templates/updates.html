@@ -7,7 +7,7 @@
   </div>
   <div class="btn-row">
     <a class="btn" href="/updates"><i class="ti ti-refresh"></i> Refresh GitHub status</a>
-    <a class="btn" href="/about#github-update"><i class="ti ti-book"></i> Update docs</a>
+    <a class="btn" href="/docs/search?q=update+safety"><i class="ti ti-book"></i> Update docs</a>
     <a class="btn" href="/services"><i class="ti ti-server"></i> Services</a>
   </div>
 </div>
@@ -59,13 +59,39 @@ python3 scripts/stable_release_check.py</pre>
   <div class="stat"><div class="stat-label"><i class="ti ti-info-circle"></i> Update Needed</div><div class="stat-value {{ 'text-warn' if relation in ['behind','diverged'] or git.get('version_relation') == 'different' else 'text-accent' }}">{{ 'yes' if relation in ['behind','diverged'] or git.get('version_relation') == 'different' else 'no' }}</div><div class="stat-sub">based on commit/version compare</div></div>
 </section>
 
+<section class="card" style="margin-top:12px">
+  <div class="card-title"><i class="ti ti-history"></i> Latest fetched changes</div>
+  <p class="text-sm" style="color:var(--muted)">Update Center owns version/update visibility. About intentionally does not show release notes. When this install is Git-managed, the list below comes from the latest fetched upstream commit history.</p>
+  {% if git.get('remote_change') %}
+  <div class="op-line"><span>Latest GitHub commit</span><strong>{{ git.remote_change.short_commit }} · {{ git.remote_change.date }} · {{ git.remote_change.subject }}</strong></div>
+  {% endif %}
+  {% if git.get('local_change') %}
+  <div class="op-line"><span>Installed commit</span><strong>{{ git.local_change.short_commit }} · {{ git.local_change.date }} · {{ git.local_change.subject }}</strong></div>
+  {% endif %}
+  {% set changes = git.get('latest_changes') or [] %}
+  {% if changes %}
+    <div style="display:grid;gap:8px;margin-top:10px">
+      {% for c in changes %}
+      <div class="op-line"><strong>{{ c.short_commit }} · {{ c.date }}</strong><span>{{ c.subject }}</span></div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="note" style="margin-top:10px">No fetched commit list is available. This usually means the install is not Git-managed, GitHub fetch failed, or no upstream reference is configured.</div>
+  {% endif %}
+</section>
+
+<section class="card" style="margin-top:12px;border-color:rgba(59,130,246,.35);background:rgba(59,130,246,.06)">
+  <div class="card-title"><i class="ti ti-shield-lock"></i> Install/update preservation rule</div>
+  <p class="text-sm" style="color:var(--muted)">Fresh install and update flows must protect live LibreQoS input files. If these files already exist, they are backed up first and preserved by default: <code>/opt/libreqos/src/config.json</code>, <code>ShapedDevices.csv</code>, and <code>network.json</code>. Normal updates refresh app code and safe missing defaults without replacing operator-owned config, generated files, users, environment, state, logs, or backups.</p>
+</section>
+
 <section class="two-grid" style="margin-top:12px">
   <div class="card">
     <div class="card-title"><i class="ti ti-shield-check"></i> Default safe update</div>
     <p class="text-sm" style="color:var(--muted)">This is the recommended production update. It pulls source code from GitHub, preserves operator-owned data, migrates only missing safe config defaults, reapplies permissions, and restarts the service.</p>
     <pre class="mono" style="white-space:pre-wrap;background:var(--bg2);border:1px solid var(--br0);border-radius:10px;padding:12px;font-size:11px">cd /opt/lqosync
 sudo UPDATE_POLICY=preserve_and_migrate bash upgrade.sh</pre>
-    <div class="note" style="margin-top:10px"><b>Preserved:</b> /opt/libreqos/src/config.json, ShapedDevices.csv, network.json, /opt/lqosync/users.json, .env, state, logs, and backups.</div>
+    <div class="note" style="margin-top:10px"><b>Preserved:</b> /opt/libreqos/src/config.json, ShapedDevices.csv, network.json, /opt/lqosync/users.json, .env, state, logs, and backups. Existing live files are backed up first.</div>
   </div>
   <div class="card">
     <div class="card-title"><i class="ti ti-git-compare"></i> Diverged history recovery</div>
@@ -84,8 +110,9 @@ sudo systemctl restart lqos_shaped_sync</pre>
     <div class="card-title"><i class="ti ti-download"></i> Adopt existing ZIP/manual install</div>
     <p class="text-sm" style="color:var(--muted)">Use this if /opt/lqosync exists but was not installed by Git clone. It creates a safety backup, pulls the GitHub source, restores local users/env/logs/state, and runs preserve-existing install.</p>
     <pre class="mono" style="white-space:pre-wrap;background:var(--bg2);border:1px solid var(--br0);border-radius:10px;padding:12px;font-size:11px">cd /opt
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/lqos_shaped_sync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh</pre>
+    <div class="note" style="margin-top:10px">After the GitHub repository is renamed, use <code>p33ckab00/LQoSync</code>. If the rename has not been completed yet, temporarily set <code>LQOSYNC_REPO_URL=https://github.com/p33ckab00/lqos_shaped_sync.git</code>.</div>
   </div>
   <div class="card">
     <div class="card-title"><i class="ti ti-list-check"></i> Update policy options</div>

@@ -5,7 +5,7 @@ LQoSync can be installed and updated directly from the GitHub repository without
 Repository:
 
 ```bash
-https://github.com/p33ckab00/lqos_shaped_sync.git
+https://github.com/p33ckab00/LQoSync.git
 ```
 
 ## Important concept
@@ -32,7 +32,7 @@ Use this when the system does not yet have LQoSync installed or you want the ins
 sudo apt update
 sudo apt install -y git
 cd /opt
-sudo git clone https://github.com/p33ckab00/lqos_shaped_sync.git lqosync
+sudo git clone https://github.com/p33ckab00/LQoSync.git lqosync
 cd /opt/lqosync
 sudo bash install.sh
 ```
@@ -49,14 +49,14 @@ Existing LibreQoS files found → ask/preserve by default
 If `install-from-github.sh` is available from the repository, use:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/lqos_shaped_sync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo bash /tmp/install-lqosync.sh
 ```
 
 Optional variables:
 
 ```bash
-sudo LQOSYNC_REPO_URL=https://github.com/p33ckab00/lqos_shaped_sync.git \
+sudo LQOSYNC_REPO_URL=https://github.com/p33ckab00/LQoSync.git \
      LQOSYNC_BRANCH=main \
      LQOSYNC_INSTALL_DIR=/opt/lqosync \
      LQOSYNC_INIT_POLICY=smart_confirm \

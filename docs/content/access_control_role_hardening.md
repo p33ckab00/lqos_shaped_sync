@@ -8,8 +8,8 @@ LQoSync v2.67 adds a clearer role hierarchy so production operators can separate
 | --- | --- |
 | `owner` | Full control, including user management, Update Center, setup/repair high-trust controls, config, policies, backups, and live actions. |
 | `admin` | Can manage config, policies, scheduler, operations, backups, and LibreQoS apply actions, but cannot manage users or owner-only update controls. |
-| `operator` | Can monitor, inspect non-destructive operations, and run dry-run style previews. Cannot change production config/policies, open admin-only reports/lifecycle pages, or perform destructive actions. |
-| `viewer` | Read-only dashboards, shaped devices, documentation, and status pages. |
+| `operator` | Can monitor, inspect operations, review reports/lifecycle, and run dry-run style previews. Cannot change production config/policies or perform destructive actions. |
+| `viewer` | Read-only dashboards, shaped devices, reports, documentation, and status pages. |
 
 ## Upgrade behavior
 
@@ -39,8 +39,6 @@ Operator-or-above actions include:
 - Running Dry Run previews
 
 Viewer actions remain read-only.
-
-Sidebar visibility follows the same model: links to admin-only pages are hidden from operator/viewer roles, while backend route guards remain the actual security boundary if a direct URL is attempted.
 
 ## Safety rules
 

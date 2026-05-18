@@ -4,7 +4,6 @@ from __future__ import annotations
 from typing import Any
 
 from engine.config_diff import diff_configs, summarize_config_changes
-from engine.config_metadata import annotate_config_changes
 from engine.config_schema import migrate_config_schema, validate_schema
 from engine.policy_simulator import policy_simulation
 
@@ -27,7 +26,7 @@ def simulate_config_change(saved_cfg: dict, proposed_cfg: dict, state: dict | No
     state = state or {}
     migrated, migration_notes = migrate_config_schema(proposed_cfg)
     schema = validate_schema(migrated)
-    changes = annotate_config_changes(diff_configs(saved_cfg, migrated, limit=500))
+    changes = diff_configs(saved_cfg, migrated, limit=500)
     important = [c for c in changes if any(c["path"] == p.rstrip(".") or c["path"].startswith(p) for p in IMPORTANT_PATH_PREFIXES)]
     impacts = derive_impacts(saved_cfg, migrated, changes, state)
     policy = policy_simulation(saved_cfg, migrated, state)

@@ -1,16 +1,3 @@
-# GitHub Repository Description
+# LQoSync GitHub Description
 
-Database-free MikroTik-to-LibreQoS subscriber sync dashboard that generates ShapedDevices.csv/network.json with dry-run, policy-aware cleanup, operations center, reports, lifecycle visibility, and setup/repair workflows.
-
-Suggested topics:
-
-```text
-libreqos mikrotik routeros qos shaping isp pppoe dhcp hotspot scheduler flask python
-```
-
-Documentation:
-
-- README.md: compact landing page
-- FULL_DOCUMENTATION.md: complete manual
-- docs/DOCUMENTATION_INDEX.md: topic index
-- docs/content/: source-of-truth topic files
+LQoSync is a MikroTik-to-LibreQoS sync companion that generates ShapedDevices.csv and network.json with dry-run preview, policy-aware cleanup, backups, operations visibility, and safe update workflows.

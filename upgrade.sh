@@ -5,7 +5,8 @@ set -euo pipefail
 # Does not require GitHub CLI (gh). Uses plain git.
 
 INSTALL_DIR="${LQOSYNC_INSTALL_DIR:-/opt/lqosync}"
-REPO_URL="${LQOSYNC_REPO_URL:-https://github.com/p33ckab00/lqos_shaped_sync.git}"
+REPO_URL="${LQOSYNC_REPO_URL:-https://github.com/p33ckab00/LQoSync.git}"
+LEGACY_REPO_URL="${LQOSYNC_LEGACY_REPO_URL:-https://github.com/p33ckab00/lqos_shaped_sync.git}"
 BRANCH="${LQOSYNC_BRANCH:-main}"
 SERVICE_NAME="${LQOSYNC_SERVICE_NAME:-lqos_shaped_sync}"
 POLICY="${UPDATE_POLICY:-preserve_and_migrate}"
@@ -77,7 +78,11 @@ pull_or_clone() {
     log "Install directory is not Git-managed. Converting it using clone + rsync."
     TMP_CLONE="/tmp/lqosync_upgrade_clone_$TS"
     rm -rf "$TMP_CLONE"
-    git clone --branch "$BRANCH" "$REPO_URL" "$TMP_CLONE"
+    if ! git clone --branch "$BRANCH" "$REPO_URL" "$TMP_CLONE"; then
+      log "Clone from $REPO_URL failed. Trying legacy repository URL: $LEGACY_REPO_URL"
+      rm -rf "$TMP_CLONE"
+      git clone --branch "$BRANCH" "$LEGACY_REPO_URL" "$TMP_CLONE"
+    fi
     mkdir -p "$INSTALL_DIR"
     rsync -a --delete \
       --exclude 'venv' \

@@ -1,6 +1,6 @@
 # LQoSync Docker / Compose Installation Guide
 
-This guide installs **LQoSync / lqos_shaped_sync** using Docker Compose.
+This guide installs **LQoSync** using Docker Compose.
 
 Docker mode is host-integrated because LQoSync must write LibreQoS files and call the host LibreQoS apply command.
 
@@ -37,10 +37,6 @@ LQoSync uses this final path layout:
 ```
 
 The systemd service name and Docker container name remain `lqos_shaped_sync` for compatibility, but the application/runtime directory is now `/opt/lqosync`.
-
-## After install: understand config before editing it
-
-`config.json` is the source of truth. Before changing advanced fields, open the bundled **Config Field Guide — WH/HOW Reference** in the Documentation Center or read `docs/content/config_field_guide.md`. It explains guided fields with **What / Why / When / Who / Where / How**, recommended/default behavior, risk, and related paths. In the WebUI, admins/owners see the same guide beside **Advanced JSON**, so the install manual and live editor stay aligned.
 
 The Compose file uses:
 

@@ -2,51 +2,45 @@
 <div class="page-header">
   <div>
     <div class="page-title">About LQoSync</div>
-    <div class="page-subtitle">Project identity, version, disclosure, and links to the consolidated documentation center.</div>
+    <div class="page-subtitle">Project identity, purpose, disclosure, and links to the consolidated operator documentation.</div>
   </div>
   <div class="btn-row">
     <a class="btn btn-primary" href="/docs/search"><i class="ti ti-search"></i> Open Documentation</a>
-    {% if user and role_at_least(user.role, 'owner') %}<a class="btn" href="/updates"><i class="ti ti-cloud-download"></i> Update Center</a>{% endif %}
+    {% if user and role_at_least(user.role, 'owner') %}<a class="btn" href="{{ url_for('update_center') }}"><i class="ti ti-cloud-download"></i> Update Center</a>{% endif %}
   </div>
 </div>
 <section class="responsive-grid">
   <div class="section-card">
     <div class="card-title"><i class="ti ti-info-circle"></i> Project</div>
     <div class="op-line"><span>Name</span><strong>LQoSync</strong></div>
-    <div class="op-line"><span>Version</span><strong>{{ version }}</strong></div>
     <div class="op-line"><span>Purpose</span><strong>MikroTik → LibreQoS shaped-device sync</strong></div>
-    <p class="text-sm" style="color:var(--muted);margin-top:10px">LQoSync collects approved MikroTik subscriber sources, builds LibreQoS input files, applies policy-aware cleanup decisions, and guides operators through safe dry-run/apply workflows.</p>
+    <div class="op-line"><span>Primary outputs</span><strong>ShapedDevices.csv + network.json</strong></div>
+    <div class="op-line"><span>Operational style</span><strong>Dry-run first, backup before apply, operator-visible decisions</strong></div>
+    <p class="text-sm" style="color:var(--muted);margin-top:10px">LQoSync collects approved MikroTik PPPoE, DHCP, and Hotspot sources, builds LibreQoS input files, applies policy-aware cleanup decisions, and guides operators through safe preview/apply workflows.</p>
+    <div class="note" style="margin-top:10px"><b>Version and release updates moved:</b> use Update Center for installed version, GitHub version, local/remote commits, latest fetched changes, and safe update commands.</div>
   </div>
   <div class="section-card">
     <div class="card-title"><i class="ti ti-book"></i> Documentation source of truth</div>
-    <p class="text-sm" style="color:var(--muted)">The long-form manual has been consolidated into the Documentation Center and GitHub documentation files. Setup & Repair diagnoses and links to docs instead of duplicating large guide text.</p>
-    <div class="btn-row" style="margin-top:10px"><a class="btn" href="/docs/search?q=fresh+install">Fresh install</a><a class="btn" href="/docs/search?q=policy+cleanup">Policy setup</a><a class="btn" href="/docs/search?q=troubleshooting">Troubleshooting</a></div>
+    <p class="text-sm" style="color:var(--muted)">Documentation is consolidated into the WebUI Documentation Center and GitHub documentation files. Operators should use docs for setup, policies, install/update safety, troubleshooting, and glossary-level explanations.</p>
+    <div class="btn-row" style="margin-top:10px">
+      <a class="btn" href="/docs/search?q=fresh+install">Fresh install</a>
+      <a class="btn" href="/docs/search?q=update+safety">Update safety</a>
+      <a class="btn" href="/docs/search?q=policy+cleanup">Policy setup</a>
+      <a class="btn" href="/docs/search?q=troubleshooting">Troubleshooting</a>
+    </div>
   </div>
 </section>
 <section class="card" style="margin-top:12px">
   <div class="card-title"><i class="ti ti-sparkles"></i> AI-Assisted Development Disclosure and Acknowledgement</div>
   <p>LQoSync was developed and refined through an AI-assisted development workflow.</p>
-  <p>A significant portion of the system planning, code generation, documentation, UI/UX refinement, troubleshooting logic, release structuring, and implementation guidance was assisted by <b>GPT-5.5 Thinking by OpenAI</b>, working interactively with the project owner/operator.</p>
   <p>The project owner/operator provided the real-world ISP requirements, LibreQoS and MikroTik deployment context, feature direction, testing feedback, operational decisions, and final approval for changes.</p>
-  <p>This acknowledgement is included to recognize the role of AI-assisted engineering in accelerating the development of LQoSync while preserving the importance of human validation, operational judgment, and production responsibility.</p>
-  <p>Because LQoSync may interact with live network infrastructure, LibreQoS files, MikroTik routers, scheduler behavior, and service-level automation, all AI-assisted code, configuration, documentation, and operational behavior should be reviewed, tested, and validated by a qualified human operator before production use.</p>
+  <p>Because LQoSync may interact with live network infrastructure, LibreQoS files, MikroTik routers, scheduler behavior, and service-level automation, all code, configuration, documentation, and operational behavior should be reviewed, tested, and validated by a qualified human operator before production use.</p>
   <p>AI assistance does not replace human review, security auditing, backup verification, configuration validation, or production testing.</p>
 </section>
 <section class="responsive-grid" style="margin-top:12px">
-  <div class="section-card"><div class="card-title"><i class="ti ti-layout-dashboard"></i> Live status</div><p class="text-sm" style="color:var(--muted)">Use Dashboard for live health, warnings, source summaries, apply status, and policy decision summaries.</p><a class="btn" href="/">Dashboard</a></div>
-  <div class="section-card"><div class="card-title"><i class="ti ti-tool"></i> Operations</div><p class="text-sm" style="color:var(--muted)">Use Operations Center for services, journals, app logs, audit events, backups, and LibreQoS apply history.</p><a class="btn" href="/operations">Operations Center</a></div>
-  <div class="section-card"><div class="card-title"><i class="ti ti-adjustments-horizontal"></i> Settings</div><p class="text-sm" style="color:var(--muted)">Use Config Center for router/source settings, policies, and advanced raw JSON.</p><a class="btn" href="/config">Config Center</a></div>
-</section>
-
-<section class="card about-section">
-  <h2><i class="ti ti-layout-grid"></i> v2.64 UI Consistency and Redundancy Polish</h2>
-  <p>LQoSync v2.64 keeps the same engine behavior while making the WebUI more compact: Dashboard is live status, Operations Center is evidence/logs/backups, Reports is exports, Config Center owns settings, and Documentation Center is the manual.</p>
-</section>
-
-<section class="card about-section">
-  <h2><i class="ti ti-user-shield"></i> v2.67 Access Control + Role Hardening</h2>
-  <p>LQoSync v2.67 adds a clearer owner/admin/operator/viewer role hierarchy. Owner controls users, updates, and high-trust repair actions; admin controls config, policies, scheduler, operations, backups, and live apply; operator can monitor and run dry-run previews; viewer remains read-only.</p>
-  <p>Older installs with only one admin account are upgraded safely by promoting the first admin to owner when no owner exists, preventing lockout from owner-only controls.</p>
-  <a class="btn" href="/docs/search?q=access+control+roles"><i class="ti ti-search"></i> Read role guide</a>
+  <div class="section-card"><div class="card-title"><i class="ti ti-layout-dashboard"></i> Dashboard</div><p class="text-sm" style="color:var(--muted)">Live health, warnings, source summaries, apply status, production readiness, and policy decision summaries.</p><a class="btn" href="/">Dashboard</a></div>
+  <div class="section-card"><div class="card-title"><i class="ti ti-tool"></i> Operations Center</div><p class="text-sm" style="color:var(--muted)">Services, journals, app logs, audit events, backups, restore previews, and LibreQoS apply history.</p><a class="btn" href="/operations">Operations Center</a></div>
+  <div class="section-card"><div class="card-title"><i class="ti ti-adjustments-horizontal"></i> Config Center</div><p class="text-sm" style="color:var(--muted)">Router/source settings, policies, notifications, scheduler settings, and advanced raw JSON.</p><a class="btn" href="/config">Config Center</a></div>
+  {% if user and role_at_least(user.role, 'owner') %}<div class="section-card"><div class="card-title"><i class="ti ti-cloud-download"></i> Update Center</div><p class="text-sm" style="color:var(--muted)">Installed version, GitHub status, latest fetched changes, and copy-ready safe update commands.</p><a class="btn" href="{{ url_for('update_center') }}">Update Center</a></div>{% endif %}
 </section>
 {% endblock %}

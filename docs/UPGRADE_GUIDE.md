@@ -1,5 +1,9 @@
 # Upgrade Guide
 
+## Safety rule
+
+LQoSync updates should refresh application code and safe missing defaults without replacing operator-owned production files. Existing `/opt/libreqos/src/config.json`, `ShapedDevices.csv`, and `network.json` must be backed up first and preserved by default.
+
 ## Safe GitHub update
 
 ```bash
@@ -36,8 +40,6 @@ This hotfix adds `scripts/cleanup_stale_files.py` for older ZIP/manual installs 
 ## v2.70.4-rc1 UI Wiring Audit + Role Visibility Hotfix
 
 LQoSync v2.70.4-rc1 adds `scripts/ui_wiring_audit.py` and fixes role-visibility gaps after owner/admin/operator/viewer hardening. Admin-capable actions now use `role_at_least(user.role, 'admin')`, operator dry-run actions use `role_at_least(user.role, 'operator')`, owner-only Update Center links are gated, Config Center policy preset wiring is audited, and stale files such as `app.py.pre_reports_route_fix` are removed from stable packages.
-
-LQoSync v2.70.12-rc1 keeps the same stable-RC line and adds guidance/visibility hardening only: Advanced JSON now has the shared Config Field Guide, the same WH/HOW explanations are available in bundled documentation, and lower-role sidebars hide admin-only Lifecycle/Reports links.
 
 
 ## v2.70.5 Settings UI State Wiring Hotfix

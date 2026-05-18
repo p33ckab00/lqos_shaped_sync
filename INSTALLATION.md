@@ -39,10 +39,6 @@ LQoSync uses this final path layout:
 
 The systemd service name and Docker container name remain `lqos_shaped_sync` for compatibility, but the application/runtime directory is now `/opt/lqosync`.
 
-## After install: understand config before editing it
-
-`config.json` is the source of truth. Before changing advanced fields, open the bundled **Config Field Guide — WH/HOW Reference** in the Documentation Center or read `docs/content/config_field_guide.md`. It explains guided fields with **What / Why / When / Who / Where / How**, recommended/default behavior, risk, and related paths. In the WebUI, admins/owners see the same guide beside **Advanced JSON**, so the install manual and live editor stay aligned.
-
 
 ---
 
@@ -109,7 +105,7 @@ Use this when installing directly from GitHub instead of a ZIP package.
 
 ```bash
 cd /home/pi
-git clone https://github.com/p33ckab00/lqos_shaped_sync.git
+git clone https://github.com/p33ckab00/LQoSync.git
 cd lqos_shaped_sync
 ```
 
@@ -520,7 +516,7 @@ Fresh install from GitHub:
 sudo apt update
 sudo apt install -y git
 cd /opt
-sudo git clone https://github.com/p33ckab00/lqos_shaped_sync.git lqosync
+sudo git clone https://github.com/p33ckab00/LQoSync.git lqosync
 cd /opt/lqosync
 sudo bash install.sh
 ```
@@ -528,7 +524,7 @@ sudo bash install.sh
 One-command bootstrap:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/lqos_shaped_sync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo bash /tmp/install-lqosync.sh
 ```
 
@@ -568,7 +564,7 @@ For systems that already have LQoSync installed from ZIP, manual copy, Git, Dock
 
 ```bash
 cd /opt
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/lqos_shaped_sync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo bash /tmp/install-lqosync.sh
 ```
 

@@ -11,9 +11,9 @@
     ],
     "roles": {
       "admin": "Config, policies, scheduler, backups, operations, and live apply actions except owner-only user/update controls.",
-      "operator": "Monitoring, dry-run previews, non-destructive operations inspection, and documentation access.",
+      "operator": "Monitoring, dry-run/reports, lifecycle, operations inspection, and documentation access.",
       "owner": "Full control including users, updates, setup/repair, config, policies, backups, and live actions.",
-      "viewer": "Read-only dashboards, devices, docs, and status pages."
+      "viewer": "Read-only dashboards, devices, reports, docs, and status pages."
     }
   },
   "app": {

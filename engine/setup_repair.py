@@ -118,7 +118,7 @@ def repair_commands() -> list[dict[str, Any]]:
         {
             "title": "Adopt existing ZIP/manual install into GitHub-managed install",
             "description": "Backs up existing /opt/lqosync, clones GitHub source, restores local data, and runs preserve-existing install.",
-            "command": "curl -fsSL https://raw.githubusercontent.com/p33ckab00/lqos_shaped_sync/main/install-from-github.sh -o /tmp/install-lqosync.sh\nsudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh",
+            "command": "curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh\nsudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh",
         },
         {
             "title": "Check LibreQoS core services",

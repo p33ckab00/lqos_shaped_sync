@@ -1,6 +1,6 @@
 # LQoSync Bare-Metal Ubuntu Installation Guide
 
-This guide installs **LQoSync / lqos_shaped_sync** directly on Ubuntu/Debian using Python venv + systemd.
+This guide installs **LQoSync** directly on Ubuntu/Debian using Python venv + systemd.
 
 Bare-metal install is recommended if you want the simplest host integration and do not want Docker/Compose.
 
@@ -37,10 +37,6 @@ LQoSync uses this final path layout:
 ```
 
 The systemd service name and Docker container name remain `lqos_shaped_sync` for compatibility, but the application/runtime directory is now `/opt/lqosync`.
-
-## After install: understand config before editing it
-
-`config.json` is the source of truth. Before changing advanced fields, open the bundled **Config Field Guide — WH/HOW Reference** in the Documentation Center or read `docs/content/config_field_guide.md`. It explains guided fields with **What / Why / When / Who / Where / How**, recommended/default behavior, risk, and related paths. In the WebUI, admins/owners see the same guide beside **Advanced JSON**, so the install manual and live editor stay aligned.
 
 3. read existing `/opt/libreqos/src/network.json`
 4. connect to MikroTik read-only API
@@ -755,7 +751,7 @@ Fresh install from GitHub:
 sudo apt update
 sudo apt install -y git
 cd /opt
-sudo git clone https://github.com/p33ckab00/lqos_shaped_sync.git lqosync
+sudo git clone https://github.com/p33ckab00/LQoSync.git lqosync
 cd /opt/lqosync
 sudo bash install.sh
 ```
@@ -763,7 +759,7 @@ sudo bash install.sh
 One-command bootstrap:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/lqos_shaped_sync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo bash /tmp/install-lqosync.sh
 ```
 
@@ -795,3 +791,4 @@ sudo UPDATE_POLICY=factory_reset CONFIRM_FACTORY_RESET=yes bash upgrade.sh
 ```
 
 See `docs/GITHUB_INSTALL.md` for the full Git source install and update guide.
+

@@ -25,11 +25,11 @@ ROLE_DEFINITIONS = {
     },
     "operator": {
         "label": "Operator",
-        "description": "Can monitor, run/view dry-runs, and inspect non-destructive operations. Cannot edit config/policies/users, open admin-only reports/lifecycle, or perform destructive actions.",
+        "description": "Can monitor, run/view dry-runs and reports, and inspect operations. Cannot edit config/policies/users or perform destructive actions.",
     },
     "viewer": {
         "label": "Viewer",
-        "description": "Read-only access to dashboards, devices, documentation, and status pages.",
+        "description": "Read-only access to dashboards, reports, devices, documentation, and status pages.",
     },
 }
 

@@ -5,7 +5,8 @@ set -euo pipefail
 # Does not require GitHub CLI (gh). It only needs plain git.
 # Can safely handle fresh installs and existing installs from ZIP/manual/Git/Docker leftovers.
 
-REPO_URL="${LQOSYNC_REPO_URL:-https://github.com/p33ckab00/lqos_shaped_sync.git}"
+REPO_URL="${LQOSYNC_REPO_URL:-https://github.com/p33ckab00/LQoSync.git}"
+LEGACY_REPO_URL="${LQOSYNC_LEGACY_REPO_URL:-https://github.com/p33ckab00/lqos_shaped_sync.git}"
 BRANCH="${LQOSYNC_BRANCH:-main}"
 INSTALL_DIR="${LQOSYNC_INSTALL_DIR:-/opt/lqosync}"
 SERVICE_NAME="${LQOSYNC_SERVICE_NAME:-lqos_shaped_sync}"
@@ -85,7 +86,11 @@ stop_service_if_present() {
 clone_to_temp() {
   local tmp="/tmp/lqosync_git_clone_$TS"
   rm -rf "$tmp"
-  git clone --branch "$BRANCH" "$REPO_URL" "$tmp"
+  if ! git clone --branch "$BRANCH" "$REPO_URL" "$tmp"; then
+    warn "Clone from $REPO_URL failed. Trying legacy repository URL: $LEGACY_REPO_URL"
+    rm -rf "$tmp"
+    git clone --branch "$BRANCH" "$LEGACY_REPO_URL" "$tmp"
+  fi
   echo "$tmp"
 }
 
@@ -223,6 +228,7 @@ log "Branch:     $BRANCH"
 log "Target:     $INSTALL_DIR"
 log "Init policy:$INIT_POLICY"
 log "Existing action request: $EXISTING_INSTALL_ACTION"
+log "Safety: existing config.json, ShapedDevices.csv, network.json, users, env, state, logs, and backups are backed up before install/update actions."
 
 install_packages
 mkdir -p "$BACKUP_ROOT" "$BACKUP_DIR"

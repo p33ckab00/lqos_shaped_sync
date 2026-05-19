@@ -11,6 +11,7 @@ use crate::routeros_plan::build_routeros_collector_plan_payload;
 use crate::routeros_results::validate_routeros_read_results_payload;
 use crate::routeros_transport::build_routeros_transport_session_payload;
 use crate::routeros_live_pilot::build_routeros_live_read_pilot_payload;
+use crate::routeros_read_pilot::run_routeros_read_pilot_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -35,6 +36,7 @@ pub const OP_BUILD_ROUTEROS_COLLECTOR_PLAN: &str = "build-routeros-collector-pla
 pub const OP_VALIDATE_ROUTEROS_READ_RESULTS: &str = "validate-routeros-read-results";
 pub const OP_BUILD_ROUTEROS_TRANSPORT_SESSION: &str = "build-routeros-transport-session";
 pub const OP_BUILD_ROUTEROS_LIVE_READ_PILOT: &str = "build-routeros-live-read-pilot";
+pub const OP_RUN_ROUTEROS_READ_PILOT: &str = "run-routeros-read-pilot";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -73,6 +75,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_VALIDATE_ROUTEROS_READ_RESULTS,
         OP_BUILD_ROUTEROS_TRANSPORT_SESSION,
         OP_BUILD_ROUTEROS_LIVE_READ_PILOT,
+        OP_RUN_ROUTEROS_READ_PILOT,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -237,6 +240,36 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     checks.push(check("routeros_live_read_pilot_contract", live_pilot_ok, json!({"status": live_pilot.get("status"), "connection_attempt_count": live_pilot.get("connection_attempt_count")})));
     if !live_pilot_ok {
         errors.push(Diagnostic::error("self_test_routeros_live_pilot_failed", Some("build-routeros-live-read-pilot".to_string()), "Self-test RouterOS live-read pilot contract should select one command without attempting a connection."));
+    }
+
+    let read_pilot_payload = json!({
+        "adapter": "fixture",
+        "execute": true,
+        "router": "RB5009",
+        "source": "pppoe",
+        "path": "/ppp/active",
+        "fixture_rows": [{"name":"selftest", "address":"10.0.0.2"}],
+        "config": {
+            "routers": [{
+                "name":"RB5009",
+                "enabled": true,
+                "address": "10.0.0.1",
+                "username": "selftest",
+                "password": "redacted-by-test",
+                "pppoe":{"enabled":true},
+                "dhcp":{"enabled":false},
+                "hotspot":{"enabled":false}
+            }]
+        }
+    });
+    let (read_pilot, read_pilot_errors, _read_pilot_warnings) = run_routeros_read_pilot_payload(&read_pilot_payload);
+    let read_pilot_ok = read_pilot_errors.is_empty()
+        && read_pilot.get("status").and_then(Value::as_str) == Some("fixture_executed")
+        && read_pilot.get("connection_attempt_count").and_then(Value::as_u64).unwrap_or(1) == 0
+        && read_pilot.get("safe_for_cleanup").and_then(Value::as_bool).unwrap_or(false);
+    checks.push(check("routeros_read_pilot_fixture", read_pilot_ok, json!({"status": read_pilot.get("status"), "row_count": read_pilot.get("row_count"), "connection_attempt_count": read_pilot.get("connection_attempt_count")})));
+    if !read_pilot_ok {
+        errors.push(Diagnostic::error("self_test_routeros_read_pilot_failed", Some("run-routeros-read-pilot".to_string()), "Self-test RouterOS read pilot fixture should execute offline without attempting a connection."));
     }
 
     let collector_bundle_payload = json!({

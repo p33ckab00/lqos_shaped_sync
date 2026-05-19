@@ -512,3 +512,8 @@ git commit -m "rust(core): add RouterOS live-read pilot gate" \
   -m "Add build-routeros-live-read-pilot, a gated non-network contract for future read-only Rust RouterOS transport, with API wrapper, self-test coverage, and documentation."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Rust Core v2.4 RouterOS Read Pilot Fixture Adapter
+
+Adds `run-routeros-read-pilot`, an offline fixture adapter that exercises the RouterOS read-pilot execution contract without opening MikroTik sockets or replacing Python collectors.

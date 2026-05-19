@@ -566,5 +566,11 @@
         "file": "docs/RUST_CORE_V23_ROUTEROS_LIVE_READ_PILOT.md",
         "anchor": "rust-core-v23-routeros-live-read-pilot-gate",
         "summary": "Gated non-network live-read pilot contract for a future read-only Rust RouterOS transport adapter."
+    },
+    "rust.v24_routeros_read_pilot_fixture": {
+        "title": "Rust Core v2.4 RouterOS Read Pilot Fixture Adapter",
+        "file": "docs/RUST_CORE_V24_ROUTEROS_READ_PILOT_FIXTURE.md",
+        "anchor": "rust-core-v24-routeros-read-pilot-fixture-adapter",
+        "summary": "Offline run-routeros-read-pilot fixture adapter for validating RouterOS read-pilot execution shape without live MikroTik sockets."
     }
 }

@@ -1962,6 +1962,63 @@ def rust_build_routeros_live_read_pilot(config: dict, payload: dict[str, Any] | 
     return response
 
 
+
+def _python_run_routeros_read_pilot(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    cfg = payload.get("config") if isinstance(payload.get("config"), dict) else {}
+    live = _python_build_routeros_live_read_pilot(payload, started=started)
+    result_live = live.get("result") if isinstance(live.get("result"), dict) else {}
+    selected = result_live.get("selected_command") if isinstance(result_live.get("selected_command"), dict) else {}
+    adapter = str(payload.get("adapter") or "fixture")
+    execute = bool(payload.get("execute", False))
+    rows = payload.get("fixture_rows") if isinstance(payload.get("fixture_rows"), list) else (payload.get("rows") if isinstance(payload.get("rows"), list) else [])
+    errors = list(live.get("errors") or [])
+    warnings = list(live.get("warnings") or [])
+    if adapter != "fixture":
+        errors.append({"code": "routeros_live_adapter_not_implemented", "severity": "error", "path": "adapter", "message": "Only the offline fixture adapter is available in the Python fallback."})
+    read_result = {
+        "router": selected.get("router", "unknown"),
+        "source": selected.get("source", "unknown"),
+        "path": selected.get("path", ""),
+        "status": str(payload.get("fixture_status") or "ok"),
+        "rows": rows,
+        "duration_ms": float(payload.get("duration_ms") or 0),
+        "adapter": "fixture",
+        "connection_attempted": False,
+        "credential_material": "none",
+    }
+    safe_for_cleanup = not errors and read_result["status"] in {"ok", "zero_valid"}
+    result = {
+        "mode": "routeros_read_pilot_fixture",
+        "status": "blocked" if errors else ("fixture_executed" if execute else "fixture_rehearsal"),
+        "adapter": adapter,
+        "execute_requested": execute,
+        "executed": bool(execute and adapter == "fixture" and not errors),
+        "connection_attempt_count": 0,
+        "live_transport_supported": False,
+        "full_rust_backend": False,
+        "selected_command": selected,
+        "read_result": read_result,
+        "read_validation": {"status": "trusted" if safe_for_cleanup else "failed", "safe_for_cleanup": safe_for_cleanup, "command_count": 1 if selected else 0},
+        "row_count": len(rows),
+        "safe_for_cleanup": safe_for_cleanup,
+        "credential_material": "redacted_or_absent",
+        "next_stage": "rust_routeros_socket_transport_adapter",
+        "note": "Python fallback executes only an offline fixture adapter; no RouterOS sockets are opened.",
+    }
+    return {"version": PROTOCOL_VERSION, "op": "run-routeros-read-pilot", "ok": not errors, "available": False, "skipped": True, "result": result, "errors": errors, "warnings": warnings, "meta": {"engine": "python-fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)}}
+
+
+def rust_run_routeros_read_pilot(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config or {})
+    response = call_rust_core("run-routeros-read-pilot", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_run_routeros_read_pilot(req_payload, started=started)
+    return response
+
 def _python_validate_routeros_read_results(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
     started = started or time.perf_counter()
     plan = payload.get("plan") if isinstance(payload.get("plan"), dict) else {}

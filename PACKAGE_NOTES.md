@@ -239,3 +239,8 @@ Adds `build-routeros-transport-session`, a non-network RouterOS transport rehear
 ## Rust Core v2.3 RouterOS Live Read Pilot Gate
 
 LQoSync 2.93.0-rc1 / lqosync-core 2.3.0 adds `build-routeros-live-read-pilot`, a gated non-network contract for a future read-only Rust RouterOS transport adapter. Python collectors remain authoritative and Rust still does not open MikroTik sockets.
+
+
+## Rust Core v2.4 RouterOS Read Pilot Fixture Adapter
+
+Adds `run-routeros-read-pilot`, an offline fixture adapter that exercises the RouterOS read-pilot execution contract without opening MikroTik sockets or replacing Python collectors.

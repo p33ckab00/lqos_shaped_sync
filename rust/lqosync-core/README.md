@@ -207,3 +207,8 @@ Adds `build-routeros-transport-session`, a non-network RouterOS transport rehear
 ## v2.3 RouterOS Live Read Pilot Gate
 
 Adds `build-routeros-live-read-pilot` as a non-network, credential-redacted pilot contract before implementing a real RouterOS read-only transport adapter.
+
+
+## Rust Core v2.4 RouterOS Read Pilot Fixture Adapter
+
+Adds `run-routeros-read-pilot`, an offline fixture adapter that exercises the RouterOS read-pilot execution contract without opening MikroTik sockets or replacing Python collectors.

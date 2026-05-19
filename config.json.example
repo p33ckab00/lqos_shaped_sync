@@ -560,6 +560,8 @@
         "allow_rust_routeros_live_reads": false,
         "allow_rust_routeros_credentials": false,
         "routeros_live_read_pilot": false,
-        "routeros_live_read_timeout_seconds": 5
+        "routeros_live_read_timeout_seconds": 5,
+        "routeros_read_pilot_adapter": "fixture",
+        "allow_rust_routeros_fixture_reads": true
     }
 }

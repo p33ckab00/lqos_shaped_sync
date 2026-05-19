@@ -31,3 +31,4 @@ pub mod routeros_plan;
 pub mod routeros_results;
 pub mod routeros_transport;
 pub mod routeros_live_pilot;
+pub mod routeros_read_pilot;

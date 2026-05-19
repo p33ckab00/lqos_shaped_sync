@@ -89,6 +89,8 @@ DEFAULT_CONFIG = {
         "allow_rust_routeros_credentials": False,
         "routeros_live_read_pilot": False,
         "routeros_live_read_timeout_seconds": 5,
+        "routeros_read_pilot_adapter": "fixture",
+        "allow_rust_routeros_fixture_reads": True,
     },
     "collector": {
         "selective_fields": True,
@@ -549,8 +551,12 @@ def validate_config(cfg: dict):
     rust_core.setdefault("allow_rust_routeros_credentials", False)
     rust_core.setdefault("routeros_live_read_pilot", False)
     rust_core.setdefault("routeros_live_read_timeout_seconds", 5)
+    rust_core.setdefault("routeros_read_pilot_adapter", "fixture")
+    rust_core.setdefault("allow_rust_routeros_fixture_reads", True)
     if rust_core.get("authority_mode") not in ("shadow", "enforce_blockers"):
         errors.append(f"rust_core.authority_mode invalid: {rust_core.get('authority_mode')}")
+    if rust_core.get("routeros_read_pilot_adapter") not in ("fixture", "disabled"):
+        errors.append(f"rust_core.routeros_read_pilot_adapter invalid: {rust_core.get('routeros_read_pilot_adapter')}")
     if rust_core.get("routeros_transport_authority") not in ("plan_only", "live_read_pilot"):
         errors.append(f"rust_core.routeros_transport_authority invalid: {rust_core.get('routeros_transport_authority')}")
     try:

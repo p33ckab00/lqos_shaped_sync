@@ -65,7 +65,7 @@ git status
 For your development folder:
 
 ```bash
-cd /home/pi/lqosync_docker
+cd /opt/lqosync_docker
 git remote set-url origin https://github.com/p33ckab00/LQoSync.git
 git remote -v
 git fetch origin main
@@ -103,7 +103,7 @@ Keep `lqosync` only when it refers to an existing compatibility name:
 ## Safe push flow after documentation changes
 
 ```bash
-cd /home/pi/lqosync_docker
+cd /opt/lqosync_docker
 git status
 python3 -m py_compile app.py engine/policy_schema.py engine/regression.py
 python3 scripts/release_check.py

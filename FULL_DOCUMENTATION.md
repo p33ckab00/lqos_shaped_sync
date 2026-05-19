@@ -155,7 +155,7 @@ The systemd service name and Docker container name remain `lqosync` for compatib
 sudo apt update
 sudo apt install -y docker.io docker-compose-plugin unzip
 sudo systemctl enable --now docker
-cd /home/pi
+cd /opt
 unzip LQoSync_v2_17_opt_lqosync.zip
 cd lqos_docker
 openssl rand -hex 32
@@ -183,7 +183,7 @@ DOCKER_INSTALL.md
 ```bash
 sudo apt update
 sudo apt install -y unzip
-cd /home/pi
+cd /opt
 unzip LQoSync_v2_17_opt_lqosync.zip
 cd lqos_docker
 sudo bash install.sh
@@ -211,7 +211,7 @@ Use this when installing directly from GitHub instead of a ZIP package.
 ### Clone
 
 ```bash
-cd /home/pi
+cd /opt
 git clone https://github.com/p33ckab00/LQoSync.git
 cd lqosync
 ```
@@ -231,7 +231,7 @@ sudo docker logs -f lqosync
 ```bash
 sudo apt update
 sudo apt install -y git
-cd /home/pi/lqosync
+cd /opt/lqosync
 sudo LQOSYNC_INIT_POLICY=preserve_existing bash install.sh
 sudo systemctl status lqosync
 ```
@@ -287,7 +287,7 @@ sudo systemctl disable lqosync
 Quick Docker stop:
 
 ```bash
-cd /home/pi/lqosync
+cd /opt/lqosync
 sudo docker compose down
 ```
 
@@ -990,7 +990,7 @@ ls -ld /opt/libreqos/src
 ### 1. Unzip the package
 
 ```bash
-cd /home/pi
+cd /opt
 unzip LQoSync_v2_17_opt_lqosync.zip
 cd lqos_docker
 ```
@@ -1788,7 +1788,7 @@ docker compose version
 ### 3. Unzip package
 
 ```bash
-cd /home/pi
+cd /opt
 unzip LQoSync_v2_17_opt_lqosync.zip
 cd lqos_docker
 ```
@@ -2107,7 +2107,7 @@ This user can read the RouterOS API resources required by LQoSync while blocking
 If the Docker deployment source folder is Git-managed, update with:
 
 ```bash
-cd /home/pi/lqosync
+cd /opt/lqosync
 sudo git pull origin main
 sudo docker compose down
 sudo docker compose build --no-cache
@@ -2178,13 +2178,13 @@ sudo docker compose up -d --build
 Common locations:
 
 ```bash
-cd /home/pi/lqosync
+cd /opt/lqosync
 ```
 
 or:
 
 ```bash
-cd /home/pi/lqos_docker
+cd /opt/lqos_docker
 ```
 
 Confirm Compose file exists:
@@ -2246,7 +2246,7 @@ sudo rm -rf /opt/lqosync
 If installed from Git:
 
 ```bash
-rm -rf /home/pi/lqosync
+rm -rf /opt/lqosync
 ```
 
 If using old local folder name:
@@ -2397,7 +2397,7 @@ sudo chmod 644 /opt/libreqos/src/ShapedDevices.csv /opt/libreqos/src/network.jso
 If installed from Git:
 
 ```bash
-rm -rf /home/pi/lqosync
+rm -rf /opt/lqosync
 ```
 
 If using old extracted package folder:
@@ -2492,7 +2492,7 @@ This page lists the common commands for Docker and bare-metal installs.
 Run these from the folder that contains `compose.yaml`, usually:
 
 ```bash
-cd /home/pi/lqos_docker
+cd /opt/lqos_docker
 ```
 
 ### Check container status
@@ -2653,7 +2653,7 @@ UNINSTALLATION.md
 ### Docker uninstall
 
 ```bash
-cd /home/pi/lqosync 2>/dev/null || cd /home/pi/lqos_docker
+cd /opt/lqosync 2>/dev/null || cd /opt/lqos_docker
 sudo docker compose down
 ```
 
@@ -2667,7 +2667,7 @@ sudo rm -rf /opt/lqosync
 If installed from Git and you want to remove the source clone:
 
 ```bash
-rm -rf /home/pi/lqosync
+rm -rf /opt/lqosync
 ```
 
 ### Bare-metal uninstall

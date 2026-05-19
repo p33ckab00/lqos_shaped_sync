@@ -7,7 +7,7 @@ This page lists the common commands for Docker and bare-metal installs.
 Run these from the folder that contains `compose.yaml`, usually:
 
 ```bash
-cd /home/pi/lqos_docker
+cd /opt/lqos_docker
 ```
 
 ### Check container status
@@ -168,7 +168,7 @@ UNINSTALLATION.md
 ### Docker uninstall
 
 ```bash
-cd /home/pi/lqosync 2>/dev/null || cd /home/pi/lqos_docker
+cd /opt/lqosync 2>/dev/null || cd /opt/lqos_docker
 sudo docker compose down
 ```
 
@@ -182,7 +182,7 @@ sudo rm -rf /opt/lqosync
 If installed from Git and you want to remove the source clone:
 
 ```bash
-rm -rf /home/pi/lqosync
+rm -rf /opt/lqosync
 ```
 
 ### Bare-metal uninstall

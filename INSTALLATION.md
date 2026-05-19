@@ -48,7 +48,7 @@ The systemd service name and Docker container name remain `lqosync` for compatib
 sudo apt update
 sudo apt install -y docker.io docker-compose-plugin unzip
 sudo systemctl enable --now docker
-cd /home/pi
+cd /opt
 unzip LQoSync_v2_17_opt_lqosync.zip
 cd lqos_docker
 openssl rand -hex 32
@@ -76,7 +76,7 @@ DOCKER_INSTALL.md
 ```bash
 sudo apt update
 sudo apt install -y unzip
-cd /home/pi
+cd /opt
 unzip LQoSync_v2_17_opt_lqosync.zip
 cd lqos_docker
 sudo bash install.sh
@@ -104,7 +104,7 @@ Use this when installing directly from GitHub instead of a ZIP package.
 ### Clone
 
 ```bash
-cd /home/pi
+cd /opt
 git clone https://github.com/p33ckab00/LQoSync.git
 cd lqosync
 ```
@@ -124,7 +124,7 @@ sudo docker logs -f lqosync
 ```bash
 sudo apt update
 sudo apt install -y git
-cd /home/pi/lqosync
+cd /opt/lqosync
 sudo LQOSYNC_INIT_POLICY=preserve_existing bash install.sh
 sudo systemctl status lqosync
 ```
@@ -180,7 +180,7 @@ sudo systemctl disable lqosync
 Quick Docker stop:
 
 ```bash
-cd /home/pi/lqosync
+cd /opt/lqosync
 sudo docker compose down
 ```
 

@@ -7667,3 +7667,8 @@ Adds `run-routeros-read-pilot`, an offline fixture adapter that exercises the Ro
 ## Rust Core v2.5 RouterOS API Sentence Codec
 
 `build-routeros-api-sentence` prepares redaction-safe RouterOS API print sentences offline, including `.proplist` and word length metadata. It is a transport foundation only; live Rust RouterOS sockets are still not enabled.
+
+
+### Rust Core v2.5.1 RouterOS API Codec Redaction Hotfix
+
+`lqosync-core` v2.5.1 keeps the offline RouterOS API codec warning-clean and redacts dropped sensitive `.proplist` field names from result payloads. Valid RouterOS resource paths such as `/ppp/secret` remain allowed, but dropped fields such as `password` or `api-key` are reported only by count.

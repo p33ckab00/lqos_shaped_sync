@@ -1,4 +1,11 @@
 ## v2.92.1-rc1 Package Notes — RouterOS Transport Redaction Test Hotfix
+## v2.95.1-rc1 - Rust Core v2.5.1 RouterOS API Codec Redaction Hotfix
+
+- Fixes the RouterOS API sentence codec test that failed when the result metadata exposed dropped sensitive field names such as `api-key`.
+- Keeps `/ppp/secret` as a valid RouterOS resource path while preventing actual sensitive `.proplist` field names from being emitted in the result payload.
+- Replaces explicit dropped sensitive field names with `dropped_sensitive_field_count` and `dropped_sensitive_fields_redacted=true`.
+- Removes an unused helper from `routeros_api_codec.rs` so the Rust build stays warning-clean.
+
 
 - Fixes a false-positive Rust test failure in `routeros_transport.rs`.
 - The failed assertion checked for the word `secret`, but the JSON output legitimately includes RouterOS resource paths such as `/ppp/secret`.

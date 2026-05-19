@@ -1,6 +1,6 @@
 # Rust Core v2.5 RouterOS API Sentence Codec
 
-LQoSync v2.95.0-rc1 / `lqosync-core` v2.5.0 adds an offline RouterOS API sentence codec.
+LQoSync v2.95.1-rc1 / `lqosync-core` v2.5.1 adds an offline RouterOS API sentence codec.
 
 ## Operation
 
@@ -40,3 +40,17 @@ live_transport_supported=false
 ## Why this matters
 
 Before Rust can safely perform live RouterOS reads, the API command encoding must be deterministic, tested, and redaction-safe. This phase adds that foundation without granting live transport authority.
+
+
+## v2.5.1 redaction hotfix
+
+The codec still accepts RouterOS resource paths such as `/ppp/secret`, but it no longer returns the exact names of sensitive `.proplist` fields that were dropped. Instead, the result exposes:
+
+```json
+{
+  "dropped_sensitive_field_count": 2,
+  "dropped_sensitive_fields_redacted": true
+}
+```
+
+This avoids leaking field names like `api-key` or `password` in operator-visible payloads while still confirming that sensitive fields were removed.

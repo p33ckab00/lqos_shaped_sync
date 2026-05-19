@@ -5,14 +5,6 @@ fn as_str<'a>(value: Option<&'a Value>, default: &'a str) -> &'a str {
     value.and_then(Value::as_str).unwrap_or(default)
 }
 
-fn value_string(v: &Value) -> Option<String> {
-    match v {
-        Value::String(s) => Some(s.to_string()),
-        Value::Number(n) => Some(n.to_string()),
-        Value::Bool(b) => Some(b.to_string()),
-        _ => None,
-    }
-}
 
 fn sensitive_field(name: &str) -> bool {
     let n = name.to_ascii_lowercase();
@@ -173,7 +165,8 @@ pub fn build_routeros_api_sentence_payload(payload: &Value) -> (Value, Vec<Diagn
         "length_prefixes": length_prefixes,
         "word_count": length_prefixes.len(),
         "total_payload_bytes_with_zero_terminator": total_payload_bytes,
-        "dropped_sensitive_fields": dropped_fields,
+        "dropped_sensitive_field_count": dropped_fields.len(),
+        "dropped_sensitive_fields_redacted": true,
         "credential_material": "redacted_or_absent",
         "next_stage": "rust_routeros_readonly_socket_transport",
         "note": "v2.5 encodes RouterOS API sentences offline only. It does not open sockets or send credentials."
@@ -217,7 +210,10 @@ mod tests {
         let text = serde_json::to_string(&result).unwrap();
         assert!(!text.contains("=.proplist=name,password"));
         assert!(!text.contains("api-key"));
+        assert!(!text.contains("\"password\""));
         assert!(text.contains("/ppp/secret/print"));
+        assert_eq!(result.get("dropped_sensitive_field_count").and_then(Value::as_u64), Some(2));
+        assert_eq!(result.get("dropped_sensitive_fields_redacted").and_then(Value::as_bool), Some(true));
     }
 
     #[test]

@@ -577,6 +577,6 @@
         "title": "Rust Core v2.5 RouterOS API Sentence Codec",
         "file": "docs/RUST_CORE_V25_ROUTEROS_API_CODEC.md",
         "anchor": "rust-core-v25-routeros-api-sentence-codec",
-        "summary": "Offline RouterOS API sentence/proplist codec for future read-only Rust socket transport, with redaction and no network access."
+        "summary": "Offline RouterOS API sentence codec with redacted sensitive proplist field reporting and v2.5.1 redaction hotfix."
     }
 }

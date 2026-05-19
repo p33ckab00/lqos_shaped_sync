@@ -1713,3 +1713,13 @@ def rust_authority_pilot_plan(config: dict) -> dict[str, Any]:
         return _python_authority_pilot_plan(payload, started=started)
     return response
 
+
+
+def rust_build_collector_circuit_bundle(config: dict, payload: dict[str, Any]) -> dict[str, Any]:
+    """Build a shadow ShapedDevices-compatible circuit bundle from raw collector snapshots.
+
+    This is a bridge toward Rust collector/circuit migration. Python collectors remain
+    authoritative; the Rust result is diagnostic unless explicitly used by future
+    authority stages.
+    """
+    return call_rust_core("build-collector-circuit-bundle", payload or {}, config=config)

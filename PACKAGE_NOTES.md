@@ -191,3 +191,7 @@ This package adds `execute-rollback`, a gated rollback executor. It rehearses ro
 ## v2.87.0-rc1 Package Notes
 
 Adds Rust Core v1.7 full backend readiness and authority pilot plan operations. No default live behavior changes; all new endpoints are read-only.
+
+## v2.88.0-rc1 Package Notes
+
+Includes Rust Core v1.8 collector-bundle shadow builder and documentation. No default production write/apply behavior changes.

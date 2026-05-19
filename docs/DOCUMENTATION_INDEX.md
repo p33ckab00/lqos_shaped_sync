@@ -162,3 +162,5 @@ Read these docs first:
 - [Rust Core v1.6 Authority Readiness Report](RUST_CORE_V16_AUTHORITY_READINESS.md)
 
 - [Rust Core v1.7 Full Backend Readiness + Authority Pilot Plan](RUST_CORE_V17_FULL_BACKEND_READINESS.md)
+
+- [Rust Core v1.8 Collector Bundle Shadow Builder](RUST_CORE_V18_COLLECTOR_BUNDLE.md) - Shadow Rust normalization of raw collector snapshots into ShapedDevices-compatible rows.

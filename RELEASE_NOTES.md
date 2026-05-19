@@ -1847,3 +1847,10 @@ Read: `docs/RUST_CORE_V11_SELF_TEST.md`.
 - Added read-only APIs for full backend readiness and staged authority pilot planning.
 - Documented that the branch is still a hybrid Rust safety core + Python authority system by default, not a full Rust backend yet.
 - Added self-test coverage for the new readiness and pilot-plan operations.
+
+## v2.88.0-rc1 - Rust Core v1.8 Collector Bundle Shadow Builder
+
+- Added `build-collector-circuit-bundle` to lqosync-core.
+- Added read-only `/api/rust-core/collector-bundle-shadow`.
+- Added Rust self-test coverage for collector-bundle shadow normalization.
+- Python remains authoritative; Rust collector bundle output is diagnostic only.

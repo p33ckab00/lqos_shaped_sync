@@ -3,6 +3,7 @@ use crate::apply_transaction::execute_apply_transaction_payload;
 use crate::authority_readiness::evaluate_authority_readiness_payload;
 use crate::authority_pilot::{build_authority_pilot_plan_payload, evaluate_full_rust_readiness_payload};
 use crate::bandwidth::{convert_to_mbps, parse_comment_bandwidth, parse_rate_limit};
+use crate::collector_bundle::build_collector_circuit_bundle_payload;
 use crate::protocol::Diagnostic;
 use crate::rollback_executor::execute_rollback_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
@@ -25,6 +26,7 @@ pub const OP_WRITE_TEXT_FILE: &str = "write-text-file";
 pub const OP_APPEND_AUDIT_JSONL: &str = "append-audit-jsonl";
 pub const OP_EVALUATE_POLICY: &str = "evaluate-policy";
 pub const OP_NORMALIZE_CIRCUITS: &str = "normalize-circuits";
+pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
 pub const OP_BUILD_APPLY_MANIFEST: &str = "build-apply-manifest";
 pub const OP_EXECUTE_APPLY_TRANSACTION: &str = "execute-apply-transaction";
@@ -57,6 +59,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_APPEND_AUDIT_JSONL,
         OP_EVALUATE_POLICY,
         OP_NORMALIZE_CIRCUITS,
+        OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_EVALUATE_SYNC_PLAN,
         OP_BUILD_APPLY_MANIFEST,
         OP_EXECUTE_APPLY_TRANSACTION,
@@ -132,6 +135,23 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     checks.push(check("bandwidth_comment_parser", comment_ok, json!({"input":"PLAN|15M/15M"})));
     if !comment_ok {
         errors.push(Diagnostic::error("self_test_comment_bandwidth_failed", Some("bandwidth".to_string()), "PLAN|15M/15M should parse as 15/15 Mbps."));
+    }
+
+
+    let collector_bundle_payload = json!({
+        "router": {"name":"RB5009", "pppoe":{"per_plan_node":true, "plan_node_name":"{profile}-{router}"}},
+        "defaults": {"default_pppoe_rate":"10M/10M", "min_rate_percentage":0.5},
+        "pppoe": {
+            "active": [{"name":"selftest", "address":"10.0.0.2", "caller-id":"AA:BB:CC:DD:EE:FF"}],
+            "secrets": [{"name":"selftest", "profile":"15M", "comment":"PLAN|15M/15M", "disabled":"false", "inactive":"false"}],
+            "profiles": [{"name":"15M", "rate-limit":"15M/15M"}]
+        }
+    });
+    let (collector_bundle, collector_bundle_errors, _collector_bundle_warnings) = build_collector_circuit_bundle_payload(&collector_bundle_payload);
+    let collector_bundle_ok = collector_bundle_errors.is_empty() && collector_bundle.get("normalized_count").and_then(Value::as_u64).unwrap_or(0) == 1;
+    checks.push(check("collector_bundle_shadow_builder", collector_bundle_ok, json!({"normalized_count": collector_bundle.get("normalized_count"), "mode": collector_bundle.get("mode")})));
+    if !collector_bundle_ok {
+        errors.push(Diagnostic::error("self_test_collector_bundle_failed", Some("build-collector-circuit-bundle".to_string()), "Self-test collector bundle should build one PPP circuit row in shadow mode."));
     }
 
     let manifest_payload = json!({
@@ -317,6 +337,7 @@ mod tests {
         assert!(ops.contains(&OP_READ_TRANSACTION_JOURNAL));
         assert!(ops.contains(&OP_BUILD_ROLLBACK_FROM_JOURNAL));
         assert!(ops.contains(&OP_EXECUTE_ROLLBACK));
+        assert!(ops.contains(&OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE));
         assert!(ops.contains(&OP_EVALUATE_AUTHORITY_READINESS));
         assert!(ops.contains(&OP_SELF_TEST));
     }

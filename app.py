@@ -41,7 +41,7 @@ from engine.config_schema import migrate_config_schema, validate_schema, CONFIG_
 from engine.release_integrity import compute_release_integrity, repair_config_defaults
 from engine.lifecycle import lifecycle_summary, client_event_timeline
 from engine.lifecycle_report import compute_lifecycle_report, lifecycle_report_to_csv, lifecycle_report_to_markdown
-from engine.rust_core import rust_core_status, rust_core_self_test, rust_read_transaction_journal, rust_build_rollback_from_journal, rust_execute_rollback, rust_authority_readiness, rust_full_backend_readiness, rust_authority_pilot_plan
+from engine.rust_core import rust_build_collector_circuit_bundle, rust_core_status, rust_core_self_test, rust_read_transaction_journal, rust_build_rollback_from_journal, rust_execute_rollback, rust_authority_readiness, rust_full_backend_readiness, rust_authority_pilot_plan
 from applier.atomic_writer import atomic_write_text
 from monitoring.service_monitor import (
     all_service_status, service_status, restart_service as monitor_restart_service,
@@ -2011,6 +2011,15 @@ def api_rust_core_full_backend_readiness():
 def api_rust_core_authority_pilot_plan():
     cfg = load_config(CONFIG_PATH)
     return jsonify(rust_authority_pilot_plan(cfg))
+
+
+
+@app.route("/api/rust-core/collector-bundle-shadow", methods=["POST"])
+@login_required
+def api_rust_core_collector_bundle_shadow():
+    cfg = load_config(CONFIG_PATH)
+    payload = request.get_json(silent=True) or {}
+    return jsonify(rust_build_collector_circuit_bundle(cfg, payload))
 
 @app.route("/api/rust-core/transaction-journal")
 @login_required

@@ -155,3 +155,8 @@ Adds `evaluate-authority-readiness`, a read-only operation for checking Rust aut
 ## v1.7 Full Backend Readiness
 
 New operations: `evaluate-full-rust-readiness` and `build-authority-pilot-plan`. These are read-only helpers for distinguishing hybrid authority-pilot status from a future full Rust backend.
+
+
+## v1.8.0
+
+Adds `build-collector-circuit-bundle`, a shadow operation that normalizes raw PPPoE/DHCP/Hotspot collector snapshots into ShapedDevices-compatible rows.

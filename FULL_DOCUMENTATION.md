@@ -7612,3 +7612,7 @@ This package adds `execute-rollback`, a gated rollback executor. It rehearses ro
 ## Rust Core v1.7 Full Backend Readiness + Authority Pilot Plan
 
 See `docs/RUST_CORE_V17_FULL_BACKEND_READINESS.md`. This release adds read-only full backend readiness and staged authority pilot planning. It explicitly reports that LQoSync is not yet a full Rust backend because Python still owns WebUI, scheduler, RouterOS collection, and default run-cycle orchestration.
+
+## Rust Core v1.8 Collector Bundle Shadow Builder
+
+See `docs/RUST_CORE_V18_COLLECTOR_BUNDLE.md`. This phase starts the collector-processing migration by letting Rust normalize PPPoE, DHCP, and Hotspot snapshots without connecting to RouterOS or writing files.

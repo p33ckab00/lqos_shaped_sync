@@ -524,5 +524,11 @@
         "file": "docs/RUST_CORE_V17_FULL_BACKEND_READINESS.md",
         "anchor": "rust-core-v17-full-backend-readiness--authority-pilot-plan",
         "summary": "Read-only full Rust backend readiness report and staged authority pilot plan for safely moving beyond hybrid mode."
+    },
+    "rust.v18_collector_bundle": {
+        "title": "Rust Core v1.8 Collector Bundle Shadow Builder",
+        "file": "docs/RUST_CORE_V18_COLLECTOR_BUNDLE.md",
+        "anchor": "rust-core-v18-collector-bundle-shadow-builder",
+        "summary": "Shadow Rust collector-bundle builder that converts raw PPPoE/DHCP/Hotspot snapshots into ShapedDevices-compatible circuit rows without replacing Python collectors."
     }
 }

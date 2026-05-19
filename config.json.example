@@ -1,558 +1,560 @@
 {
-  "access_control": {
-    "admin_required_summary": "Config, policy, scheduler, backup restore/delete, service restart, force apply, and setup actions require admin or owner.",
-    "enabled": true,
-    "operator_summary": "Operators can view operational pages and run dry-run style previews, but cannot change production configuration or perform destructive actions.",
-    "owner_required_routes": [
-      "/settings/users",
-      "/updates",
-      "/setup-repair/repair-defaults",
-      "/api/release/integrity"
-    ],
-    "roles": {
-      "admin": "Config, policies, scheduler, backups, operations, and live apply actions except owner-only user/update controls.",
-      "operator": "Monitoring, dry-run/reports, lifecycle, operations inspection, and documentation access.",
-      "owner": "Full control including users, updates, setup/repair, config, policies, backups, and live actions.",
-      "viewer": "Read-only dashboards, devices, reports, docs, and status pages."
-    }
-  },
-  "app": {
-    "auto_apply": true,
-    "backup_before_apply": false,
-    "backup_retention": 10,
-    "dry_run_default": false,
-    "file_drift_policy": "overwrite_with_backup",
-    "name": "LQoSync",
-    "operation_mode": "automatic"
-  },
-  "collector": {
-    "dhcp": {
-      "lease_mode": "permissive",
-      "read_server_metadata": true
-    },
-    "hotspot": {
-      "enhanced_metadata": true
-    },
-    "pppoe": {
-      "read_active": true,
-      "read_profiles": true,
-      "read_secrets": true
-    },
-    "selective_fields": true
-  },
-  "config_schema_version": 12,
-  "config_validation": {
-    "block_save_on_schema_errors": true,
-    "schema_version": 12,
-    "show_config_health": true,
-    "simulate_before_save": true,
-    "validate_before_save": true
-  },
-  "defaults": {
-    "default_dhcp_per_client_mbps": 15,
-    "default_hotspot_per_client_mbps": 10,
-    "default_pppoe_profile": "default",
-    "default_pppoe_rate": "10M/10M",
-    "duplicate_ip_policy": "warn_and_skip",
-    "id_length": 8,
-    "min_rate_percentage": 0.5,
-    "static_comment_value": "static"
-  },
-  "flat_network": false,
-  "insights": {
-    "enabled": true,
-    "fallback_speed_review_limit": 100,
-    "show_anomaly_detection": true,
-    "show_backup_readiness": true,
-    "show_data_quality": true,
-    "show_recommendations": true,
-    "show_warning_explanations": true
-  },
-  "libreqos": {
-    "args": [
-      "--updateonly"
-    ],
-    "cmd": "/opt/libreqos/src/LibreQoS.py",
-    "retry_if_last_apply_failed": true,
-    "run_mode": "direct",
-    "run_only_when_files_changed": true,
-    "sudo": true,
-    "timeout_seconds": 300,
-    "working_dir": "/opt/libreqos/src"
-  },
-  "monitoring": {
-    "enabled": true,
-    "performance_trends_enabled": true,
-    "show_health_nav": true,
-    "slowdown_multiplier": 5,
-    "source_health_enabled": true,
-    "trend_sample_limit": 100
-  },
-  "network_mode": "router_children",
-  "no_parent": false,
-  "notifications": {
-    "enabled": true,
-    "internal_center_enabled": true,
-    "telegram": {
-      "base_url": "",
-      "bot_token": "",
-      "chat_id": "",
-      "dedupe_window_minutes": 60,
-      "enabled": false,
-      "max_items_per_digest": 10,
-      "minimum_interval_seconds": 60,
-      "notify_levels": [
-        "critical",
-        "warning"
-      ],
-      "notify_on_apply_failed": true,
-      "notify_on_confirmation_required": true,
-      "notify_on_performance_slow": true,
-      "notify_on_policy_block": true,
-      "notify_on_source_health_warning": true,
-      "notify_on_update_available": true,
-      "parse_mode": "HTML",
-      "send_digest": true,
-      "send_individual": false,
-      "timeout_seconds": 10
-    }
-  },
-  "package_quality": {
-    "check_config_defaults": true,
-    "check_routes_templates": true,
-    "cleanup_stale_files_script": "/opt/lqosync/scripts/cleanup_stale_files.py",
-    "config_migration_check_script": "/opt/lqosync/scripts/config_migration_check.py",
-    "doctor_script": "/opt/lqosync/scripts/lqosync-doctor.sh",
-    "enabled": true,
-    "policy_path_audit_script": "/opt/lqosync/scripts/policy_path_audit.py",
-    "policy_preset_audit_script": "/opt/lqosync/scripts/policy_preset_audit.py",
-    "regression_check_script": "/opt/lqosync/scripts/regression_check.py",
-    "release_check_script": "/opt/lqosync/scripts/release_check.py",
-    "show_in_setup_repair": true,
-    "stable_release_check_script": "/opt/lqosync/scripts/stable_release_check.py",
-    "ui_wiring_audit_script": "/opt/lqosync/scripts/ui_wiring_audit.py"
-  },
-  "paths": {
-    "audit_log": "/opt/lqosync/logs/audit.jsonl",
-    "backup_dir": "/opt/lqosync/backups",
-    "collector_cache": "/opt/lqosync/state/collector_cache.json",
-    "libreqos_apply_log_dir": "/opt/lqosync/logs/libreqos_apply",
-    "lock_file": "/opt/lqosync/state/lqosync.lock",
-    "log_file": "/opt/lqosync/logs/lqosync.log",
-    "network_json": "/opt/libreqos/src/network.json",
-    "policy_state": "/opt/lqosync/state/policy_state.json",
-    "runtime_state": "/opt/lqosync/state/runtime_state.json",
-    "shaped_devices_csv": "/opt/libreqos/src/ShapedDevices.csv",
-    "transaction_journal": "/opt/lqosync/logs/transaction_journal.jsonl"
-  },
-  "policies": {
-    "anomaly_detection": {
-      "compare_with_last_successful_run": true,
-      "enabled": true,
-      "warn_if_apply_duration_increases_multiplier": 5,
-      "warn_if_client_count_drops_percent": 30,
-      "warn_if_sync_duration_increases_multiplier": 5
-    },
-    "apply_guard": {
-      "allow_auto_apply_on_low_risk": true,
-      "block_apply_on_collector_failure": true,
-      "block_apply_on_duplicate_ip": true,
-      "block_apply_on_invalid_speed": true,
-      "block_apply_on_missing_parent": true,
-      "require_manual_confirm_on_medium_risk": true
-    },
-    "auto_apply_policy": {
-      "allow_critical_risk": false,
-      "allow_high_risk": false,
-      "allow_low_risk": true,
-      "allow_medium_risk": false,
-      "enabled": true,
-      "when_blocked": "keep_pending_manual_apply"
-    },
-    "backup_guard": {
-      "minimum_backup_retention": 10,
-      "require_backup_before_apply": false,
-      "warn_if_backup_disabled_while_auto_apply_enabled": false
-    },
-    "cleanup": {
-      "allow_immediate_cleanup": true,
-      "apply_confirmed_cleanup": "next_run",
-      "collector_failed_default_action": "preserve_rows",
-      "confirmation_expires_hours": 24,
-      "enabled": true,
-      "global_default_action": "require_confirm_next_run",
-      "normal_inactive_default_action": "cleanup_next_run",
-      "source_disabled_default_action": "require_confirm_next_run",
-      "source_zero_result_default_action": "block_cleanup"
-    },
-    "cleanup_sources": {
-      "dhcp": {
-        "collector_failed_action": "preserve_rows",
+    "access_control": {
+        "admin_required_summary": "Config, policy, scheduler, backup restore/delete, service restart, force apply, and setup actions require admin or owner.",
         "enabled": true,
-        "mass_removal_action": "require_confirm_next_run",
-        "normal_inactive_action": "cleanup_immediate",
-        "respect_percentage_guards": false,
-        "source_disabled_action": "require_confirm_next_run",
-        "zero_result_action": "block_cleanup"
-      },
-      "hotspot": {
-        "collector_failed_action": "preserve_rows",
-        "enabled": true,
-        "mass_removal_action": "require_confirm_next_run",
-        "normal_inactive_action": "cleanup_immediate",
-        "respect_percentage_guards": false,
-        "source_disabled_action": "cleanup_next_run",
-        "zero_result_action": "block_cleanup"
-      },
-      "pppoe": {
-        "collector_failed_action": "preserve_rows",
-        "enabled": true,
-        "mass_removal_action": "require_confirm_next_run",
-        "normal_inactive_action": "cleanup_next_run",
-        "respect_percentage_guards": true,
-        "source_disabled_action": "require_confirm_next_run",
-        "zero_result_action": "block_cleanup"
-      },
-      "static": {
-        "collector_failed_action": "preserve_rows",
-        "enabled": true,
-        "mass_removal_action": "preserve_rows",
-        "normal_inactive_action": "preserve_rows",
-        "respect_percentage_guards": true,
-        "source_disabled_action": "preserve_rows",
-        "zero_result_action": "preserve_rows"
-      }
+        "operator_summary": "Operators can view operational pages and run dry-run style previews, but cannot change production configuration or perform destructive actions.",
+        "owner_required_routes": [
+            "/settings/users",
+            "/updates",
+            "/setup-repair/repair-defaults",
+            "/api/release/integrity"
+        ],
+        "roles": {
+            "admin": "Config, policies, scheduler, backups, operations, and live apply actions except owner-only user/update controls.",
+            "operator": "Monitoring, dry-run/reports, lifecycle, operations inspection, and documentation access.",
+            "owner": "Full control including users, updates, setup/repair, config, policies, backups, and live actions.",
+            "viewer": "Read-only dashboards, devices, reports, docs, and status pages."
+        }
     },
-    "collector_guard": {
-      "block_cleanup_if_enabled_source_returns_zero": true,
-      "block_cleanup_if_source_failed": true,
-      "block_cleanup_if_source_returns_zero_after_previous_success": true,
-      "warn_if_router_api_slow_ms": 2000,
-      "zero_source_drop_threshold_percent": 80
+    "app": {
+        "auto_apply": true,
+        "backup_before_apply": false,
+        "backup_retention": 10,
+        "dry_run_default": false,
+        "file_drift_policy": "overwrite_with_backup",
+        "name": "LQoSync",
+        "operation_mode": "automatic"
     },
-    "data_quality": {
-      "block_if_fallback_speed_threshold_percent": 50,
-      "fallback_speed_warning_threshold_percent": 10,
-      "warn_on_fallback_speed": true,
-      "warn_on_missing_ip": true,
-      "warn_on_missing_mac": true
-    },
-    "decision_trace": {
-      "enabled": true,
-      "max_items": 200
-    },
-    "mode": "balanced",
-    "node_cleanup_guard": {
-      "action": "require_confirm_next_run",
-      "enabled": true,
-      "min_node_size": 10,
-      "min_removed_count": 3,
-      "threshold_percent": 30
-    },
-    "policy_overrides": {
-      "dhcp_servers": {},
-      "hotspot_servers": {},
-      "pppoe_profiles": {}
-    },
-    "recommendations": {
-      "enabled": true,
-      "show_operator_next_action": true,
-      "show_why_fix_messages": true
-    },
-    "small_node_guard": {
-      "enabled": true,
-      "full_removal_action": "require_confirm_next_run",
-      "max_node_size": 5,
-      "partial_removal_action": "cleanup_next_run"
-    },
-    "source_cleanup_guard": {
-      "action": "require_confirm_next_run",
-      "enabled": true,
-      "min_removed_count": 5,
-      "threshold_percent": 30
-    },
-    "stale_lifecycle": {
-      "enabled": true,
-      "sources": {
+    "collector": {
         "dhcp": {
-          "grace_enabled": false,
-          "grace_runs": 0,
-          "identity": "server_mac",
-          "return_cancels_cleanup": false
+            "lease_mode": "permissive",
+            "read_server_metadata": true
         },
         "hotspot": {
-          "grace_enabled": false,
-          "grace_runs": 0,
-          "identity": "username_or_mac",
-          "return_cancels_cleanup": false
+            "enhanced_metadata": true
         },
         "pppoe": {
-          "grace_enabled": false,
-          "grace_runs": 1,
-          "identity": "username",
-          "return_cancels_cleanup": true
+            "read_active": true,
+            "read_profiles": true,
+            "read_secrets": true
         },
-        "static": {
-          "grace_enabled": false,
-          "grace_runs": 0,
-          "identity": "manual",
-          "return_cancels_cleanup": false
-        }
-      }
+        "selective_fields": true
     },
-    "topology_guard": {
-      "block_duplicate_node_names": true,
-      "block_missing_parent_nodes": true,
-      "max_recommended_depth": 4,
-      "warn_on_deep_hierarchy_depth": true,
-      "warn_on_virtual_node_promotion": true
-    }
-  },
-  "preflight": {
-    "duplicate_ip_policy": "warn_and_skip",
-    "enabled": true,
-    "invalid_bandwidth_policy": "block",
-    "missing_parent_policy": "block"
-  },
-  "preserve_network_config": false,
-  "production_readiness": {
-    "api_enabled": true,
-    "block_scheduler_when_not_ready": false,
-    "checks": {
-      "apply_health": true,
-      "backup_before_apply": true,
-      "config_validity": true,
-      "dashboard_health": true,
-      "dry_run": true,
-      "libreqos_paths": true,
-      "policy_conflicts": true,
-      "router_sources": true,
-      "service_health": true,
-      "setup_wizard": true
+    "config_schema_version": 12,
+    "config_validation": {
+        "block_save_on_schema_errors": true,
+        "schema_version": 12,
+        "show_config_health": true,
+        "simulate_before_save": true,
+        "validate_before_save": true
     },
-    "enabled": true,
-    "excellent_score": 95,
-    "review_score": 70,
-    "show_on_dashboard": true,
-    "warning_score": 85
-  },
-  "routers": [
-    {
-      "address": "10.200.1.2",
-      "dhcp": {
+    "defaults": {
+        "default_dhcp_per_client_mbps": 15,
+        "default_hotspot_per_client_mbps": 10,
+        "default_pppoe_profile": "default",
+        "default_pppoe_rate": "10M/10M",
+        "duplicate_ip_policy": "warn_and_skip",
+        "id_length": 8,
+        "min_rate_percentage": 0.5,
+        "static_comment_value": "static"
+    },
+    "flat_network": false,
+    "insights": {
         "enabled": true,
-        "servers": [
-          {
-            "default_plan_down_mbps": 15,
-            "default_plan_up_mbps": 15,
-            "download_factor": 0.3,
-            "enabled": true,
-            "mode": "per_site",
-            "name": "LAN",
-            "node_name": "DHCP-{server}-{router}",
-            "node_type": "site",
-            "plan_source": "config_default",
-            "speed_comment": "",
-            "upload_factor": 0.3
-          },
-          {
-            "default_plan_down_mbps": 15,
-            "default_plan_up_mbps": 15,
-            "download_factor": 1.0,
-            "download_limit_mbps": 15,
-            "enabled": true,
-            "mode": "per_site",
-            "name": "LibreQoEMgt",
-            "node_name": "DHCP-{server}-{router}",
-            "node_type": "site",
-            "speed_comment": "",
-            "upload_factor": 1.0,
-            "upload_limit_mbps": 15
-          },
-          {
-            "default_plan_down_mbps": 20,
-            "default_plan_up_mbps": 20,
-            "download_factor": 1.0,
-            "download_limit_mbps": 20,
-            "enabled": true,
-            "mode": "per_site",
-            "name": "Wifi5Soft",
-            "node_name": "DHCP-{server}-{router}",
-            "node_type": "site",
-            "speed_comment": "",
-            "upload_factor": 1.0,
-            "upload_limit_mbps": 20
-          }
-        ]
-      },
-      "enabled": true,
-      "hotspot": {
-        "download_factor": 1.0,
-        "download_limit_mbps": 10,
-        "enabled": false,
-        "enhanced_metadata": true,
-        "include_mac": true,
-        "node_name": "HS-{router}",
-        "node_type": "site",
-        "upload_factor": 1.0,
-        "upload_limit_mbps": 10
-      },
-      "name": "RB5k9-Distro",
-      "parent_node": "",
-      "password": "libreqos",
-      "port": 8728,
-      "pppoe": {
-        "enabled": true,
-        "factor_rules": [
-          {
-            "download_factor": 0.31,
-            "max_plan_mbps": 15,
-            "upload_factor": 0.31
-          },
-          {
-            "download_factor": 1.0,
-            "max_plan_mbps": 50,
-            "upload_factor": 1.0
-          },
-          {
-            "download_factor": 1.0,
-            "max_plan_mbps": 9999,
-            "upload_factor": 1.0
-          }
+        "fallback_speed_review_limit": 100,
+        "show_anomaly_detection": true,
+        "show_backup_readiness": true,
+        "show_data_quality": true,
+        "show_recommendations": true,
+        "show_warning_explanations": true
+    },
+    "libreqos": {
+        "args": [
+            "--updateonly"
         ],
-        "flat_aggregate_factor": 0.3,
-        "flat_node_name": "PPP-{router}",
-        "node_type": "plan",
-        "per_plan_node": true,
-        "plan_node_name": "{profile}-{router}"
-      },
-      "root_download_mbps": 115,
-      "root_type": "site",
-      "root_upload_mbps": 115,
-      "root_virtual": false,
-      "username": "libreqos"
+        "cmd": "/opt/libreqos/src/LibreQoS.py",
+        "retry_if_last_apply_failed": true,
+        "run_mode": "direct",
+        "run_only_when_files_changed": true,
+        "sudo": true,
+        "timeout_seconds": 300,
+        "working_dir": "/opt/libreqos/src"
+    },
+    "monitoring": {
+        "enabled": true,
+        "performance_trends_enabled": true,
+        "show_health_nav": true,
+        "slowdown_multiplier": 5,
+        "source_health_enabled": true,
+        "trend_sample_limit": 100
+    },
+    "network_mode": "router_children",
+    "no_parent": false,
+    "notifications": {
+        "enabled": true,
+        "internal_center_enabled": true,
+        "telegram": {
+            "base_url": "",
+            "bot_token": "",
+            "chat_id": "",
+            "dedupe_window_minutes": 60,
+            "enabled": false,
+            "max_items_per_digest": 10,
+            "minimum_interval_seconds": 60,
+            "notify_levels": [
+                "critical",
+                "warning"
+            ],
+            "notify_on_apply_failed": true,
+            "notify_on_confirmation_required": true,
+            "notify_on_performance_slow": true,
+            "notify_on_policy_block": true,
+            "notify_on_source_health_warning": true,
+            "notify_on_update_available": true,
+            "parse_mode": "HTML",
+            "send_digest": true,
+            "send_individual": false,
+            "timeout_seconds": 10
+        }
+    },
+    "package_quality": {
+        "check_config_defaults": true,
+        "check_routes_templates": true,
+        "cleanup_stale_files_script": "/opt/lqosync/scripts/cleanup_stale_files.py",
+        "config_migration_check_script": "/opt/lqosync/scripts/config_migration_check.py",
+        "doctor_script": "/opt/lqosync/scripts/lqosync-doctor.sh",
+        "enabled": true,
+        "policy_path_audit_script": "/opt/lqosync/scripts/policy_path_audit.py",
+        "policy_preset_audit_script": "/opt/lqosync/scripts/policy_preset_audit.py",
+        "regression_check_script": "/opt/lqosync/scripts/regression_check.py",
+        "release_check_script": "/opt/lqosync/scripts/release_check.py",
+        "show_in_setup_repair": true,
+        "stable_release_check_script": "/opt/lqosync/scripts/stable_release_check.py",
+        "ui_wiring_audit_script": "/opt/lqosync/scripts/ui_wiring_audit.py"
+    },
+    "paths": {
+        "audit_log": "/opt/lqosync/logs/audit.jsonl",
+        "backup_dir": "/opt/lqosync/backups",
+        "collector_cache": "/opt/lqosync/state/collector_cache.json",
+        "libreqos_apply_log_dir": "/opt/lqosync/logs/libreqos_apply",
+        "lock_file": "/opt/lqosync/state/lqosync.lock",
+        "log_file": "/opt/lqosync/logs/lqosync.log",
+        "network_json": "/opt/libreqos/src/network.json",
+        "policy_state": "/opt/lqosync/state/policy_state.json",
+        "runtime_state": "/opt/lqosync/state/runtime_state.json",
+        "shaped_devices_csv": "/opt/libreqos/src/ShapedDevices.csv",
+        "transaction_journal": "/opt/lqosync/logs/transaction_journal.jsonl"
+    },
+    "policies": {
+        "anomaly_detection": {
+            "compare_with_last_successful_run": true,
+            "enabled": true,
+            "warn_if_apply_duration_increases_multiplier": 5,
+            "warn_if_client_count_drops_percent": 30,
+            "warn_if_sync_duration_increases_multiplier": 5
+        },
+        "apply_guard": {
+            "allow_auto_apply_on_low_risk": true,
+            "block_apply_on_collector_failure": true,
+            "block_apply_on_duplicate_ip": true,
+            "block_apply_on_invalid_speed": true,
+            "block_apply_on_missing_parent": true,
+            "require_manual_confirm_on_medium_risk": true
+        },
+        "auto_apply_policy": {
+            "allow_critical_risk": false,
+            "allow_high_risk": false,
+            "allow_low_risk": true,
+            "allow_medium_risk": false,
+            "enabled": true,
+            "when_blocked": "keep_pending_manual_apply"
+        },
+        "backup_guard": {
+            "minimum_backup_retention": 10,
+            "require_backup_before_apply": false,
+            "warn_if_backup_disabled_while_auto_apply_enabled": false
+        },
+        "cleanup": {
+            "allow_immediate_cleanup": true,
+            "apply_confirmed_cleanup": "next_run",
+            "collector_failed_default_action": "preserve_rows",
+            "confirmation_expires_hours": 24,
+            "enabled": true,
+            "global_default_action": "require_confirm_next_run",
+            "normal_inactive_default_action": "cleanup_next_run",
+            "source_disabled_default_action": "require_confirm_next_run",
+            "source_zero_result_default_action": "block_cleanup"
+        },
+        "cleanup_sources": {
+            "dhcp": {
+                "collector_failed_action": "preserve_rows",
+                "enabled": true,
+                "mass_removal_action": "require_confirm_next_run",
+                "normal_inactive_action": "cleanup_immediate",
+                "respect_percentage_guards": false,
+                "source_disabled_action": "require_confirm_next_run",
+                "zero_result_action": "block_cleanup"
+            },
+            "hotspot": {
+                "collector_failed_action": "preserve_rows",
+                "enabled": true,
+                "mass_removal_action": "require_confirm_next_run",
+                "normal_inactive_action": "cleanup_immediate",
+                "respect_percentage_guards": false,
+                "source_disabled_action": "cleanup_next_run",
+                "zero_result_action": "block_cleanup"
+            },
+            "pppoe": {
+                "collector_failed_action": "preserve_rows",
+                "enabled": true,
+                "mass_removal_action": "require_confirm_next_run",
+                "normal_inactive_action": "cleanup_next_run",
+                "respect_percentage_guards": true,
+                "source_disabled_action": "require_confirm_next_run",
+                "zero_result_action": "block_cleanup"
+            },
+            "static": {
+                "collector_failed_action": "preserve_rows",
+                "enabled": true,
+                "mass_removal_action": "preserve_rows",
+                "normal_inactive_action": "preserve_rows",
+                "respect_percentage_guards": true,
+                "source_disabled_action": "preserve_rows",
+                "zero_result_action": "preserve_rows"
+            }
+        },
+        "collector_guard": {
+            "block_cleanup_if_enabled_source_returns_zero": true,
+            "block_cleanup_if_source_failed": true,
+            "block_cleanup_if_source_returns_zero_after_previous_success": true,
+            "warn_if_router_api_slow_ms": 2000,
+            "zero_source_drop_threshold_percent": 80
+        },
+        "data_quality": {
+            "block_if_fallback_speed_threshold_percent": 50,
+            "fallback_speed_warning_threshold_percent": 10,
+            "warn_on_fallback_speed": true,
+            "warn_on_missing_ip": true,
+            "warn_on_missing_mac": true
+        },
+        "decision_trace": {
+            "enabled": true,
+            "max_items": 200
+        },
+        "mode": "balanced",
+        "node_cleanup_guard": {
+            "action": "require_confirm_next_run",
+            "enabled": true,
+            "min_node_size": 10,
+            "min_removed_count": 3,
+            "threshold_percent": 30
+        },
+        "policy_overrides": {
+            "dhcp_servers": {},
+            "hotspot_servers": {},
+            "pppoe_profiles": {}
+        },
+        "recommendations": {
+            "enabled": true,
+            "show_operator_next_action": true,
+            "show_why_fix_messages": true
+        },
+        "small_node_guard": {
+            "enabled": true,
+            "full_removal_action": "require_confirm_next_run",
+            "max_node_size": 5,
+            "partial_removal_action": "cleanup_next_run"
+        },
+        "source_cleanup_guard": {
+            "action": "require_confirm_next_run",
+            "enabled": true,
+            "min_removed_count": 5,
+            "threshold_percent": 30
+        },
+        "stale_lifecycle": {
+            "enabled": true,
+            "sources": {
+                "dhcp": {
+                    "grace_enabled": false,
+                    "grace_runs": 0,
+                    "identity": "server_mac",
+                    "return_cancels_cleanup": false
+                },
+                "hotspot": {
+                    "grace_enabled": false,
+                    "grace_runs": 0,
+                    "identity": "username_or_mac",
+                    "return_cancels_cleanup": false
+                },
+                "pppoe": {
+                    "grace_enabled": false,
+                    "grace_runs": 1,
+                    "identity": "username",
+                    "return_cancels_cleanup": true
+                },
+                "static": {
+                    "grace_enabled": false,
+                    "grace_runs": 0,
+                    "identity": "manual",
+                    "return_cancels_cleanup": false
+                }
+            }
+        },
+        "topology_guard": {
+            "block_duplicate_node_names": true,
+            "block_missing_parent_nodes": true,
+            "max_recommended_depth": 4,
+            "warn_on_deep_hierarchy_depth": true,
+            "warn_on_virtual_node_promotion": true
+        }
+    },
+    "preflight": {
+        "duplicate_ip_policy": "warn_and_skip",
+        "enabled": true,
+        "invalid_bandwidth_policy": "block",
+        "missing_parent_policy": "block"
+    },
+    "preserve_network_config": false,
+    "production_readiness": {
+        "api_enabled": true,
+        "block_scheduler_when_not_ready": false,
+        "checks": {
+            "apply_health": true,
+            "backup_before_apply": true,
+            "config_validity": true,
+            "dashboard_health": true,
+            "dry_run": true,
+            "libreqos_paths": true,
+            "policy_conflicts": true,
+            "router_sources": true,
+            "service_health": true,
+            "setup_wizard": true
+        },
+        "enabled": true,
+        "excellent_score": 95,
+        "review_score": 70,
+        "show_on_dashboard": true,
+        "warning_score": 85
+    },
+    "routers": [
+        {
+            "address": "10.200.1.2",
+            "dhcp": {
+                "enabled": true,
+                "servers": [
+                    {
+                        "default_plan_down_mbps": 15,
+                        "default_plan_up_mbps": 15,
+                        "download_factor": 0.3,
+                        "enabled": true,
+                        "mode": "per_site",
+                        "name": "LAN",
+                        "node_name": "DHCP-{server}-{router}",
+                        "node_type": "site",
+                        "plan_source": "config_default",
+                        "speed_comment": "",
+                        "upload_factor": 0.3
+                    },
+                    {
+                        "default_plan_down_mbps": 15,
+                        "default_plan_up_mbps": 15,
+                        "download_factor": 1.0,
+                        "download_limit_mbps": 15,
+                        "enabled": true,
+                        "mode": "per_site",
+                        "name": "LibreQoEMgt",
+                        "node_name": "DHCP-{server}-{router}",
+                        "node_type": "site",
+                        "speed_comment": "",
+                        "upload_factor": 1.0,
+                        "upload_limit_mbps": 15
+                    },
+                    {
+                        "default_plan_down_mbps": 20,
+                        "default_plan_up_mbps": 20,
+                        "download_factor": 1.0,
+                        "download_limit_mbps": 20,
+                        "enabled": true,
+                        "mode": "per_site",
+                        "name": "Wifi5Soft",
+                        "node_name": "DHCP-{server}-{router}",
+                        "node_type": "site",
+                        "speed_comment": "",
+                        "upload_factor": 1.0,
+                        "upload_limit_mbps": 20
+                    }
+                ]
+            },
+            "enabled": true,
+            "hotspot": {
+                "download_factor": 1.0,
+                "download_limit_mbps": 10,
+                "enabled": false,
+                "enhanced_metadata": true,
+                "include_mac": true,
+                "node_name": "HS-{router}",
+                "node_type": "site",
+                "upload_factor": 1.0,
+                "upload_limit_mbps": 10
+            },
+            "name": "RB5k9-Distro",
+            "parent_node": "",
+            "password": "libreqos",
+            "port": 8728,
+            "pppoe": {
+                "enabled": true,
+                "factor_rules": [
+                    {
+                        "download_factor": 0.31,
+                        "max_plan_mbps": 15,
+                        "upload_factor": 0.31
+                    },
+                    {
+                        "download_factor": 1.0,
+                        "max_plan_mbps": 50,
+                        "upload_factor": 1.0
+                    },
+                    {
+                        "download_factor": 1.0,
+                        "max_plan_mbps": 9999,
+                        "upload_factor": 1.0
+                    }
+                ],
+                "flat_aggregate_factor": 0.3,
+                "flat_node_name": "PPP-{router}",
+                "node_type": "plan",
+                "per_plan_node": true,
+                "plan_node_name": "{profile}-{router}"
+            },
+            "root_download_mbps": 115,
+            "root_type": "site",
+            "root_upload_mbps": 115,
+            "root_virtual": false,
+            "username": "libreqos"
+        }
+    ],
+    "scheduler": {
+        "active_interval_seconds": 30,
+        "apply_cooldown_seconds": 20,
+        "enabled": false,
+        "error_retry_interval_seconds": 30,
+        "idle_interval_seconds": 120,
+        "max_instances": 1
+    },
+    "services": {
+        "journal_lines_default": 100,
+        "legacy_optional_units": [
+            "lqos_node_manager"
+        ],
+        "restart_groups": {
+            "libreqos_core": [
+                "lqosd",
+                "lqos_scheduler"
+            ]
+        },
+        "show_legacy_optional_not_installed": false,
+        "unit_metadata": {
+            "lqos_node_manager": {
+                "label": "Legacy Web UI service",
+                "note": "Older LibreQoS installs only. Newer LibreQoS usually exposes Web UI through lqosd, so this unit may be not installed.",
+                "role": "legacy_optional"
+            },
+            "lqos_scheduler": {
+                "label": "LibreQoS scheduler",
+                "note": "Runs LibreQoS scheduler/integration refresh jobs.",
+                "role": "required"
+            },
+            "lqosync": {
+                "label": "LQoSync service",
+                "note": "LQoSync dashboard, scheduler, and MikroTik-to-LibreQoS sync engine.",
+                "role": "required"
+            },
+            "lqosd": {
+                "label": "LibreQoS daemon",
+                "note": "Main LibreQoS daemon; newer LibreQoS installs may also serve the Web UI on port 9123.",
+                "role": "required"
+            }
+        },
+        "units": [
+            "lqosd",
+            "lqos_scheduler",
+            "lqosync"
+        ]
+    },
+    "setup_repair": {
+        "allow_policy_preset_apply": true,
+        "doctor_command": "sudo CONFIG_PATH=/opt/libreqos/src/config.json python3 /opt/lqosync/scripts/doctor.py",
+        "enabled": true,
+        "read_only_by_default": true,
+        "show_guided_setup": true,
+        "show_repair_commands": true
+    },
+    "setup_wizard": {
+        "allow_force_scheduler_enable": false,
+        "enabled": true,
+        "first_run_completed": false,
+        "recommended_start_page": "/setup-wizard",
+        "redirect_after_login_until_complete": true,
+        "scheduler_enable_requires_dry_run": true,
+        "scheduler_enable_requires_no_failed_checks": true,
+        "scheduler_enable_requires_router_and_source": true,
+        "show_dashboard_banner_until_complete": true
+    },
+    "stable_release": {
+        "allow_new_sidebar_modules": false,
+        "compatibility_routes": [
+            "/health",
+            "/services",
+            "/logs",
+            "/policy",
+            "/notifications",
+            "/routers"
+        ],
+        "feature_freeze": true,
+        "require_config_migration_check": true,
+        "require_policy_path_audit": true,
+        "require_regression_check": true,
+        "require_release_check": true,
+        "require_stable_release_check": true,
+        "target": "v2.70 Stable Release Candidate"
+    },
+    "topology": {
+        "allow_custom_edit": true,
+        "allow_deep_hierarchy": true,
+        "show_virtual_nodes": true,
+        "validate_before_save": true
+    },
+    "ui": {
+        "default_theme": "light",
+        "privacy_mode_available": true,
+        "refresh_seconds": 5,
+        "show_lifecycle_center": true,
+        "show_raw_json_editor": true
+    },
+    "rust_core": {
+        "enabled": true,
+        "binary_path": "",
+        "timeout_seconds": 10,
+        "enforce_validation": false,
+        "prefer_daemon": false,
+        "unix_socket": "/run/lqosync-core.sock",
+        "transaction_authority": "preview",
+        "execute_apply_manifest": false,
+        "allow_rust_file_writes": false,
+        "allow_rust_libreqos_apply": false,
+        "enforce_sync_plan": false,
+        "fail_closed_when_enforced": true,
+        "authority_mode": "shadow",
+        "self_test_on_status": false,
+        "append_transaction_journal": false,
+        "allow_transaction_journal_writes": false,
+        "include_rehearsal_journal_entries": false,
+        "allow_dry_run_journal_entries": false,
+        "execute_rollback": false,
+        "allow_rust_rollback_file_writes": false,
+        "rollback_authority": "preview",
+        "require_authority_readiness": false,
+        "collector_bundle_shadow_enabled": true,
+        "collector_bundle_authority": "shadow"
     }
-  ],
-  "scheduler": {
-    "active_interval_seconds": 30,
-    "apply_cooldown_seconds": 20,
-    "enabled": false,
-    "error_retry_interval_seconds": 30,
-    "idle_interval_seconds": 120,
-    "max_instances": 1
-  },
-  "services": {
-    "journal_lines_default": 100,
-    "legacy_optional_units": [
-      "lqos_node_manager"
-    ],
-    "restart_groups": {
-      "libreqos_core": [
-        "lqosd",
-        "lqos_scheduler"
-      ]
-    },
-    "show_legacy_optional_not_installed": false,
-    "unit_metadata": {
-      "lqos_node_manager": {
-        "label": "Legacy Web UI service",
-        "note": "Older LibreQoS installs only. Newer LibreQoS usually exposes Web UI through lqosd, so this unit may be not installed.",
-        "role": "legacy_optional"
-      },
-      "lqos_scheduler": {
-        "label": "LibreQoS scheduler",
-        "note": "Runs LibreQoS scheduler/integration refresh jobs.",
-        "role": "required"
-      },
-      "lqosync": {
-        "label": "LQoSync service",
-        "note": "LQoSync dashboard, scheduler, and MikroTik-to-LibreQoS sync engine.",
-        "role": "required"
-      },
-      "lqosd": {
-        "label": "LibreQoS daemon",
-        "note": "Main LibreQoS daemon; newer LibreQoS installs may also serve the Web UI on port 9123.",
-        "role": "required"
-      }
-    },
-    "units": [
-      "lqosd",
-      "lqos_scheduler",
-      "lqosync"
-    ]
-  },
-  "setup_repair": {
-    "allow_policy_preset_apply": true,
-    "doctor_command": "sudo CONFIG_PATH=/opt/libreqos/src/config.json python3 /opt/lqosync/scripts/doctor.py",
-    "enabled": true,
-    "read_only_by_default": true,
-    "show_guided_setup": true,
-    "show_repair_commands": true
-  },
-  "setup_wizard": {
-    "allow_force_scheduler_enable": false,
-    "enabled": true,
-    "first_run_completed": false,
-    "recommended_start_page": "/setup-wizard",
-    "redirect_after_login_until_complete": true,
-    "scheduler_enable_requires_dry_run": true,
-    "scheduler_enable_requires_no_failed_checks": true,
-    "scheduler_enable_requires_router_and_source": true,
-    "show_dashboard_banner_until_complete": true
-  },
-  "stable_release": {
-    "allow_new_sidebar_modules": false,
-    "compatibility_routes": [
-      "/health",
-      "/services",
-      "/logs",
-      "/policy",
-      "/notifications",
-      "/routers"
-    ],
-    "feature_freeze": true,
-    "require_config_migration_check": true,
-    "require_policy_path_audit": true,
-    "require_regression_check": true,
-    "require_release_check": true,
-    "require_stable_release_check": true,
-    "target": "v2.70 Stable Release Candidate"
-  },
-  "topology": {
-    "allow_custom_edit": true,
-    "allow_deep_hierarchy": true,
-    "show_virtual_nodes": true,
-    "validate_before_save": true
-  },
-  "ui": {
-    "default_theme": "light",
-    "privacy_mode_available": true,
-    "refresh_seconds": 5,
-    "show_lifecycle_center": true,
-    "show_raw_json_editor": true
-  },
-  "rust_core": {
-    "enabled": true,
-    "binary_path": "",
-    "timeout_seconds": 10,
-    "enforce_validation": false,
-    "prefer_daemon": false,
-    "unix_socket": "/run/lqosync-core.sock",
-    "transaction_authority": "preview",
-    "execute_apply_manifest": false,
-    "allow_rust_file_writes": false,
-    "allow_rust_libreqos_apply": false,
-    "enforce_sync_plan": false,
-    "fail_closed_when_enforced": true,
-    "authority_mode": "shadow",
-    "self_test_on_status": false,
-    "append_transaction_journal": false,
-    "allow_transaction_journal_writes": false,
-    "include_rehearsal_journal_entries": false,
-    "allow_dry_run_journal_entries": false,
-    "execute_rollback": false,
-    "allow_rust_rollback_file_writes": false,
-    "rollback_authority": "preview",
-    "require_authority_readiness": false
-  }
 }

@@ -455,3 +455,13 @@ git commit -m "rust(core): add full backend readiness evaluator" \
   -m "Add evaluate-full-rust-readiness and build-authority-pilot-plan operations, read-only WebUI APIs, self-test coverage, and documentation for staged Rust authority migration without claiming full Rust backend status."
 git push -u origin lqosync-in-rust
 ```
+
+
+## v2.88.0-rc1 commit
+
+```bash
+git add .
+git commit -m "rust(core): add collector bundle shadow builder" \
+  -m "Add build-collector-circuit-bundle, self-test coverage, API wrapper, and documentation for shadow Rust normalization of raw collector snapshots."
+git push -u origin lqosync-in-rust
+```

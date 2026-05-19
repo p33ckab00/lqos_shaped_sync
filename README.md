@@ -350,3 +350,7 @@ New read-only APIs:
 /api/rust-core/full-backend-readiness
 /api/rust-core/authority-pilot-plan
 ```
+
+## Rust Core v1.8 Collector Bundle Shadow Builder
+
+This package adds `build-collector-circuit-bundle`, a non-authoritative Rust operation that accepts raw Python collector snapshots and returns ShapedDevices-compatible rows in shadow mode. Python RouterOS collection remains authoritative.

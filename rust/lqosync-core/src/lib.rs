@@ -10,6 +10,7 @@ pub mod apply_manifest;
 pub mod apply_transaction;
 pub mod bandwidth;
 pub mod circuits;
+pub mod collector_bundle;
 pub mod network;
 pub mod protocol;
 pub mod shaped_devices;

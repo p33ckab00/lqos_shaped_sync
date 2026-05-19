@@ -98,7 +98,7 @@ Keep `lqosync` only when it refers to an existing compatibility name:
 - journald unit name
 - existing log file name
 - existing Docker container/image name
-- legacy migration examples
+- previous-name migration examples
 
 ## Safe push flow after documentation changes
 

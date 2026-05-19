@@ -9,7 +9,6 @@ REPO_URL="${LQOSYNC_REPO_URL:-https://github.com/p33ckab00/LQoSync.git}"
 BRANCH="${LQOSYNC_BRANCH:-main}"
 INSTALL_DIR="${LQOSYNC_INSTALL_DIR:-/opt/lqosync}"
 SERVICE_NAME="${LQOSYNC_SERVICE_NAME:-lqosync}"
-OLD_SERVICE_NAME="${LQOSYNC_OLD_SERVICE_NAME:-lqos_shaped_sync}"
 INIT_POLICY="${LQOSYNC_INIT_POLICY:-preserve_existing}"
 LIBREQOS_SRC="${LIBREQOS_SRC:-/opt/libreqos/src}"
 TS="$(date +%Y%m%d_%H%M%S)"
@@ -77,23 +76,6 @@ restore_operator_files() {
 }
 
 
-migrate_legacy_runtime_names() {
-  if systemctl list-unit-files 2>/dev/null | grep -q "^${OLD_SERVICE_NAME}.service"; then
-    log "Disabling previous runtime service: ${OLD_SERVICE_NAME}"
-    systemctl stop "$OLD_SERVICE_NAME" 2>/dev/null || true
-    systemctl disable "$OLD_SERVICE_NAME" 2>/dev/null || true
-    cp -a "/etc/systemd/system/${OLD_SERVICE_NAME}.service" "$BACKUP_DIR/${OLD_SERVICE_NAME}.service" 2>/dev/null || true
-    rm -f "/etc/systemd/system/${OLD_SERVICE_NAME}.service"
-    systemctl daemon-reload || true
-  fi
-  if [ -f "/etc/sudoers.d/${OLD_SERVICE_NAME}" ]; then
-    cp -a "/etc/sudoers.d/${OLD_SERVICE_NAME}" "$BACKUP_DIR/sudoers.${OLD_SERVICE_NAME}" 2>/dev/null || true
-    rm -f "/etc/sudoers.d/${OLD_SERVICE_NAME}"
-  fi
-  if [ -f "/var/log/${OLD_SERVICE_NAME}.log" ] && [ ! -f "/var/log/${SERVICE_NAME}.log" ]; then
-    mv "/var/log/${OLD_SERVICE_NAME}.log" "/var/log/${SERVICE_NAME}.log" 2>/dev/null || true
-  fi
-}
 
 stop_service_if_present() {
   if systemctl list-unit-files 2>/dev/null | grep -q "^${SERVICE_NAME}.service"; then
@@ -255,7 +237,6 @@ log "Selected action: $action"
 [ "$action" = "abort" ] && fail "Aborted by operator."
 
 stop_service_if_present
-migrate_legacy_runtime_names
 backup_operator_files
 
 case "$action" in

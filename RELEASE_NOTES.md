@@ -4,7 +4,7 @@
 
 - Makes `LQoSync` the canonical project identity and `lqosync` the canonical runtime/service identity.
 - Updates fresh install, update, adoption, WebUI guidance, and operator documentation to use `p33ckab00/LQoSync`.
-- Renames runtime-facing defaults from the legacy `lqos_shaped_sync` identity to `lqosync`, including service commands, Docker naming, sudoers naming, and log paths.
+- Renames runtime-facing defaults to the canonical `lqosync` identity, including service commands, Docker naming, sudoers naming, and log paths.
 - Adds migration guidance so existing installs can move safely from the old service name without double-running schedulers or losing operator-owned data.
 - Preserves production safety behavior for `config.json`, `ShapedDevices.csv`, `network.json`, users, environment files, runtime state, logs, and backups.
 

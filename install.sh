@@ -7,7 +7,6 @@ CONFIG_PATH="$LIBREQOS_SRC_DIR/config.json"
 SHAPED_DEVICES_PATH="$LIBREQOS_SRC_DIR/ShapedDevices.csv"
 NETWORK_JSON_PATH="$LIBREQOS_SRC_DIR/network.json"
 SERVICE_NAME="lqosync"
-OLD_SERVICE_NAME="lqos_shaped_sync"
 USER_NAME="lqosync"
 PORT="${PORT:-9202}"
 
@@ -140,27 +139,8 @@ install_managed_file() {
   fi
 }
 
-migrate_legacy_runtime_names() {
-  # One-time safety migration from packages that used the old unit/sudoers/log names.
-  # Fresh installs are already canonical and do not create these names.
-  if systemctl list-unit-files 2>/dev/null | grep -q "^${OLD_SERVICE_NAME}.service"; then
-    echo "[LQoSync] Disabling previous runtime service: ${OLD_SERVICE_NAME}"
-    systemctl stop "$OLD_SERVICE_NAME" 2>/dev/null || true
-    systemctl disable "$OLD_SERVICE_NAME" 2>/dev/null || true
-    rm -f "/etc/systemd/system/${OLD_SERVICE_NAME}.service"
-  fi
-  if [ -f "/etc/sudoers.d/${OLD_SERVICE_NAME}" ]; then
-    cp -a "/etc/sudoers.d/${OLD_SERVICE_NAME}" "$INSTALL_BACKUP_DIR/sudoers.${OLD_SERVICE_NAME}" 2>/dev/null || true
-    rm -f "/etc/sudoers.d/${OLD_SERVICE_NAME}"
-  fi
-  if [ -f "/var/log/${OLD_SERVICE_NAME}.log" ] && [ ! -f "/var/log/${SERVICE_NAME}.log" ]; then
-    mv "/var/log/${OLD_SERVICE_NAME}.log" "/var/log/${SERVICE_NAME}.log" 2>/dev/null || true
-  fi
-}
 
 resolve_init_policy
-migrate_legacy_runtime_names
-
 echo "[LQoSync] Installing..."
 echo "[LQoSync] Init policy: $INIT_POLICY"
 apt-get update -qq

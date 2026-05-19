@@ -7681,3 +7681,8 @@ Adds `decode-routeros-api-reply`, an offline RouterOS API reply parser that deco
 ## Rust Core v2.7 RouterOS API Frame Codec
 
 `codec-routeros-api-frame` converts RouterOS API words to/from binary frame hex offline. It blocks live execution, redacts sensitive attribute words, and prepares for a future gated read-only Rust socket transport.
+
+
+## Rust Core v2.8 RouterOS Offline Session Pipeline
+
+Adds `run-routeros-offline-session`, an end-to-end offline RouterOS API session rehearsal. It composes sentence encoding, frame encoding/decoding, and reply decoding using fixtures only. It performs zero live connections, consumes no MikroTik credentials, and keeps Python collectors authoritative.

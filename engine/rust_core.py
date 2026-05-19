@@ -2256,6 +2256,59 @@ def rust_codec_routeros_api_frame(config: dict, payload: dict[str, Any] | None =
     return response
 
 
+def _python_run_routeros_offline_session(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    """Minimal Python fallback for the offline RouterOS session pipeline."""
+    started = started or time.perf_counter()
+    errors: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if str(payload.get("adapter") or "offline_fixture") == "live" or str(payload.get("mode") or "offline_session") == "live" or bool(payload.get("execute")):
+        errors.append({"code": "routeros_offline_session_is_not_live_transport", "severity": "error", "path": "adapter", "message": "RouterOS offline session fallback cannot open live sockets."})
+    rows = payload.get("fixture_rows") if isinstance(payload.get("fixture_rows"), list) else []
+    clean_rows = []
+    dropped = 0
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        clean = {}
+        for key, value in row.items():
+            lowered = str(key).lower()
+            if any(part in lowered for part in ("password", "secret", "token", "key")):
+                dropped += 1
+                continue
+            clean[str(key)] = value
+        clean_rows.append(clean)
+    if dropped:
+        warnings.append({"code": "routeros_offline_session_fixture_sensitive_fields_redacted", "severity": "warning", "path": "fixture_rows", "message": "Sensitive fixture fields were removed."})
+    result = {
+        "mode": "routeros_offline_session_pipeline",
+        "status": "blocked" if errors else "offline_session_complete",
+        "authority": "none",
+        "full_rust_backend": False,
+        "live_transport_supported": False,
+        "connection_attempt_count": 0,
+        "adapter": str(payload.get("adapter") or "offline_fixture"),
+        "row_count": len(clean_rows),
+        "trap_count": 0,
+        "reply_decode": {"status": "decoded" if clean_rows else "done", "rows": clean_rows, "row_count": len(clean_rows)},
+        "dropped_sensitive_field_count": dropped,
+        "dropped_sensitive_fields_redacted": True,
+        "credential_material": "redacted_or_absent",
+        "note": "Python fallback simulates offline RouterOS session fixtures only; no sockets are opened.",
+    }
+    return {"version": PROTOCOL_VERSION, "op": "run-routeros-offline-session", "ok": not errors, "available": False, "result": result, "errors": errors, "warnings": warnings, "meta": {"engine": "python-wrapper", "mode": "python_offline_session_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)}}
+
+
+def rust_run_routeros_offline_session(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config or {})
+    response = call_rust_core("run-routeros-offline-session", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_run_routeros_offline_session(req_payload, started=started)
+    return response
+
+
 def _python_validate_routeros_read_results(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
     started = started or time.perf_counter()
     plan = payload.get("plan") if isinstance(payload.get("plan"), dict) else {}

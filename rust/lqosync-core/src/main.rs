@@ -22,6 +22,7 @@ use lqosync_core::routeros_read_pilot::run_routeros_read_pilot_payload;
 use lqosync_core::routeros_api_codec::build_routeros_api_sentence_payload;
 use lqosync_core::routeros_api_reply::decode_routeros_api_reply_payload;
 use lqosync_core::routeros_api_frame::codec_routeros_api_frame_payload;
+use lqosync_core::routeros_offline_session::run_routeros_offline_session_payload;
 use lqosync_core::self_test::{advertised_operations, self_test_payload};
 use lqosync_core::shaped_devices::{parse_csv_text, render_csv_text, validate_rows};
 use lqosync_core::sync_plan::evaluate_sync_plan_payload;
@@ -240,6 +241,10 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
         }
         "codec-routeros-api-frame" => {
             let (result, errors, warnings) = codec_routeros_api_frame_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "run-routeros-offline-session" => {
+            let (result, errors, warnings) = run_routeros_offline_session_payload(&req.payload);
             Ok(CoreResponse::validation(req, result, errors, warnings, started))
         }
         "build-collector-circuit-bundle" => {

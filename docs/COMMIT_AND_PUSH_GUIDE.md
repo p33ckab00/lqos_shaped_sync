@@ -540,3 +540,8 @@ git commit -m "rust(core): add RouterOS API frame codec" \
   -m "Add codec-routeros-api-frame, offline RouterOS API binary frame encode/decode, API wrapper, self-test coverage, and documentation before live Rust socket transport."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Rust Core v2.8 RouterOS Offline Session Pipeline
+
+Adds `run-routeros-offline-session`, an end-to-end offline RouterOS API session rehearsal. It composes sentence encoding, frame encoding/decoding, and reply decoding using fixtures only. It performs zero live connections, consumes no MikroTik credentials, and keeps Python collectors authoritative.

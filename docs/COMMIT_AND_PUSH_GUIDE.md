@@ -517,3 +517,12 @@ git push -u origin lqosync-in-rust
 ## Rust Core v2.4 RouterOS Read Pilot Fixture Adapter
 
 Adds `run-routeros-read-pilot`, an offline fixture adapter that exercises the RouterOS read-pilot execution contract without opening MikroTik sockets or replacing Python collectors.
+
+## v2.95.0-rc1 commit suggestion
+
+```bash
+git add .
+git commit -m "rust(core): add RouterOS API sentence codec" \
+  -m "Add build-routeros-api-sentence, offline RouterOS API print/proplist encoding, self-test coverage, Python/API wrapper, and documentation before live Rust RouterOS socket transport."
+git push -u origin lqosync-in-rust
+```

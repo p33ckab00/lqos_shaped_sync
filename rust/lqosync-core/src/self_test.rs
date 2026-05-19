@@ -12,6 +12,7 @@ use crate::routeros_results::validate_routeros_read_results_payload;
 use crate::routeros_transport::build_routeros_transport_session_payload;
 use crate::routeros_live_pilot::build_routeros_live_read_pilot_payload;
 use crate::routeros_read_pilot::run_routeros_read_pilot_payload;
+use crate::routeros_api_codec::build_routeros_api_sentence_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -37,6 +38,7 @@ pub const OP_VALIDATE_ROUTEROS_READ_RESULTS: &str = "validate-routeros-read-resu
 pub const OP_BUILD_ROUTEROS_TRANSPORT_SESSION: &str = "build-routeros-transport-session";
 pub const OP_BUILD_ROUTEROS_LIVE_READ_PILOT: &str = "build-routeros-live-read-pilot";
 pub const OP_RUN_ROUTEROS_READ_PILOT: &str = "run-routeros-read-pilot";
+pub const OP_BUILD_ROUTEROS_API_SENTENCE: &str = "build-routeros-api-sentence";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -76,6 +78,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_ROUTEROS_TRANSPORT_SESSION,
         OP_BUILD_ROUTEROS_LIVE_READ_PILOT,
         OP_RUN_ROUTEROS_READ_PILOT,
+        OP_BUILD_ROUTEROS_API_SENTENCE,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -270,6 +273,20 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     checks.push(check("routeros_read_pilot_fixture", read_pilot_ok, json!({"status": read_pilot.get("status"), "row_count": read_pilot.get("row_count"), "connection_attempt_count": read_pilot.get("connection_attempt_count")})));
     if !read_pilot_ok {
         errors.push(Diagnostic::error("self_test_routeros_read_pilot_failed", Some("run-routeros-read-pilot".to_string()), "Self-test RouterOS read pilot fixture should execute offline without attempting a connection."));
+    }
+
+    let api_sentence_payload = json!({
+        "path": "/ppp/active",
+        "fields": ["name", "address", "caller-id"]
+    });
+    let (api_sentence, api_sentence_errors, _api_sentence_warnings) = build_routeros_api_sentence_payload(&api_sentence_payload);
+    let api_sentence_ok = api_sentence_errors.is_empty()
+        && api_sentence.get("status").and_then(Value::as_str) == Some("encoded")
+        && api_sentence.get("connection_attempt_count").and_then(Value::as_u64).unwrap_or(1) == 0
+        && api_sentence.get("sentence_words").and_then(Value::as_array).map(|v| !v.is_empty()).unwrap_or(false);
+    checks.push(check("routeros_api_sentence_codec", api_sentence_ok, json!({"status": api_sentence.get("status"), "word_count": api_sentence.get("word_count"), "connection_attempt_count": api_sentence.get("connection_attempt_count")})));
+    if !api_sentence_ok {
+        errors.push(Diagnostic::error("self_test_routeros_api_sentence_failed", Some("build-routeros-api-sentence".to_string()), "Self-test RouterOS API sentence codec should encode a print command offline without attempting a connection."));
     }
 
     let collector_bundle_payload = json!({
@@ -487,6 +504,8 @@ mod tests {
         assert!(ops.contains(&OP_VALIDATE_ROUTEROS_READ_RESULTS));
         assert!(ops.contains(&OP_BUILD_ROUTEROS_TRANSPORT_SESSION));
         assert!(ops.contains(&OP_BUILD_ROUTEROS_LIVE_READ_PILOT));
+        assert!(ops.contains(&OP_RUN_ROUTEROS_READ_PILOT));
+        assert!(ops.contains(&OP_BUILD_ROUTEROS_API_SENTENCE));
         assert!(ops.contains(&OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE));
         assert!(ops.contains(&OP_COMPARE_COLLECTOR_BUNDLE_PARITY));
         assert!(ops.contains(&OP_EVALUATE_AUTHORITY_READINESS));

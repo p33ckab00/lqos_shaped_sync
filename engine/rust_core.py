@@ -2019,6 +2019,56 @@ def rust_run_routeros_read_pilot(config: dict, payload: dict[str, Any] | None = 
         return _python_run_routeros_read_pilot(req_payload, started=started)
     return response
 
+
+def _python_build_routeros_api_sentence(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    command = payload.get("command") if isinstance(payload.get("command"), dict) else {}
+    path = str(payload.get("path") or command.get("path") or "")
+    fields = payload.get("fields") if isinstance(payload.get("fields"), list) else command.get("fields", [])
+    fields = [str(f) for f in fields if str(f).strip()]
+    sensitive = {"password", "secret", "token", "key"}
+    clean_fields = [f for f in fields if not any(x in f.lower() for x in sensitive)]
+    dropped = [f for f in fields if f not in clean_fields]
+    errors = []
+    warnings = []
+    if not path:
+        errors.append({"code": "routeros_api_sentence_missing_path", "severity": "error", "path": "path", "message": "RouterOS API sentence requires a command path."})
+    if dropped:
+        warnings.append({"code": "routeros_api_sentence_sensitive_fields_dropped", "severity": "warning", "path": "fields", "message": "Sensitive field names were removed from the proplist."})
+    if bool(payload.get("execute")) or str(payload.get("mode") or "").lower() == "live":
+        errors.append({"code": "routeros_api_sentence_is_offline_only", "severity": "error", "path": "execute", "message": "RouterOS API sentence codec is offline-only in the Python fallback."})
+    command_word = f"{path.rstrip('/')}/print" if path else ""
+    words = [command_word] if command_word else []
+    if clean_fields:
+        words.append("=.proplist=" + ",".join(clean_fields))
+    result = {
+        "mode": "routeros_api_sentence_codec",
+        "status": "blocked" if errors else "encoded",
+        "authority": "none",
+        "full_rust_backend": False,
+        "live_transport_supported": False,
+        "connection_attempt_count": 0,
+        "path": path,
+        "command_word": command_word,
+        "sentence_words": words,
+        "word_count": len(words),
+        "dropped_sensitive_fields": dropped,
+        "credential_material": "redacted_or_absent",
+        "note": "Python fallback builds an offline RouterOS API sentence only; no sockets are opened.",
+    }
+    return {"version": PROTOCOL_VERSION, "op": "build-routeros-api-sentence", "ok": not errors, "available": False, "skipped": True, "result": result, "errors": errors, "warnings": warnings, "meta": {"engine": "python-fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)}}
+
+
+def rust_build_routeros_api_sentence(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config or {})
+    response = call_rust_core("build-routeros-api-sentence", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_routeros_api_sentence(req_payload, started=started)
+    return response
+
 def _python_validate_routeros_read_results(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
     started = started or time.perf_counter()
     plan = payload.get("plan") if isinstance(payload.get("plan"), dict) else {}

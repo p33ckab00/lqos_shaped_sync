@@ -212,3 +212,7 @@ Adds `build-routeros-live-read-pilot` as a non-network, credential-redacted pilo
 ## Rust Core v2.4 RouterOS Read Pilot Fixture Adapter
 
 Adds `run-routeros-read-pilot`, an offline fixture adapter that exercises the RouterOS read-pilot execution contract without opening MikroTik sockets or replacing Python collectors.
+
+## v2.5.0
+
+Adds `build-routeros-api-sentence`, an offline RouterOS API sentence/proplist codec.

@@ -244,3 +244,7 @@ LQoSync 2.93.0-rc1 / lqosync-core 2.3.0 adds `build-routeros-live-read-pilot`, a
 ## Rust Core v2.4 RouterOS Read Pilot Fixture Adapter
 
 Adds `run-routeros-read-pilot`, an offline fixture adapter that exercises the RouterOS read-pilot execution contract without opening MikroTik sockets or replacing Python collectors.
+
+## v2.95.0-rc1 package note
+
+Adds the Rust RouterOS API sentence codec foundation for future read-only Rust transport. This package remains hybrid and safe by default.

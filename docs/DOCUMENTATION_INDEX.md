@@ -181,3 +181,5 @@ Adds `compare-collector-bundle-parity`, a diagnostic operation and API endpoint 
 - [Rust Core v2.3 RouterOS Live Read Pilot Gate](RUST_CORE_V23_ROUTEROS_LIVE_READ_PILOT.md)
 
 - [Rust Core v2.4 RouterOS Read Pilot Fixture Adapter](RUST_CORE_V24_ROUTEROS_READ_PILOT_FIXTURE.md)
+
+- [Rust Core v2.5 RouterOS API Sentence Codec](RUST_CORE_V25_ROUTEROS_API_CODEC.md) - Offline RouterOS API sentence/proplist codec for future read-only Rust transport.

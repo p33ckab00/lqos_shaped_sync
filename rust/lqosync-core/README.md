@@ -221,3 +221,7 @@ Adds `build-routeros-api-sentence`, an offline RouterOS API sentence/proplist co
 ## Rust Core v2.6 RouterOS API Reply Codec
 
 Adds `decode-routeros-api-reply`, an offline RouterOS API reply parser that decodes already-captured `!re`/`!trap`/`!done` words into sanitized rows/traps while keeping Rust RouterOS live transport disabled by default.
+
+## v2.7 RouterOS API Frame Codec
+
+Adds `codec-routeros-api-frame` for offline RouterOS API binary frame encode/decode with no socket access.

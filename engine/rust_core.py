@@ -2170,6 +2170,92 @@ def rust_decode_routeros_api_reply(config: dict, payload: dict[str, Any] | None 
         return _python_decode_routeros_api_reply(req_payload, started=started)
     return response
 
+def _python_codec_routeros_api_frame(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    """Minimal Python fallback for offline RouterOS API frame codec."""
+    started = started or time.perf_counter()
+    direction = str(payload.get("direction") or "encode")
+    errors: list[dict[str, Any]] = []
+
+    def sensitive_word(word: str) -> bool:
+        if not word.startswith("=") or "=" not in word[1:]:
+            return False
+        key = word[1:].split("=", 1)[0].lower()
+        return any(part in key for part in ("password", "secret", "token", "key"))
+
+    def enc_len(n: int) -> bytes:
+        if n < 0x80:
+            return bytes([n])
+        if n < 0x4000:
+            return bytes([(n >> 8) | 0x80, n & 0xff])
+        if n < 0x20_0000:
+            return bytes([(n >> 16) | 0xC0, (n >> 8) & 0xff, n & 0xff])
+        if n < 0x1000_0000:
+            return bytes([(n >> 24) | 0xE0, (n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff])
+        return bytes([0xF0, (n >> 24) & 0xff, (n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff])
+
+    if payload.get("execute") or str(payload.get("mode") or "offline") == "live":
+        errors.append({"code": "routeros_api_frame_codec_is_offline_only", "severity": "error", "path": "execute", "message": "RouterOS API frame codec is offline-only."})
+
+    if direction == "encode":
+        words = payload.get("words") or payload.get("sentence_words") or []
+        words = [str(w) for w in words if isinstance(w, (str, int, float))]
+        out = bytearray()
+        dropped = 0
+        kept = 0
+        for word in words:
+            if sensitive_word(word):
+                dropped += 1
+                continue
+            b = word.encode()
+            out.extend(enc_len(len(b)))
+            out.extend(b)
+            kept += 1
+        out.append(0)
+        result = {
+            "status": "frame_encoded" if not errors else "blocked",
+            "direction": "encode",
+            "word_count": kept,
+            "byte_count": len(out),
+            "hex": out.hex(),
+            "zero_terminated": True,
+            "connection_attempt_count": 0,
+            "live_transport_supported": False,
+            "dropped_sensitive_field_count": dropped,
+            "dropped_sensitive_fields_redacted": True,
+        }
+    else:
+        result = {
+            "status": "fallback_decode_unavailable",
+            "direction": direction,
+            "word_count": 0,
+            "connection_attempt_count": 0,
+            "live_transport_supported": False,
+        }
+        if direction != "decode":
+            errors.append({"code": "routeros_api_frame_unknown_direction", "severity": "error", "path": "direction", "message": f"Unknown RouterOS API frame codec direction: {direction}"})
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "codec-routeros-api-frame",
+        "ok": not errors,
+        "available": False,
+        "result": result,
+        "errors": errors,
+        "warnings": [],
+        "meta": {"engine": "python-wrapper", "mode": "python_frame_codec_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_codec_routeros_api_frame(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config or {})
+    response = call_rust_core("codec-routeros-api-frame", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_codec_routeros_api_frame(req_payload, started=started)
+    return response
+
+
 def _python_validate_routeros_read_results(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
     started = started or time.perf_counter()
     plan = payload.get("plan") if isinstance(payload.get("plan"), dict) else {}

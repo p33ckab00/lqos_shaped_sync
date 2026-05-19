@@ -423,3 +423,7 @@ The `lqosync-in-rust` branch now includes `build-routeros-api-sentence`, an offl
 ## Rust Core v2.6 RouterOS API Reply Codec
 
 Adds `decode-routeros-api-reply`, an offline RouterOS API reply parser that decodes already-captured `!re`/`!trap`/`!done` words into sanitized rows/traps while keeping Rust RouterOS live transport disabled by default.
+
+### Rust Core v2.7 RouterOS API Frame Codec
+
+Adds `codec-routeros-api-frame`, an offline RouterOS API binary frame encoder/decoder. This is transport preparation only: no live MikroTik sockets, no credential use, and Python collectors remain authoritative.

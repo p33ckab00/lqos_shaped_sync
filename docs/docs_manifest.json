@@ -403,7 +403,7 @@
         "title": "Custom Policy Mode Persistence Hotfix",
         "file": "docs/content/custom_policy_mode_persistence.md",
         "anchor": "custom-policy-mode-persistence-hotfix",
-        "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center \u2192 Policies."
+        "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center → Policies."
     },
     "policy_overview_custom_wiring_hotfix": {
         "title": "Policy Overview Custom Wiring Hotfix",
@@ -584,5 +584,11 @@
         "file": "docs/RUST_CORE_V26_ROUTEROS_API_REPLY_CODEC.md",
         "anchor": "rust-core-v26-routeros-api-reply-codec--offline-parser",
         "summary": "Offline RouterOS API reply word decoder for sanitized rows/traps before live Rust socket transport."
+    },
+    "rust.v27_routeros_api_frame_codec": {
+        "title": "Rust Core v2.7 RouterOS API Frame Codec",
+        "file": "docs/RUST_CORE_V27_ROUTEROS_API_FRAME_CODEC.md",
+        "anchor": "rust-core-v27-routeros-api-frame-codec",
+        "summary": "Offline RouterOS API binary frame encoder/decoder for future live Rust socket transport, with sensitive attribute redaction and no network access."
     }
 }

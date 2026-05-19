@@ -34,3 +34,4 @@ pub mod routeros_live_pilot;
 pub mod routeros_read_pilot;
 pub mod routeros_api_codec;
 pub mod routeros_api_reply;
+pub mod routeros_api_frame;

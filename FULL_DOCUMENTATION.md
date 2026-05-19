@@ -7677,3 +7677,7 @@ Adds `run-routeros-read-pilot`, an offline fixture adapter that exercises the Ro
 ## Rust Core v2.6 RouterOS API Reply Codec
 
 Adds `decode-routeros-api-reply`, an offline RouterOS API reply parser that decodes already-captured `!re`/`!trap`/`!done` words into sanitized rows/traps while keeping Rust RouterOS live transport disabled by default.
+
+## Rust Core v2.7 RouterOS API Frame Codec
+
+`codec-routeros-api-frame` converts RouterOS API words to/from binary frame hex offline. It blocks live execution, redacts sensitive attribute words, and prepares for a future gated read-only Rust socket transport.

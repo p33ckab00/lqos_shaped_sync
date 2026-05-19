@@ -52,13 +52,13 @@ sudo docker compose up -d --build
 Common locations:
 
 ```bash
-cd /home/pi/lqosync
+cd /opt/lqosync
 ```
 
 or:
 
 ```bash
-cd /home/pi/lqos_docker
+cd /opt/lqos_docker
 ```
 
 Confirm Compose file exists:
@@ -120,13 +120,13 @@ sudo rm -rf /opt/lqosync
 If installed from Git:
 
 ```bash
-rm -rf /home/pi/lqosync
+rm -rf /opt/lqosync
 ```
 
 If using old local folder name:
 
 ```bash
-rm -rf /home/pi/lqos_docker
+rm -rf /opt/lqos_docker
 ```
 
 Only do this after you no longer need local source files.
@@ -213,7 +213,7 @@ sudo rm -f /var/log/lqosync.log
 
 ```bash
 sudo userdel lqosync 2>/dev/null || true
-sudo rm -rf /home/lqosync 2>/dev/null || true
+# LQoSync system user is created with --no-create-home; no user-home install path is used.
 ```
 
 ## 7. Restore LibreQoS permissions to root
@@ -271,13 +271,13 @@ sudo chmod 644 /opt/libreqos/src/ShapedDevices.csv /opt/libreqos/src/network.jso
 If installed from Git:
 
 ```bash
-rm -rf /home/pi/lqosync
+rm -rf /opt/lqosync
 ```
 
 If using old extracted package folder:
 
 ```bash
-rm -rf /home/pi/lqos_docker
+rm -rf /opt/lqos_docker
 ```
 
 ---

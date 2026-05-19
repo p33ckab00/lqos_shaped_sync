@@ -1,5 +1,8 @@
 # LQoSync Docker / Compose Installation Guide
 
+> **Canonical path:** LQoSync installs and runs from `/opt/lqosync`. LibreQoS remains under `/opt/libreqos`. Do not use a user-home directory as the documented install base.
+
+
 This guide installs **LQoSync** using Docker Compose.
 
 Docker mode is host-integrated because LQoSync must write LibreQoS files and call the host LibreQoS apply command.
@@ -97,7 +100,7 @@ docker compose version
 ### 3. Unzip package
 
 ```bash
-cd /home/pi
+cd /opt
 unzip LQoSync_v2_17_opt_lqosync.zip
 cd lqos_docker
 ```
@@ -416,7 +419,7 @@ This user can read the RouterOS API resources required by LQoSync while blocking
 If the Docker deployment source folder is Git-managed, update with:
 
 ```bash
-cd /home/pi/lqosync
+cd /opt/lqosync
 sudo git pull origin main
 sudo docker compose down
 sudo docker compose build --no-cache

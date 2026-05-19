@@ -1,5 +1,8 @@
 # LQoSync Installation Options
 
+> **Canonical path:** LQoSync installs and runs from `/opt/lqosync`. LibreQoS remains under `/opt/libreqos`. Do not use a user-home directory as the documented install base.
+
+
 LQoSync can be installed in two ways:
 
 1. **Docker Compose** — recommended if you prefer containerized deployment.

@@ -72,7 +72,7 @@ rm -f /var/log/lqosync.log 2>/dev/null || true
 
 if [[ "$REMOVE_USER" == "true" ]]; then
   userdel "$LQOSYNC_USER" 2>/dev/null || true
-  rm -rf "/home/$LQOSYNC_USER" 2>/dev/null || true
+  # System user is created with --no-create-home; runtime files live under /opt/lqosync.
   echo "[LQoSync] Removed user $LQOSYNC_USER"
 fi
 

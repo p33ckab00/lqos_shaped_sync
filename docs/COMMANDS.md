@@ -1,5 +1,8 @@
 # LQoSync Operator Commands
 
+> **Canonical path:** LQoSync installs and runs from `/opt/lqosync`. LibreQoS remains under `/opt/libreqos`. Do not use a user-home directory as the documented install base.
+
+
 This page lists the common commands for Docker and bare-metal installs.
 
 ## Docker container commands

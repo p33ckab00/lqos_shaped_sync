@@ -1,5 +1,22 @@
 # Release Notes
 
+## v2.71.0-rc2 - Canonical /opt Install Path Cleanup
+
+Path documentation cleanup package for the `lqosync-in-rust` branch.
+
+### Fixed
+
+- Replaced remaining user-home install examples with canonical `/opt` paths.
+- Normalized project checkout examples to `/opt/lqosync`.
+- Normalized legacy Docker/project examples to `/opt/lqos_docker` where that legacy folder is still referenced for cleanup/migration guidance.
+- Confirmed the canonical installation base is `/opt`.
+
+### Safety notes
+
+- Documentation/path guidance only.
+- Runtime sync/apply behavior is unchanged.
+- Rust core scaffold remains optional and non-blocking by default.
+
 ## v2.71.0-rc1 - Optional Rust Core Scaffold
 
 First implementation package for the `lqosync-in-rust` branch.

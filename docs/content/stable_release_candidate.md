@@ -1,4 +1,4 @@
-# v2.72 Runtime Canonical Naming
+# v2.70 Stable Release Candidate
 
 LQoSync v2.70 is a feature-freeze and production-stabilization release.
 

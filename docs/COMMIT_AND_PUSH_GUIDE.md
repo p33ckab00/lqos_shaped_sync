@@ -1,5 +1,8 @@
 # Commit and Push Guide for `lqosync-in-rust`
 
+> **Canonical path:** LQoSync installs and runs from `/opt/lqosync`. LibreQoS remains under `/opt/libreqos`. Do not use a user-home directory as the documented install base.
+
+
 Use this guide whenever a new ZIP package or local project folder is prepared for the Rust migration branch.
 
 Target branch:

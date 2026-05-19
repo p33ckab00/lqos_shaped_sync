@@ -14,6 +14,17 @@ System log:       /var/log/lqosync.log
 Sudoers file:     /etc/sudoers.d/lqosync
 ```
 
+
+## Canonical installation path note
+
+All operator-facing install/update examples should use `/opt` as the base path. The canonical app checkout is:
+
+```text
+/opt/lqosync
+```
+
+Do not document user-home based project folders as active install locations. Legacy cleanup references, when needed, should point to `/opt/lqosync` or `/opt/lqos_docker`.
+
 ## Update safety
 
 The installer/updater keeps production safety behavior:

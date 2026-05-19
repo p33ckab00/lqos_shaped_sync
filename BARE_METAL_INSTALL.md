@@ -1,5 +1,8 @@
 # LQoSync Bare-Metal Ubuntu Installation Guide
 
+> **Canonical path:** LQoSync installs and runs from `/opt/lqosync`. LibreQoS remains under `/opt/libreqos`. Do not use a user-home directory as the documented install base.
+
+
 This guide installs **LQoSync** directly on Ubuntu/Debian using Python venv + systemd.
 
 Bare-metal install is recommended if you want the simplest host integration and do not want Docker/Compose.
@@ -96,7 +99,7 @@ ls -ld /opt/libreqos/src
 ### 1. Unzip the package
 
 ```bash
-cd /home/pi
+cd /opt
 unzip LQoSync_v2_17_opt_lqosync.zip
 cd lqos_docker
 ```

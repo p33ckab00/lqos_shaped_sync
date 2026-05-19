@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""LQoSync v2.72 Runtime Canonical Naming check.
+"""LQoSync v2.70 Stable Release Candidate check.
 
 Run before publishing a stable candidate or after update:
 

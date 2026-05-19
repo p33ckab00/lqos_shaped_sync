@@ -66,7 +66,7 @@ pub fn parse_csv_text(text: &str) -> Result<Vec<ShapedDeviceRow>, csv::Error> {
 pub fn render_csv_text(rows: &[ShapedDeviceRow]) -> Result<String, csv::Error> {
     let mut output = Vec::new();
     {
-        let mut writer = WriterBuilder::new().terminator(csv::Terminator::LF).from_writer(&mut output);
+        let mut writer = WriterBuilder::new().terminator(csv::Terminator::Any(b'\n')).from_writer(&mut output);
         writer.write_record(FIELDNAMES)?;
         let mut sorted = rows.to_vec();
         sorted.sort_by(|a, b| {

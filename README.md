@@ -250,6 +250,8 @@ Documentation:
 
 The `lqosync-in-rust` branch now includes Rust protocol operations for atomic JSON state writes, generated file writes, and audit JSONL appends. Python remains the default writer, with optional Rust-backed writes enabled by `LQOSYNC_RUST_ATOMIC_WRITES=1`. See `docs/RUST_CORE_V03_ATOMIC_STATE.md`.
 
+Build hotfix `v2.73.1-rc1` updates the Rust CSV writer to use `csv::Terminator::Any(b'\n')` for compatibility with the current `csv` crate while preserving LF line endings.
+
 ## Safety Note
 
 LQoSync can write LibreQoS input files and trigger LibreQoS apply behavior. Always verify backups, policies, dry-run output, and apply results before using it in production.

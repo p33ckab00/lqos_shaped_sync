@@ -1,3 +1,9 @@
+## v2.73.1-rc1 Package Notes
+
+- Rust Core v0.3 build hotfix for the `csv` crate line terminator API.
+- Replaces `csv::Terminator::LF` with `csv::Terminator::Any(b'\n')` so `scripts/build-rust-core.sh` can compile on the current `csv` crate.
+- No sync/apply behavior changes.
+
 ## v2.73.0-rc1 Package Notes
 
 - Adds Rust protocol operations for `validate-json-state`, `write-json-state`, `write-text-file`, and `append-audit-jsonl`.

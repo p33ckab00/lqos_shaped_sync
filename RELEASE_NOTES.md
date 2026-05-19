@@ -1,3 +1,9 @@
+## v2.73.1-rc1 - Rust Core v0.3 Build Hotfix
+
+- Fixes Rust build failure in `shaped_devices.rs` by using `csv::Terminator::Any(b'\n')` instead of the non-existent `csv::Terminator::LF` variant.
+- Keeps v0.3 atomic state/file behavior unchanged.
+- Python fallback remains active if the Rust binary is unavailable.
+
 ## v2.73.0-rc1 - Rust Core v0.3 Atomic State/File Engine
 
 - Adds Rust protocol operations for `validate-json-state`, `write-json-state`, `write-text-file`, and `append-audit-jsonl`.

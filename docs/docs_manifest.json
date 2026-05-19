@@ -439,6 +439,6 @@
         "title": "Rust Core v0.3 Atomic State and File Engine",
         "file": "docs/RUST_CORE_V03_ATOMIC_STATE.md",
         "anchor": "rust-core-v03-atomic-state-and-file-engine",
-        "summary": "Atomic runtime_state, policy_state, collector_cache, audit JSONL, and generated file write protocol for the lqosync-in-rust branch."
+        "summary": "Atomic runtime_state, policy_state, collector_cache, audit JSONL, generated file write protocol, and v2.73.1 CSV terminator build hotfix for the lqosync-in-rust branch."
     }
 }

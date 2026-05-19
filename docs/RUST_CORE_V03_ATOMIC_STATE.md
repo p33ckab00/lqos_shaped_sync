@@ -71,3 +71,7 @@ The v0.3 writer is designed around these rules:
 ## Not included yet
 
 The policy decision engine itself is still Python. v0.3 hardens state and file persistence only.
+## v2.73.1-rc1 build hotfix
+
+The initial v0.3 package used `csv::Terminator::LF`, but the current Rust `csv` crate exposes newline control through `csv::Terminator::Any(b'\n')`. The hotfix updates `rust/lqosync-core/src/shaped_devices.rs` so the Rust core builds cleanly while preserving LF-only `ShapedDevices.csv` rendering.
+

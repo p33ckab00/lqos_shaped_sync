@@ -38,3 +38,4 @@ pub mod routeros_api_frame;
 pub mod routeros_offline_session;
 pub mod routeros_tcp_probe;
 pub mod routeros_auth_plan;
+pub mod routeros_auth_handshake;

@@ -193,3 +193,8 @@ Adds `compare-collector-bundle-parity`, a diagnostic operation and API endpoint 
 - [Rust Core v2.9 RouterOS TCP Connectivity Pilot](RUST_CORE_V29_ROUTEROS_TCP_CONNECTIVITY.md) — gated TCP reachability pilot before RouterOS authentication/live API reads.
 
 - [Rust Core v3.0 RouterOS Authentication Plan](RUST_CORE_V30_ROUTEROS_AUTH_PLAN.md) — redacted RouterOS auth planning before live Rust authentication or collector authority.
+
+
+## Rust Core v3.1 RouterOS Auth Handshake Fixture
+
+Adds `run-routeros-auth-handshake`, an offline fixture operation that models RouterOS authentication reply handling without opening sockets, emitting credentials, or replacing Python collectors.

@@ -7696,3 +7696,8 @@ See `docs/RUST_CORE_V29_ROUTEROS_TCP_CONNECTIVITY.md` for the gated TCP reachabi
 ## Rust Core v3.0 RouterOS Authentication Plan
 
 `build-routeros-auth-plan` prepares the next RouterOS transport phase by validating redacted credential readiness. It performs zero authentication attempts and keeps the backend model hybrid/Python-authoritative.
+
+
+## Rust Core v3.1 RouterOS Auth Handshake Fixture
+
+Adds `run-routeros-auth-handshake`, an offline fixture operation that models RouterOS authentication reply handling without opening sockets, emitting credentials, or replacing Python collectors.

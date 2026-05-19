@@ -18,6 +18,7 @@ use crate::routeros_api_frame::codec_routeros_api_frame_payload;
 use crate::routeros_offline_session::run_routeros_offline_session_payload;
 use crate::routeros_tcp_probe::run_routeros_tcp_connectivity_pilot_payload;
 use crate::routeros_auth_plan::build_routeros_auth_plan_payload;
+use crate::routeros_auth_handshake::run_routeros_auth_handshake_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -49,6 +50,7 @@ pub const OP_CODEC_ROUTEROS_API_FRAME: &str = "codec-routeros-api-frame";
 pub const OP_RUN_ROUTEROS_OFFLINE_SESSION: &str = "run-routeros-offline-session";
 pub const OP_RUN_ROUTEROS_TCP_CONNECTIVITY_PILOT: &str = "run-routeros-tcp-connectivity-pilot";
 pub const OP_BUILD_ROUTEROS_AUTH_PLAN: &str = "build-routeros-auth-plan";
+pub const OP_RUN_ROUTEROS_AUTH_HANDSHAKE: &str = "run-routeros-auth-handshake";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -94,6 +96,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_RUN_ROUTEROS_OFFLINE_SESSION,
         OP_RUN_ROUTEROS_TCP_CONNECTIVITY_PILOT,
         OP_BUILD_ROUTEROS_AUTH_PLAN,
+        OP_RUN_ROUTEROS_AUTH_HANDSHAKE,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -377,6 +380,26 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     })));
     if !auth_plan_ok {
         errors.push(Diagnostic::error("self_test_routeros_auth_plan_failed", Some("build-routeros-auth-plan".to_string()), "Self-test RouterOS auth plan should rehearse without emitting credentials or attempting authentication."));
+    }
+
+    let (auth_handshake, auth_handshake_errors, _auth_handshake_warnings) = run_routeros_auth_handshake_payload(&json!({
+        "router": {"name":"selftest", "address":"127.0.0.1", "port":8728, "username":"admin", "password":"selftest_secret"},
+        "adapter": "fixture",
+        "execute": true,
+        "fixture_reply_words": ["!done"]
+    }));
+    let auth_handshake_ok = auth_handshake_errors.is_empty()
+        && auth_handshake.get("status").and_then(Value::as_str) == Some("auth_fixture_accepted")
+        && auth_handshake.get("connection_attempt_count").and_then(Value::as_u64).unwrap_or(1) == 0
+        && auth_handshake.get("authentication_attempt_count").and_then(Value::as_u64).unwrap_or(1) == 0;
+    checks.push(check("routeros_auth_handshake_fixture", auth_handshake_ok, json!({
+        "status": auth_handshake.get("status"),
+        "connection_attempt_count": auth_handshake.get("connection_attempt_count"),
+        "authentication_attempt_count": auth_handshake.get("authentication_attempt_count"),
+        "fixture_handshake_count": auth_handshake.get("fixture_handshake_count")
+    })));
+    if !auth_handshake_ok {
+        errors.push(Diagnostic::error("self_test_routeros_auth_handshake_failed", Some("run-routeros-auth-handshake".to_string()), "Self-test RouterOS auth handshake fixture should accept !done without opening sockets or emitting credentials."));
     }
 
     let collector_bundle_payload = json!({

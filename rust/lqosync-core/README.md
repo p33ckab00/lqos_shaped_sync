@@ -240,3 +240,8 @@ Adds `run-routeros-tcp-connectivity-pilot`, a gated TCP reachability pilot. Rehe
 ## v3.0 RouterOS Authentication Plan
 
 Adds `build-routeros-auth-plan` for redacted auth planning. This does not authenticate or expose credential material; it prepares the future live read-only RouterOS adapter.
+
+
+## v3.1 Auth Handshake Fixture
+
+Adds `run-routeros-auth-handshake`, an offline RouterOS auth handshake fixture. It redacts credentials, decodes fixture login replies, and performs zero live connection/auth attempts.

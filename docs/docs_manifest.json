@@ -608,5 +608,11 @@
         "file": "docs/RUST_CORE_V30_ROUTEROS_AUTH_PLAN.md",
         "anchor": "rust-core-v30-routeros-authentication-plan",
         "summary": "Redacted RouterOS authentication planning before live Rust auth or collector authority."
+    },
+    "rust.v31_auth_handshake_fixture": {
+        "title": "Rust Core v3.1 RouterOS Auth Handshake Fixture",
+        "file": "docs/RUST_CORE_V31_AUTH_HANDSHAKE_FIXTURE.md",
+        "anchor": "rust-core-v31-routeros-auth-handshake-fixture",
+        "summary": "Offline RouterOS authentication handshake fixture that decodes login replies without opening sockets or emitting credentials."
     }
 }

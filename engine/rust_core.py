@@ -2604,3 +2604,69 @@ def rust_build_routeros_auth_plan(config: dict, payload: dict[str, Any] | None =
     if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
         return _python_build_routeros_auth_plan(req_payload, started=started)
     return response
+
+
+def _python_run_routeros_auth_handshake(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    """Fallback for the v3.1 RouterOS auth handshake fixture.
+
+    This never opens sockets and never emits credential material. It only
+    simulates the future auth state machine using fixture reply words.
+    """
+    started = started or time.perf_counter()
+    plan = _python_build_routeros_auth_plan({**(payload or {}), "execute": False}, started=started)
+    errors = list(plan.get("errors") or [])
+    adapter = str((payload or {}).get("adapter") or "fixture")
+    live_requested = adapter in {"live", "tcp", "routeros"} or str((payload or {}).get("mode") or "").lower() in {"live", "auth", "execute_live"}
+    if live_requested:
+        errors.append({"code": "routeros_auth_handshake_live_adapter_not_implemented", "severity": "error", "path": "adapter", "message": "RouterOS auth handshake fallback is fixture-only and cannot authenticate live."})
+    words = (payload or {}).get("fixture_reply_words") or (payload or {}).get("reply_words") or ["!done"]
+    trap_count = sum(1 for w in words if str(w).strip() in {"!trap", "!fatal"}) if isinstance(words, list) else 0
+    done_count = sum(1 for w in words if str(w).strip() == "!done") if isinstance(words, list) else 0
+    if errors:
+        status = "blocked"
+    elif trap_count:
+        status = "auth_fixture_rejected"
+    elif done_count:
+        status = "auth_fixture_accepted"
+    else:
+        status = "auth_fixture_incomplete"
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "run-routeros-auth-handshake",
+        "available": False,
+        "ok": not errors,
+        "result": {
+            "mode": "routeros_auth_handshake_fixture",
+            "status": status,
+            "adapter": adapter,
+            "fixture_executed": not live_requested,
+            "credential_material": "redacted",
+            "username_emitted": False,
+            "password_emitted": False,
+            "login_sentence_emitted": False,
+            "connection_attempt_count": 0,
+            "authentication_attempt_count": 0,
+            "api_sentence_write_count": 0,
+            "api_reply_read_count": 0,
+            "fixture_handshake_count": 0 if live_requested else 1,
+            "reply_done_count": done_count,
+            "reply_trap_count": trap_count,
+            "live_auth_supported": False,
+            "full_rust_backend": False,
+            "authority_note": "Python fallback only simulates RouterOS auth handshake fixtures. It never authenticates."
+        },
+        "errors": errors,
+        "warnings": [],
+        "meta": {"engine": "python-wrapper", "mode": "python_routeros_auth_handshake_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_run_routeros_auth_handshake(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("run-routeros-auth-handshake", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_run_routeros_auth_handshake(req_payload, started=started)
+    return response

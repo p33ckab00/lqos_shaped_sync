@@ -442,3 +442,8 @@ The `lqosync-in-rust` branch now includes a gated RouterOS TCP reachability pilo
 ## Rust Core v3.0 RouterOS Authentication Plan
 
 Adds `build-routeros-auth-plan`, a redacted RouterOS authentication planning bridge. It verifies whether router metadata is ready for a future authentication adapter without emitting credentials, opening sockets, or replacing Python collectors.
+
+
+## Rust Core v3.1 RouterOS Auth Handshake Fixture
+
+Adds `run-routeros-auth-handshake`, an offline fixture operation that models RouterOS authentication reply handling without opening sockets, emitting credentials, or replacing Python collectors.

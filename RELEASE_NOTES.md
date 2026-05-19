@@ -1951,3 +1951,8 @@ Adds `decode-routeros-api-reply`, an offline RouterOS API reply parser that deco
 ## Rust Core v2.8 RouterOS Offline Session Pipeline
 
 Adds `run-routeros-offline-session`, an end-to-end offline RouterOS API session rehearsal. It composes sentence encoding, frame encoding/decoding, and reply decoding using fixtures only. It performs zero live connections, consumes no MikroTik credentials, and keeps Python collectors authoritative.
+
+
+## Rust Core v3.1 RouterOS Auth Handshake Fixture
+
+Adds `run-routeros-auth-handshake`, an offline fixture operation that models RouterOS authentication reply handling without opening sockets, emitting credentials, or replacing Python collectors.

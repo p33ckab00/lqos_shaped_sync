@@ -19,6 +19,103 @@ PROTOCOL_VERSION = "1"
 DEFAULT_SOCKET = "/run/lqosync-core.sock"
 
 
+
+def _python_collector_contract(envelope: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    """Local fallback for the collector trust contract.
+
+    This mirrors the Rust `validate-collector-output` behavior so the safety
+    semantics are available even before the Rust binary is built. The Rust core
+    remains the preferred implementation when available.
+    """
+    started = started or time.perf_counter()
+    router = str(envelope.get("router") or "unknown")
+    source = str(envelope.get("source") or "unknown")
+    status = str(envelope.get("status") or "ok")
+    rows = envelope.get("rows") if isinstance(envelope.get("rows"), list) else []
+    row_count = len(rows)
+    try:
+        previous_success_count = int(envelope.get("previous_success_count") or 0)
+    except Exception:
+        previous_success_count = 0
+    failed_reads = envelope.get("failed_reads") if isinstance(envelope.get("failed_reads"), list) else []
+    safe_for_cleanup = True
+    errors = []
+    warnings = []
+    if status in {"failed", "partial"} or failed_reads:
+        safe_for_cleanup = False
+        errors.append({
+            "code": "collector_not_trusted",
+            "severity": "error",
+            "path": f"collector.{router}.{source}",
+            "message": f"Collector output for {router}/{source} is not trusted: status={status}, failed_reads={len(failed_reads)}",
+            "safe_for_cleanup": False,
+        })
+    if row_count == 0 and previous_success_count > 0 and status != "zero_valid":
+        safe_for_cleanup = False
+        warnings.append({
+            "code": "collector_zero_suspicious",
+            "severity": "warning",
+            "path": f"collector.{router}.{source}.rows",
+            "message": f"Collector returned zero rows for {router}/{source} after previous successful non-zero run",
+            "value": row_count,
+            "safe_for_cleanup": False,
+        })
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "validate-collector-output",
+        "request_id": envelope.get("request_id"),
+        "available": False,
+        "ok": not errors,
+        "result": {
+            "router": router,
+            "source": source,
+            "status": status,
+            "row_count": row_count,
+            "safe_for_cleanup": safe_for_cleanup,
+            "write_allowed": not errors,
+            "apply_allowed": not errors,
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {
+            "engine": "python-wrapper",
+            "mode": "python_contract_fallback",
+            "duration_ms": round((time.perf_counter() - started) * 1000, 3),
+        },
+    }
+
+
+def collector_output_envelope(router: dict | str, source: str, active_codes, *, previous_success_count: int = 0, status: str = "ok", failed_reads: list[str] | None = None, read_counts: dict[str, Any] | None = None, metrics: dict[str, Any] | None = None) -> dict[str, Any]:
+    router_name = router.get("name") if isinstance(router, dict) else router
+    rows = sorted(str(code) for code in (active_codes or []))
+    # A never-before-seen zero result can be legitimate on a fresh source, but a
+    # zero result after prior success must be classified by the validator as
+    # suspicious unless the caller explicitly marks it zero_valid.
+    effective_status = status
+    if not rows and int(previous_success_count or 0) <= 0 and status == "ok":
+        effective_status = "zero_valid"
+    return {
+        "router": str(router_name or "unknown"),
+        "source": str(source or "unknown"),
+        "status": effective_status,
+        "rows": rows,
+        "previous_success_count": int(previous_success_count or 0),
+        "failed_reads": failed_reads or [],
+        "read_counts": read_counts or {},
+        "metrics": metrics or {},
+    }
+
+
+def rust_diff_files(config: dict, *, current_csv_text: str, proposed_csv_text: str, current_network_text: str, proposed_network_text: str) -> dict[str, Any]:
+    payload = {
+        "current_csv_text": current_csv_text or "",
+        "proposed_csv_text": proposed_csv_text or "",
+        "current_network_text": current_network_text or "{}",
+        "proposed_network_text": proposed_network_text or "{}",
+    }
+    return call_rust_core("diff-files", payload, config=config)
+
+
 def _project_root() -> Path:
     return Path(__file__).resolve().parent.parent
 
@@ -162,7 +259,13 @@ def validate_runtime_outputs(config: dict, *, csv_text: str | None = None, netwo
 
 
 def validate_collector_output(config: dict, envelope: dict[str, Any]) -> dict[str, Any]:
-    return call_rust_core("validate-collector-output", envelope, config=config)
+    response = call_rust_core("validate-collector-output", envelope, config=config)
+    # If the Rust core is not built yet, still enforce the collector trust
+    # contract locally. This closes the silent-empty-list cleanup risk even in
+    # fallback mode.
+    if response.get("skipped") or not response.get("available"):
+        return _python_collector_contract(envelope)
+    return response
 
 
 def diagnostics_to_messages(response: dict[str, Any], *, include_warnings: bool = True) -> tuple[list[str], list[str]]:

@@ -122,6 +122,8 @@ parse-bandwidth
 
 ### v0.2 — Rust Diff + Collector Output Contract
 
+Status in `2.72.0-rc1`: partially implemented. The collector trust envelope is enforced in `run_cycle.py` before cleanup eligibility, Python fallback mirrors the Rust contract, and Rust diff operations are available through `diff-files`, `diff-shaped-devices`, and `diff-network`.
+
 Purpose: protect cleanup/diff from silent partial collector results.
 
 Scope:

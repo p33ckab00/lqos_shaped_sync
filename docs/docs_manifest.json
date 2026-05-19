@@ -428,5 +428,11 @@
     "file": "docs/RUST_CORE_MIGRATION.md",
     "anchor": "current-package-implementation-status",
     "summary": "Current optional lqosync-core scaffold files, operations, build commands, and Python fallback behavior."
+  },
+  "rust.v02_trust_diff": {
+    "title": "Rust Core v0.2 Trust and Diff Update",
+    "file": "docs/RUST_CORE_V02_TRUST_DIFF.md",
+    "anchor": "rust-core-v02-trust-and-diff-update",
+    "summary": "Collector output trust guard, suspicious zero protection, and Rust diff operations for the lqosync-in-rust branch."
   }
 }

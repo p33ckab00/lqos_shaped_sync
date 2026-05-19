@@ -1,3 +1,11 @@
+# 2.72.0-rc1 — Rust Core v0.2 Trust/Diff Guard
+
+- Added Rust `diff-shaped-devices`, `diff-network`, and `diff-files` protocol operations.
+- Added collector trust envelope enforcement inside `run_cycle.py` before source cleanup eligibility.
+- Added Python fallback implementation of the collector trust contract so silent empty collector results are guarded even before the Rust binary is built.
+- Added Dry Run visibility for Rust diff and collector trust diagnostics.
+- Added `docs/RUST_CORE_V02_TRUST_DIFF.md` to document the new safety boundary.
+
 # Release Notes
 
 ## v2.71.0-rc2 - Canonical /opt Install Path Cleanup

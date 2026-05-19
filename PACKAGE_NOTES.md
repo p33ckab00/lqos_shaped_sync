@@ -91,3 +91,7 @@ scripts/install-rust-core.sh
 ```
 
 The existing Python runtime remains primary. Rust validation is exposed as an optional sidecar and is non-blocking by default.
+## 2.72.0-rc1 package note
+
+This package advances the `lqosync-in-rust` branch to Rust Core v0.2. It adds collector output trust guarding and Rust diff operations while keeping Python as the primary runtime. No database is introduced. `/opt/lqosync` and `/opt/libreqos` remain the canonical paths.
+

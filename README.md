@@ -143,6 +143,11 @@ See [Repository Rename Guide](docs/REPOSITORY_RENAME.md).
 
 Compatibility note: the systemd service can remain `lqosync` even after the GitHub repository/product name is LQoSync.
 
+
+### LQoSync-in-Rust v0.2 Trust/Diff Guard
+
+The `lqosync-in-rust` branch now includes an optional Rust v0.2 safety layer: collector output trust validation and Rust diff operations. The collector trust guard protects cleanup from silent empty/partial RouterOS results, while the Rust diff report is surfaced in Dry Run under `rust_core_diff`. Python remains the primary runtime and fallback remains active when the Rust binary is not built.
+
 ## Core Modules
 
 | Module | Purpose |

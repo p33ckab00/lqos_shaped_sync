@@ -35,7 +35,10 @@ from engine.policy_engine import (
 )
 from engine.insights import compute_smart_insights
 from engine.lifecycle import update_lifecycle_state
-from engine.rust_core import validate_runtime_outputs, diagnostics_to_messages
+from engine.rust_core import (
+    validate_runtime_outputs, diagnostics_to_messages, validate_collector_output,
+    collector_output_envelope, rust_diff_files,
+)
 
 
 class Timeline:
@@ -237,8 +240,50 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
                     try:
                         active_codes, updated = processor(api, router, ctx)
                         source_label = {"pppoe": "PPP", "dhcp": "DHCP", "hotspot": "HS"}.get(pname, pname.upper())
-                        source_success.add(source_label)
-                        timeline.record(f"router.{router.get('name','unknown')}.{pname}", pt, details={"active": len(active_codes), "updated": bool(updated), "source_success": True})
+                        metric_key = f"{router.get('name','unknown')}.{pname}"
+                        source_metrics = ctx.collector_metrics.get(metric_key, {}) if isinstance(ctx.collector_metrics, dict) else {}
+                        previous_success_count = int((policy_state.get("last_successful_source_counts", {}) or {}).get(source_label, 0) or 0)
+                        trust_envelope = collector_output_envelope(
+                            router,
+                            source_label,
+                            active_codes,
+                            previous_success_count=previous_success_count,
+                            status="ok",
+                            read_counts={k: v for k, v in (source_metrics or {}).items() if k.endswith("_loaded") or k.endswith("_sessions") or k.endswith("_leases") or k.endswith("_users") or k.endswith("_matched")},
+                            metrics=source_metrics,
+                        )
+                        trust = validate_collector_output(config, trust_envelope)
+                        result.diff.setdefault("collector_trust", []).append(trust)
+                        safe_for_cleanup = bool((trust.get("result") or {}).get("safe_for_cleanup", True))
+                        trust_errors, trust_warnings = diagnostics_to_messages(trust)
+                        if safe_for_cleanup:
+                            source_success.add(source_label)
+                        else:
+                            result.warnings.append(f"Collector trust guard held cleanup for {router.get('name')}/{source_label}")
+                            result.warnings.extend(trust_errors)
+                        result.warnings.extend(trust_warnings)
+                        ctx.collector_metrics[f"{metric_key}.trust"] = {
+                            "source": source_label,
+                            "safe_for_cleanup": safe_for_cleanup,
+                            "row_count": len(active_codes),
+                            "previous_success_count": previous_success_count,
+                            "status": (trust.get("result") or {}).get("status"),
+                            "warnings": len(trust.get("warnings") or []),
+                            "errors": len(trust.get("errors") or []),
+                        }
+                        timeline.record(
+                            f"router.{router.get('name','unknown')}.{pname}",
+                            pt,
+                            status="ok" if safe_for_cleanup else "cleanup_held",
+                            details={
+                                "active": len(active_codes),
+                                "updated": bool(updated),
+                                "source_success": safe_for_cleanup,
+                                "safe_for_cleanup": safe_for_cleanup,
+                                "trust_warnings": len(trust.get("warnings") or []),
+                                "trust_errors": len(trust.get("errors") or []),
+                            },
+                        )
                         router_active.update(active_codes)
                         router_updated = router_updated or updated
                     except Exception as source_error:
@@ -312,10 +357,20 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
         result.csv_changed = current_csv_text != proposed_csv_text
         result.network_changed = current_network_text != proposed_network_text
         result.files_changed = result.csv_changed or result.network_changed
+        collector_trust_results = result.diff.get("collector_trust", []) if isinstance(result.diff, dict) else []
         result.diff = {
             "csv": diff_rows(current_rows, ctx.existing_data),
             "network": diff_network(current_network, ctx.network_config),
+            "collector_trust": collector_trust_results,
         }
+        rust_diff = rust_diff_files(
+            config,
+            current_csv_text=current_csv_text,
+            proposed_csv_text=proposed_csv_text,
+            current_network_text=current_network_text,
+            proposed_network_text=proposed_network_text,
+        )
+        result.diff["rust_core_diff"] = rust_diff
         client_change_summary = build_client_change_summary(result.diff.get("csv", {}), ctx.meta)
         result.diff["client_change_summary"] = client_change_summary
         result.diff["client_changes"] = client_change_summary.get("changes", [])

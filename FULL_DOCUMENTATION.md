@@ -7518,3 +7518,10 @@ Build commands:
 scripts/build-rust-core.sh
 sudo scripts/install-rust-core.sh
 ```
+
+## Rust Core v0.2 Trust and Diff Guard
+
+The `lqosync-in-rust` branch now includes a second Rust-core integration step. The sync cycle builds a collector trust envelope after each PPPoE, DHCP, and Hotspot processor result. A source is only added to cleanup eligibility when the trust response reports `safe_for_cleanup=true`. This protects against silent empty or partial RouterOS API results.
+
+The Rust core also provides `diff-shaped-devices`, `diff-network`, and `diff-files` protocol operations. Python's existing diff remains the primary UI-compatible diff, while the Rust diff appears in Dry Run as `rust_core_diff` for cross-checking and future migration.
+

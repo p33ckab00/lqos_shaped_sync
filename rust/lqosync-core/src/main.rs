@@ -2,6 +2,7 @@ use anyhow::Context;
 use clap::Parser;
 use lqosync_core::bandwidth::{convert_to_mbps, parse_comment_bandwidth, parse_rate_limit};
 use lqosync_core::protocol::{CoreRequest, CoreResponse, PROTOCOL_VERSION};
+use lqosync_core::diff::{diff_files_payload, diff_network_text, diff_shaped_devices_text};
 use lqosync_core::network::{collect_node_names, parse_network_text, validate_network};
 use lqosync_core::shaped_devices::{parse_csv_text, render_csv_text, validate_rows};
 use lqosync_core::validators::{validate_collector_output_payload, validate_config_value, validate_files_payload};
@@ -67,6 +68,22 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
         }
         "validate-collector-output" => {
             let (result, errors, warnings) = validate_collector_output_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "diff-shaped-devices" => {
+            let current = req.payload.get("current_csv_text").and_then(Value::as_str).unwrap_or("");
+            let proposed = req.payload.get("proposed_csv_text").and_then(Value::as_str).unwrap_or("");
+            let (result, errors, warnings) = diff_shaped_devices_text(current, proposed);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "diff-network" => {
+            let current = req.payload.get("current_network_text").and_then(Value::as_str).unwrap_or("{}");
+            let proposed = req.payload.get("proposed_network_text").and_then(Value::as_str).unwrap_or("{}");
+            let (result, errors, warnings) = diff_network_text(current, proposed);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "diff-files" => {
+            let (result, errors, warnings) = diff_files_payload(&req.payload);
             Ok(CoreResponse::validation(req, result, errors, warnings, started))
         }
         other => Ok(CoreResponse::failure(

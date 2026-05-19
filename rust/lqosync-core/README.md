@@ -32,3 +32,16 @@ sudo scripts/install-rust-core.sh
 printf '%s' '{"version":"1","op":"parse-bandwidth","payload":{"parser":"rate_limit","value":"10M/5M"}}' \
   | rust/lqosync-core/target/release/lqosync-core
 ```
+## v0.2 operations
+
+The v0.2 core adds trust/diff operations:
+
+```text
+validate-collector-output
+diff-shaped-devices
+diff-network
+diff-files
+```
+
+`validate-collector-output` protects cleanup eligibility from silent partial or suspicious zero collector results. `diff-files` compares current/proposed ShapedDevices and network JSON text and returns added/removed/updated summaries.
+

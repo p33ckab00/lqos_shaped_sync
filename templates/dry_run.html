@@ -50,6 +50,23 @@
 </section>
 {% endif %}
 
+
+{% set rust_diff = result.diff.rust_core_diff if result and result.diff and result.diff.rust_core_diff else None %}
+{% set collector_trust = result.diff.collector_trust if result and result.diff and result.diff.collector_trust else [] %}
+{% if rust_diff or collector_trust %}
+<section class="card" style="margin-top:10px;border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.06)">
+  <div class="card-title"><i class="ti ti-shield-search"></i> Rust Diff & Collector Trust</div>
+  <div class="grid-stats" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+    <div class="stat"><div class="stat-label">Diff core</div><div class="stat-value {{ 'text-accent' if rust_diff and rust_diff.ok else '' }}">{{ 'OK' if rust_diff and rust_diff.ok else ('Fallback' if rust_diff else 'N/A') }}</div></div>
+    <div class="stat"><div class="stat-label">CSV changes</div><div class="stat-value text-dhcp">{{ rust_diff.result.csv.added_count + rust_diff.result.csv.updated_count + rust_diff.result.csv.removed_count if rust_diff and rust_diff.result and rust_diff.result.csv else 0 }}</div></div>
+    <div class="stat"><div class="stat-label">Network changed</div><div class="stat-value {{ 'text-warn' if rust_diff and rust_diff.result and rust_diff.result.network and rust_diff.result.network.changed else '' }}">{{ rust_diff.result.network.changed if rust_diff and rust_diff.result and rust_diff.result.network else false }}</div></div>
+    <div class="stat"><div class="stat-label">Collector checks</div><div class="stat-value {{ 'text-warn' if collector_trust else '' }}">{{ collector_trust|length }}</div></div>
+  </div>
+  <p class="text-sm" style="color:var(--muted);margin-top:10px">The collector trust guard prevents silent empty/partial collector output from being treated as a safe cleanup source. A held source can still appear in diff, but cleanup is skipped for that source until trust is restored or explicitly handled by policy.</p>
+  <details style="margin-top:10px"><summary class="mono text-sm text-dhcp" style="cursor:pointer">Show Rust diff / collector trust JSON</summary><pre class="mono text-xs scroll-panel" style="margin-top:10px;background:var(--bg0);border:1px solid var(--br0);border-radius:10px;padding:12px;white-space:pre-wrap">{{ {'rust_core_diff': rust_diff, 'collector_trust': collector_trust} | tojson(indent=2) }}</pre></details>
+</section>
+{% endif %}
+
 {% include "dry_run_policy_verdict_fragment.html" %}
 {% include "dry_run_smart_insights_fragment.html" %}
 

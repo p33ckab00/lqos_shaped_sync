@@ -371,3 +371,17 @@ New API:
 GET /api/rust-core/routeros-collector-plan
 POST /api/rust-core/routeros-collector-plan
 ```
+
+
+## Rust Core v2.0.1 Script Permission Hotfix
+
+If a ZIP/manual copy loses executable bits and `scripts/build-rust-core.sh` returns `Permission denied`, run:
+
+```bash
+bash scripts/repair-script-permissions.sh
+bash scripts/build-rust-core.sh
+sudo bash scripts/install-rust-core.sh
+sudo bash scripts/install-rust-core-daemon.sh
+```
+
+A valid v2.0+ self-test must advertise `build-routeros-collector-plan`.

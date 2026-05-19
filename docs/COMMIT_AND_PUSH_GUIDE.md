@@ -482,3 +482,13 @@ New API:
 GET /api/rust-core/routeros-collector-plan
 POST /api/rust-core/routeros-collector-plan
 ```
+
+
+## Commit example — v2.90.1-rc1
+
+```bash
+git add .
+git commit -m "packaging(rust): fix script permission deployment issue" \
+  -m "Add script permission repair helper, preserve executable bits for Rust build/install helpers, and document bash fallback commands for ZIP/manual installs."
+git push -u origin lqosync-in-rust
+```

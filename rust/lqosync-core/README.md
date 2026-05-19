@@ -178,3 +178,17 @@ It is a plan-only operation:
 - Python collectors remain authoritative.
 
 The operation is a bridge toward a future Rust RouterOS transport by freezing the expected RouterOS resources, selected fields, and source trust roles before live collection is migrated.
+
+
+## v2.0.1 script permission hotfix
+
+If scripts are not executable after extracting a package:
+
+```bash
+bash scripts/repair-script-permissions.sh
+bash scripts/build-rust-core.sh
+sudo bash scripts/install-rust-core.sh
+sudo bash scripts/install-rust-core-daemon.sh
+```
+
+The v2.0+ self-test should advertise `build-routeros-collector-plan`.

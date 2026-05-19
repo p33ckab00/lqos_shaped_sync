@@ -212,3 +212,8 @@ New API:
 GET /api/rust-core/routeros-collector-plan
 POST /api/rust-core/routeros-collector-plan
 ```
+
+
+## v2.90.1-rc1 package note
+
+Packaging hotfix for script executable-bit loss during ZIP/manual deployment. Use `bash scripts/repair-script-permissions.sh` or call helpers through `bash`.

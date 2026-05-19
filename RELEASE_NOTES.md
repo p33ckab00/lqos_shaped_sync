@@ -1871,3 +1871,11 @@ New API:
 GET /api/rust-core/routeros-collector-plan
 POST /api/rust-core/routeros-collector-plan
 ```
+
+
+## v2.90.1-rc1 — Rust Core v2.0.1 Script Permission Hotfix
+
+- Marks install/build helper scripts as executable in the package.
+- Adds `scripts/repair-script-permissions.sh`.
+- Documents `bash scripts/...` fallback commands.
+- Clarifies that a v2.0+ install should advertise `build-routeros-collector-plan` in `self-test`.

@@ -5,7 +5,7 @@ SERVICE_SRC="$ROOT_DIR/systemd/lqosync-core.service"
 SERVICE_DEST="${LQOSYNC_CORE_SERVICE_DEST:-/etc/systemd/system/lqosync-core.service}"
 BIN="${LQOSYNC_CORE_DEST:-/usr/local/bin/lqosync-core}"
 if [ ! -x "$BIN" ]; then
-  echo "Rust core binary not installed at $BIN. Run sudo scripts/install-rust-core.sh first." >&2
+  echo "Rust core binary not installed at $BIN. Run sudo bash scripts/install-rust-core.sh first." >&2
   exit 1
 fi
 install -m 0644 "$SERVICE_SRC" "$SERVICE_DEST"

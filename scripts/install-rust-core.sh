@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# If direct execution fails after ZIP/manual copy, run:
+# bash scripts/repair-script-permissions.sh
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BIN="$ROOT_DIR/rust/lqosync-core/target/release/lqosync-core"
 DEST="${LQOSYNC_CORE_DEST:-/usr/local/bin/lqosync-core}"

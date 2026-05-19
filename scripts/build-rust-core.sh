@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# LQoSync Rust core build helper. If direct execution fails after ZIP/manual copy,
+# run: bash scripts/repair-script-permissions.sh
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CORE_DIR="$ROOT_DIR/rust/lqosync-core"
 if ! command -v cargo >/dev/null 2>&1; then

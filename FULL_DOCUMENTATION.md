@@ -7633,3 +7633,8 @@ New API:
 GET /api/rust-core/routeros-collector-plan
 POST /api/rust-core/routeros-collector-plan
 ```
+
+
+## Rust Core v2.0.1 Script Permission Hotfix
+
+This package includes `scripts/repair-script-permissions.sh` and documents `bash scripts/...` fallback commands for systems where archive extraction loses executable bits. Verify v2.0+ by checking that `self-test` advertises `build-routeros-collector-plan`.

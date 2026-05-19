@@ -1922,3 +1922,8 @@ Adds `run-routeros-read-pilot`, an offline fixture adapter that exercises the Ro
 - Added redaction-safe `.proplist` handling and word length metadata.
 - Added WebUI API wrapper and self-test coverage.
 - Still no live MikroTik sockets and no full Rust backend authority.
+
+
+## Rust Core v2.6 RouterOS API Reply Codec
+
+Adds `decode-routeros-api-reply`, an offline RouterOS API reply parser that decodes already-captured `!re`/`!trap`/`!done` words into sanitized rows/traps while keeping Rust RouterOS live transport disabled by default.

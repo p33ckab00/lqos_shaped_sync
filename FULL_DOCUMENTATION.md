@@ -7672,3 +7672,8 @@ Adds `run-routeros-read-pilot`, an offline fixture adapter that exercises the Ro
 ### Rust Core v2.5.1 RouterOS API Codec Redaction Hotfix
 
 `lqosync-core` v2.5.1 keeps the offline RouterOS API codec warning-clean and redacts dropped sensitive `.proplist` field names from result payloads. Valid RouterOS resource paths such as `/ppp/secret` remain allowed, but dropped fields such as `password` or `api-key` are reported only by count.
+
+
+## Rust Core v2.6 RouterOS API Reply Codec
+
+Adds `decode-routeros-api-reply`, an offline RouterOS API reply parser that decodes already-captured `!re`/`!trap`/`!done` words into sanitized rows/traps while keeping Rust RouterOS live transport disabled by default.

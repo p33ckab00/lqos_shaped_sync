@@ -2069,6 +2069,107 @@ def rust_build_routeros_api_sentence(config: dict, payload: dict[str, Any] | Non
         return _python_build_routeros_api_sentence(req_payload, started=started)
     return response
 
+
+
+def _python_decode_routeros_api_reply(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    words = payload.get("words")
+    if not isinstance(words, list):
+        sentences = payload.get("sentences")
+        if isinstance(sentences, list):
+            words = []
+            for sent in sentences:
+                if isinstance(sent, list):
+                    words.extend(str(x) for x in sent)
+        else:
+            raw_text = str(payload.get("raw_text") or "")
+            words = [line.strip() for line in raw_text.splitlines() if line.strip()]
+    errors = []
+    warnings = []
+    if not words:
+        errors.append({"code": "routeros_api_reply_missing_words", "severity": "error", "path": "words", "message": "RouterOS API reply decoder requires words, sentences, or raw_text."})
+    if bool(payload.get("execute")) or str(payload.get("adapter") or "").lower() == "live" or str(payload.get("mode") or "").lower() == "live":
+        errors.append({"code": "routeros_api_reply_decode_is_offline_only", "severity": "error", "path": "execute", "message": "RouterOS API reply decoder is offline-only in the Python fallback."})
+    rows = []
+    traps = []
+    done_count = 0
+    current_type = None
+    current = {}
+    dropped = 0
+    def flush():
+        nonlocal current_type, current, done_count
+        if not current_type:
+            return
+        if current_type == "!re":
+            rows.append(dict(current))
+        elif current_type in {"!trap", "!fatal"}:
+            traps.append(dict(current))
+        elif current_type == "!done":
+            done_count += 1
+        current_type = None
+        current = {}
+    for word in words:
+        w = str(word)
+        if w.startswith("!"):
+            flush()
+            current_type = w
+            continue
+        if not current_type or not w.startswith("="):
+            continue
+        rest = w[1:]
+        if "=" not in rest:
+            continue
+        key, value = rest.split("=", 1)
+        lowered = key.lower()
+        if any(token in lowered for token in ("password", "secret", "token", "key")):
+            dropped += 1
+            continue
+        current[key] = value
+    flush()
+    if dropped:
+        warnings.append({"code": "routeros_api_reply_sensitive_fields_redacted", "severity": "warning", "path": "words", "message": "Sensitive RouterOS reply fields were removed from decoded rows/traps."})
+    if errors:
+        status = "blocked"
+    elif traps:
+        status = "trap"
+    elif rows:
+        status = "decoded"
+    elif done_count:
+        status = "done"
+    else:
+        status = "empty"
+    result = {
+        "mode": "routeros_api_reply_decoder",
+        "status": status,
+        "authority": "none",
+        "full_rust_backend": False,
+        "live_transport_supported": False,
+        "connection_attempt_count": 0,
+        "adapter": str(payload.get("adapter") or "offline_words"),
+        "word_count": len(words),
+        "row_count": len(rows),
+        "trap_count": len(traps),
+        "done_count": done_count,
+        "rows": rows,
+        "traps": traps,
+        "dropped_sensitive_field_count": dropped,
+        "dropped_sensitive_fields_redacted": True,
+        "credential_material": "redacted_or_absent",
+        "note": "Python fallback decodes already-captured RouterOS API reply words only; no sockets are opened.",
+    }
+    return {"version": PROTOCOL_VERSION, "op": "decode-routeros-api-reply", "ok": not errors, "available": False, "skipped": True, "result": result, "errors": errors, "warnings": warnings, "meta": {"engine": "python-fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)}}
+
+
+def rust_decode_routeros_api_reply(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config or {})
+    response = call_rust_core("decode-routeros-api-reply", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_decode_routeros_api_reply(req_payload, started=started)
+    return response
+
 def _python_validate_routeros_read_results(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
     started = started or time.perf_counter()
     plan = payload.get("plan") if isinstance(payload.get("plan"), dict) else {}

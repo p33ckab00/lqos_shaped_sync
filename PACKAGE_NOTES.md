@@ -255,3 +255,8 @@ Adds `run-routeros-read-pilot`, an offline fixture adapter that exercises the Ro
 ## v2.95.0-rc1 package note
 
 Adds the Rust RouterOS API sentence codec foundation for future read-only Rust transport. This package remains hybrid and safe by default.
+
+
+## Rust Core v2.6 RouterOS API Reply Codec
+
+Adds `decode-routeros-api-reply`, an offline RouterOS API reply parser that decodes already-captured `!re`/`!trap`/`!done` words into sanitized rows/traps while keeping Rust RouterOS live transport disabled by default.

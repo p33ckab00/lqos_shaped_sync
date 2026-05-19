@@ -578,5 +578,11 @@
         "file": "docs/RUST_CORE_V25_ROUTEROS_API_CODEC.md",
         "anchor": "rust-core-v25-routeros-api-sentence-codec",
         "summary": "Offline RouterOS API sentence codec with redacted sensitive proplist field reporting and v2.5.1 redaction hotfix."
+    },
+    "rust.v26_routeros_api_reply_codec": {
+        "title": "Rust Core v2.6 RouterOS API Reply Codec",
+        "file": "docs/RUST_CORE_V26_ROUTEROS_API_REPLY_CODEC.md",
+        "anchor": "rust-core-v26-routeros-api-reply-codec--offline-parser",
+        "summary": "Offline RouterOS API reply word decoder for sanitized rows/traps before live Rust socket transport."
     }
 }

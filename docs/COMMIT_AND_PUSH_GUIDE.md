@@ -526,3 +526,8 @@ git commit -m "rust(core): add RouterOS API sentence codec" \
   -m "Add build-routeros-api-sentence, offline RouterOS API print/proplist encoding, self-test coverage, Python/API wrapper, and documentation before live Rust RouterOS socket transport."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Rust Core v2.6 RouterOS API Reply Codec
+
+Adds `decode-routeros-api-reply`, an offline RouterOS API reply parser that decodes already-captured `!re`/`!trap`/`!done` words into sanitized rows/traps while keeping Rust RouterOS live transport disabled by default.

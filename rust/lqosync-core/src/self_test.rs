@@ -13,6 +13,7 @@ use crate::routeros_transport::build_routeros_transport_session_payload;
 use crate::routeros_live_pilot::build_routeros_live_read_pilot_payload;
 use crate::routeros_read_pilot::run_routeros_read_pilot_payload;
 use crate::routeros_api_codec::build_routeros_api_sentence_payload;
+use crate::routeros_api_reply::decode_routeros_api_reply_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -39,6 +40,7 @@ pub const OP_BUILD_ROUTEROS_TRANSPORT_SESSION: &str = "build-routeros-transport-
 pub const OP_BUILD_ROUTEROS_LIVE_READ_PILOT: &str = "build-routeros-live-read-pilot";
 pub const OP_RUN_ROUTEROS_READ_PILOT: &str = "run-routeros-read-pilot";
 pub const OP_BUILD_ROUTEROS_API_SENTENCE: &str = "build-routeros-api-sentence";
+pub const OP_DECODE_ROUTEROS_API_REPLY: &str = "decode-routeros-api-reply";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -79,6 +81,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_ROUTEROS_LIVE_READ_PILOT,
         OP_RUN_ROUTEROS_READ_PILOT,
         OP_BUILD_ROUTEROS_API_SENTENCE,
+        OP_DECODE_ROUTEROS_API_REPLY,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -287,6 +290,19 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     checks.push(check("routeros_api_sentence_codec", api_sentence_ok, json!({"status": api_sentence.get("status"), "word_count": api_sentence.get("word_count"), "connection_attempt_count": api_sentence.get("connection_attempt_count")})));
     if !api_sentence_ok {
         errors.push(Diagnostic::error("self_test_routeros_api_sentence_failed", Some("build-routeros-api-sentence".to_string()), "Self-test RouterOS API sentence codec should encode a print command offline without attempting a connection."));
+    }
+
+    let api_reply_payload = json!({
+        "words": ["!re", "=name=selftest", "=address=10.0.0.2", "!done"]
+    });
+    let (api_reply, api_reply_errors, _api_reply_warnings) = decode_routeros_api_reply_payload(&api_reply_payload);
+    let api_reply_ok = api_reply_errors.is_empty()
+        && api_reply.get("status").and_then(Value::as_str) == Some("decoded")
+        && api_reply.get("row_count").and_then(Value::as_u64).unwrap_or(0) == 1
+        && api_reply.get("connection_attempt_count").and_then(Value::as_u64).unwrap_or(1) == 0;
+    checks.push(check("routeros_api_reply_decoder", api_reply_ok, json!({"status": api_reply.get("status"), "row_count": api_reply.get("row_count"), "connection_attempt_count": api_reply.get("connection_attempt_count")})));
+    if !api_reply_ok {
+        errors.push(Diagnostic::error("self_test_routeros_api_reply_failed", Some("decode-routeros-api-reply".to_string()), "Self-test RouterOS API reply decoder should decode offline reply words without attempting a connection."));
     }
 
     let collector_bundle_payload = json!({

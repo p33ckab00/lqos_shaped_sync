@@ -560,5 +560,11 @@
         "file": "docs/RUST_CORE_V22_ROUTEROS_TRANSPORT_SESSION.md",
         "anchor": "rust-core-v22-routeros-transport-session-rehearsal",
         "summary": "Non-network RouterOS transport rehearsal with credential redaction and live transport blocking before Rust RouterOS API migration."
+    },
+    "rust.v23_routeros_live_read_pilot": {
+        "title": "Rust Core v2.3 RouterOS Live Read Pilot Gate",
+        "file": "docs/RUST_CORE_V23_ROUTEROS_LIVE_READ_PILOT.md",
+        "anchor": "rust-core-v23-routeros-live-read-pilot-gate",
+        "summary": "Gated non-network live-read pilot contract for a future read-only Rust RouterOS transport adapter."
     }
 }

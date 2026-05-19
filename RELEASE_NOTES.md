@@ -1898,3 +1898,8 @@ POST /api/rust-core/routeros-collector-plan
 ## Rust Core v2.2 RouterOS Transport Session Rehearsal
 
 Adds `build-routeros-transport-session`, a non-network RouterOS transport rehearsal that redacts credentials, reports planned sessions, blocks live Rust RouterOS transport attempts, and keeps Python live collectors authoritative.
+
+
+## Rust Core v2.3 RouterOS Live Read Pilot Gate
+
+LQoSync 2.93.0-rc1 / lqosync-core 2.3.0 adds `build-routeros-live-read-pilot`, a gated non-network contract for a future read-only Rust RouterOS transport adapter. Python collectors remain authoritative and Rust still does not open MikroTik sockets.

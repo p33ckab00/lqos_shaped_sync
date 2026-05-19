@@ -87,6 +87,8 @@ DEFAULT_CONFIG = {
         "routeros_transport_authority": "plan_only",
         "allow_rust_routeros_live_reads": False,
         "allow_rust_routeros_credentials": False,
+        "routeros_live_read_pilot": False,
+        "routeros_live_read_timeout_seconds": 5,
     },
     "collector": {
         "selective_fields": True,
@@ -545,10 +547,16 @@ def validate_config(cfg: dict):
     rust_core.setdefault("routeros_transport_authority", "plan_only")
     rust_core.setdefault("allow_rust_routeros_live_reads", False)
     rust_core.setdefault("allow_rust_routeros_credentials", False)
+    rust_core.setdefault("routeros_live_read_pilot", False)
+    rust_core.setdefault("routeros_live_read_timeout_seconds", 5)
     if rust_core.get("authority_mode") not in ("shadow", "enforce_blockers"):
         errors.append(f"rust_core.authority_mode invalid: {rust_core.get('authority_mode')}")
     if rust_core.get("routeros_transport_authority") not in ("plan_only", "live_read_pilot"):
         errors.append(f"rust_core.routeros_transport_authority invalid: {rust_core.get('routeros_transport_authority')}")
+    try:
+        rust_core["routeros_live_read_timeout_seconds"] = max(int(rust_core.get("routeros_live_read_timeout_seconds", 5) or 5), 1)
+    except Exception:
+        errors.append("rust_core.routeros_live_read_timeout_seconds must be numeric")
     # Compatibility: authority_mode=enforce_blockers implies sync-plan enforcement.
     if rust_core.get("authority_mode") == "enforce_blockers":
         rust_core["enforce_sync_plan"] = True

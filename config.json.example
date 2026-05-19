@@ -558,6 +558,8 @@
         "collector_bundle_authority": "shadow",
         "routeros_transport_authority": "plan_only",
         "allow_rust_routeros_live_reads": false,
-        "allow_rust_routeros_credentials": false
+        "allow_rust_routeros_credentials": false,
+        "routeros_live_read_pilot": false,
+        "routeros_live_read_timeout_seconds": 5
     }
 }

@@ -177,3 +177,5 @@ Adds `compare-collector-bundle-parity`, a diagnostic operation and API endpoint 
 - [Rust Core v2.1 RouterOS Read Result Contract](RUST_CORE_V21_ROUTEROS_READ_RESULTS.md)
 
 - [Rust Core v2.2 RouterOS Transport Session Rehearsal](RUST_CORE_V22_ROUTEROS_TRANSPORT_SESSION.md)
+
+- [Rust Core v2.3 RouterOS Live Read Pilot Gate](RUST_CORE_V23_ROUTEROS_LIVE_READ_PILOT.md)

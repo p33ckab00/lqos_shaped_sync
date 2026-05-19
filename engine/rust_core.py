@@ -1891,6 +1891,77 @@ def rust_build_routeros_transport_session(config: dict, payload: dict[str, Any] 
     return response
 
 
+
+def _python_build_routeros_live_read_pilot(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    cfg = payload.get("config") if isinstance(payload.get("config"), dict) else {}
+    plan_response = _python_build_routeros_collector_plan(payload, started=started)
+    plan = plan_response.get("result") if isinstance(plan_response.get("result"), dict) else {}
+    commands = plan.get("commands") if isinstance(plan.get("commands"), list) else []
+    router = str(payload.get("router") or "").strip()
+    source = str(payload.get("source") or "").strip().lower()
+    path = str(payload.get("path") or "").strip()
+    selected = None
+    for cmd in commands:
+        if router and cmd.get("router") != router:
+            continue
+        if source and cmd.get("source") != source:
+            continue
+        if path and cmd.get("path") != path:
+            continue
+        selected = {k: cmd.get(k) for k in ("router", "source", "path", "fields", "required", "purpose", "trust_role")}
+        break
+    rust_core = cfg.get("rust_core", {}) if isinstance(cfg.get("rust_core"), dict) else {}
+    execute = bool(payload.get("execute", False)) or str(payload.get("mode") or "") == "live"
+    pilot_enabled = bool(payload.get("pilot_enabled", rust_core.get("routeros_live_read_pilot", False)))
+    allow_live_reads = bool(payload.get("allow_live_reads", rust_core.get("allow_rust_routeros_live_reads", False)))
+    allow_credentials = bool(payload.get("allow_credentials", rust_core.get("allow_rust_routeros_credentials", False)))
+    authority = str(rust_core.get("routeros_transport_authority") or "plan_only")
+    errors = []
+    warnings = list(plan_response.get("warnings") or [])
+    if selected is None:
+        errors.append({"code": "routeros_live_read_no_planned_command", "severity": "error", "path": "routeros_live_read_pilot", "message": "No RouterOS read command matched the requested router/source/path pilot selection."})
+    if execute and not pilot_enabled:
+        errors.append({"code": "routeros_live_read_pilot_disabled", "severity": "error", "path": "rust_core.routeros_live_read_pilot", "message": "Rust RouterOS live-read pilot is disabled."})
+    if execute and not allow_live_reads:
+        errors.append({"code": "routeros_live_reads_not_allowed", "severity": "error", "path": "rust_core.allow_rust_routeros_live_reads", "message": "Rust RouterOS live reads are not allowed by configuration."})
+    if execute and not allow_credentials:
+        errors.append({"code": "routeros_credentials_not_allowed", "severity": "error", "path": "rust_core.allow_rust_routeros_credentials", "message": "Rust RouterOS credential access is not allowed by configuration."})
+    if execute and authority != "live_read_pilot":
+        errors.append({"code": "routeros_transport_authority_not_live_read_pilot", "severity": "error", "path": "rust_core.routeros_transport_authority", "message": "Rust RouterOS transport authority must be live_read_pilot before any live-read pilot can be attempted."})
+    if execute and pilot_enabled and allow_live_reads and allow_credentials and authority == "live_read_pilot":
+        errors.append({"code": "routeros_live_transport_adapter_not_implemented", "severity": "error", "path": "routeros_live_read_pilot", "message": "Live RouterOS socket transport is still not implemented in Rust. v2.3 only builds and gates the pilot request contract."})
+    result = {
+        "mode": "routeros_live_read_pilot_contract",
+        "status": "blocked" if errors else ("pilot_contract_ready" if selected else "empty"),
+        "authority": "none",
+        "full_rust_backend": False,
+        "live_transport_supported": False,
+        "execute_requested": execute,
+        "connection_attempt_count": 0,
+        "pilot_enabled": pilot_enabled,
+        "allow_live_reads": allow_live_reads,
+        "allow_credentials": allow_credentials,
+        "routeros_transport_authority": authority,
+        "selected_command": selected,
+        "credential_material": "redacted",
+        "next_stage": "rust_routeros_readonly_transport_adapter",
+        "note": "v2.3 builds a gated live-read pilot contract only. It does not open RouterOS sockets or consume credentials.",
+    }
+    return {"version": PROTOCOL_VERSION, "op": "build-routeros-live-read-pilot", "ok": not errors, "available": False, "skipped": True, "result": result, "errors": errors, "warnings": warnings, "meta": {"engine": "python-fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)}}
+
+
+def rust_build_routeros_live_read_pilot(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config or {})
+    response = call_rust_core("build-routeros-live-read-pilot", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_routeros_live_read_pilot(req_payload, started=started)
+    return response
+
+
 def _python_validate_routeros_read_results(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
     started = started or time.perf_counter()
     plan = payload.get("plan") if isinstance(payload.get("plan"), dict) else {}

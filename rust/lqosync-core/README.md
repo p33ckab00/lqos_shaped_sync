@@ -202,3 +202,8 @@ This package adds `validate-routeros-read-results`, a Rust trust contract that v
 ## Rust Core v2.2 RouterOS Transport Session Rehearsal
 
 Adds `build-routeros-transport-session`, a non-network RouterOS transport rehearsal that redacts credentials, reports planned sessions, blocks live Rust RouterOS transport attempts, and keeps Python live collectors authoritative.
+
+
+## v2.3 RouterOS Live Read Pilot Gate
+
+Adds `build-routeros-live-read-pilot` as a non-network, credential-redacted pilot contract before implementing a real RouterOS read-only transport adapter.

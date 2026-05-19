@@ -36,3 +36,4 @@ pub mod routeros_api_codec;
 pub mod routeros_api_reply;
 pub mod routeros_api_frame;
 pub mod routeros_offline_session;
+pub mod routeros_tcp_probe;

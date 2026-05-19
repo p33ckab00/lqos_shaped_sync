@@ -2308,6 +2308,59 @@ def rust_run_routeros_offline_session(config: dict, payload: dict[str, Any] | No
         return _python_run_routeros_offline_session(req_payload, started=started)
     return response
 
+def _python_run_routeros_tcp_connectivity_pilot(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    """Fallback for the RouterOS TCP connectivity pilot.
+
+    The fallback is deliberately conservative: it never opens sockets. Real TCP
+    probe authority belongs to the Rust core only when explicit gates are
+    enabled and the binary supports the operation.
+    """
+    started = started or time.perf_counter()
+    execute = bool(payload.get("execute"))
+    errors: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if execute:
+        errors.append({
+            "code": "routeros_tcp_probe_requires_rust_core",
+            "severity": "error",
+            "path": "rust_core",
+            "message": "Python fallback will not open RouterOS TCP sockets. Install the Rust core and enable explicit TCP pilot gates.",
+        })
+    result = {
+        "mode": "python_fallback",
+        "status": "blocked" if errors else "tcp_connect_rehearsal",
+        "connection_attempt_count": 0,
+        "connected": False,
+        "authentication_attempt_count": 0,
+        "api_sentence_write_count": 0,
+        "api_reply_read_count": 0,
+        "credential_material": "not_requested",
+        "full_rust_backend": False,
+        "live_api_transport_supported": False,
+        "note": "Python fallback never opens RouterOS TCP sockets.",
+    }
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "run-routeros-tcp-connectivity-pilot",
+        "available": False,
+        "ok": not errors,
+        "result": result,
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_tcp_probe_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_run_routeros_tcp_connectivity_pilot(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config or {})
+    response = call_rust_core("run-routeros-tcp-connectivity-pilot", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_run_routeros_tcp_connectivity_pilot(req_payload, started=started)
+    return response
+
 
 def _python_validate_routeros_read_results(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
     started = started or time.perf_counter()

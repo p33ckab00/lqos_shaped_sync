@@ -1,3 +1,9 @@
+## v2.99.0-rc1 Package Notes - Rust Core v2.9 RouterOS TCP Connectivity Pilot
+
+This package adds the `run-routeros-tcp-connectivity-pilot` operation and `/api/rust-core/routeros-tcp-connectivity-pilot` endpoint.
+
+The feature is disabled by default. It is intended to test TCP reachability only when explicitly enabled. It does not authenticate, send RouterOS API words, read replies, or replace the Python collectors.
+
 ## v2.92.1-rc1 Package Notes — RouterOS Transport Redaction Test Hotfix
 ## v2.95.1-rc1 - Rust Core v2.5.1 RouterOS API Codec Redaction Hotfix
 

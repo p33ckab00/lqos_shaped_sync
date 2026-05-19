@@ -545,3 +545,13 @@ git push -u origin lqosync-in-rust
 ## Rust Core v2.8 RouterOS Offline Session Pipeline
 
 Adds `run-routeros-offline-session`, an end-to-end offline RouterOS API session rehearsal. It composes sentence encoding, frame encoding/decoding, and reply decoding using fixtures only. It performs zero live connections, consumes no MikroTik credentials, and keeps Python collectors authoritative.
+
+
+## v2.99.0-rc1 commit example
+
+```bash
+git add .
+git commit -m "rust(core): add RouterOS TCP connectivity pilot" \
+  -m "Add run-routeros-tcp-connectivity-pilot, gated TCP reachability checks, Python/API wrapper, self-test coverage, and documentation before RouterOS authentication or live API reads."
+git push -u origin lqosync-in-rust
+```

@@ -16,6 +16,7 @@ use crate::routeros_api_codec::build_routeros_api_sentence_payload;
 use crate::routeros_api_reply::decode_routeros_api_reply_payload;
 use crate::routeros_api_frame::codec_routeros_api_frame_payload;
 use crate::routeros_offline_session::run_routeros_offline_session_payload;
+use crate::routeros_tcp_probe::run_routeros_tcp_connectivity_pilot_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -45,6 +46,7 @@ pub const OP_BUILD_ROUTEROS_API_SENTENCE: &str = "build-routeros-api-sentence";
 pub const OP_DECODE_ROUTEROS_API_REPLY: &str = "decode-routeros-api-reply";
 pub const OP_CODEC_ROUTEROS_API_FRAME: &str = "codec-routeros-api-frame";
 pub const OP_RUN_ROUTEROS_OFFLINE_SESSION: &str = "run-routeros-offline-session";
+pub const OP_RUN_ROUTEROS_TCP_CONNECTIVITY_PILOT: &str = "run-routeros-tcp-connectivity-pilot";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -88,6 +90,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_DECODE_ROUTEROS_API_REPLY,
         OP_CODEC_ROUTEROS_API_FRAME,
         OP_RUN_ROUTEROS_OFFLINE_SESSION,
+        OP_RUN_ROUTEROS_TCP_CONNECTIVITY_PILOT,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -337,6 +340,23 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     checks.push(check("routeros_offline_session_pipeline", offline_session_ok, json!({"status": offline_session.get("status"), "row_count": offline_session.get("row_count"), "connection_attempt_count": offline_session.get("connection_attempt_count")})));
     if !offline_session_ok {
         errors.push(Diagnostic::error("self_test_routeros_offline_session_failed", Some("run-routeros-offline-session".to_string()), "Self-test RouterOS offline session should round-trip command/reply frames using fixtures only without attempting a connection."));
+    }
+
+    let (tcp_probe, tcp_probe_errors, _tcp_probe_warnings) = run_routeros_tcp_connectivity_pilot_payload(&json!({
+        "router": {"name": "selftest", "address": "127.0.0.1", "port": 8728},
+        "execute": false
+    }));
+    let tcp_probe_ok = tcp_probe_errors.is_empty()
+        && tcp_probe.get("status").and_then(Value::as_str) == Some("tcp_connect_rehearsal")
+        && tcp_probe.get("connection_attempt_count").and_then(Value::as_u64).unwrap_or(1) == 0
+        && tcp_probe.get("authentication_attempt_count").and_then(Value::as_u64).unwrap_or(1) == 0;
+    checks.push(check("routeros_tcp_connectivity_rehearsal", tcp_probe_ok, json!({
+        "status": tcp_probe.get("status"),
+        "connection_attempt_count": tcp_probe.get("connection_attempt_count"),
+        "authentication_attempt_count": tcp_probe.get("authentication_attempt_count")
+    })));
+    if !tcp_probe_ok {
+        errors.push(Diagnostic::error("self_test_routeros_tcp_probe_failed", Some("run-routeros-tcp-connectivity-pilot".to_string()), "Self-test RouterOS TCP connectivity pilot should rehearse without attempting a connection."));
     }
 
     let collector_bundle_payload = json!({

@@ -1,3 +1,11 @@
+## v2.99.0-rc1 - Rust Core v2.9 RouterOS TCP Connectivity Pilot
+
+- Added Rust `run-routeros-tcp-connectivity-pilot` operation.
+- Added a gated TCP reachability pilot for RouterOS transport preparation.
+- Default remains rehearsal-only with zero connection attempts.
+- Rust TCP connect requires explicit `allow_rust_routeros_tcp_connect=true`, `routeros_tcp_connect_pilot=true`, and `routeros_transport_authority=tcp_connect_pilot`.
+- No RouterOS authentication, API command writes, API reply reads, collector authority, or full Rust backend migration is introduced in this release.
+
 ## v2.92.1-rc1 — Rust Core v2.2.1 RouterOS Transport Redaction Test Hotfix
 ## v2.95.1-rc1 - Rust Core v2.5.1 RouterOS API Codec Redaction Hotfix
 

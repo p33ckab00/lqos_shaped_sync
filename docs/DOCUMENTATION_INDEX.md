@@ -189,3 +189,5 @@ Adds `compare-collector-bundle-parity`, a diagnostic operation and API endpoint 
 - [Rust Core v2.7 RouterOS API Frame Codec](RUST_CORE_V27_ROUTEROS_API_FRAME_CODEC.md) — Offline RouterOS API binary frame encoder/decoder before live Rust socket transport.
 
 - [Rust Core v2.8 RouterOS Offline Session Pipeline](RUST_CORE_V28_ROUTEROS_OFFLINE_SESSION.md) — Offline end-to-end RouterOS API protocol session rehearsal using fixtures only.
+
+- [Rust Core v2.9 RouterOS TCP Connectivity Pilot](RUST_CORE_V29_ROUTEROS_TCP_CONNECTIVITY.md) — gated TCP reachability pilot before RouterOS authentication/live API reads.

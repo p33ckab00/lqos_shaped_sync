@@ -596,5 +596,11 @@
         "file": "docs/RUST_CORE_V28_ROUTEROS_OFFLINE_SESSION.md",
         "anchor": "rust-core-v28-routeros-offline-session-pipeline",
         "summary": "End-to-end offline RouterOS API sentence, frame, and reply pipeline using fixtures only before any live Rust socket transport."
+    },
+    "rust.v29_routeros_tcp_connectivity": {
+        "title": "Rust Core v2.9 RouterOS TCP Connectivity Pilot",
+        "file": "docs/RUST_CORE_V29_ROUTEROS_TCP_CONNECTIVITY.md",
+        "anchor": "rust-core-v29-routeros-tcp-connectivity-pilot",
+        "summary": "Gated TCP reachability pilot for Rust RouterOS transport preparation; no authentication or API reads yet."
     }
 }

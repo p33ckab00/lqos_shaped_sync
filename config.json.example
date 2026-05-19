@@ -562,6 +562,9 @@
         "routeros_live_read_pilot": false,
         "routeros_live_read_timeout_seconds": 5,
         "routeros_read_pilot_adapter": "fixture",
-        "allow_rust_routeros_fixture_reads": true
+        "allow_rust_routeros_fixture_reads": true,
+        "routeros_tcp_connect_pilot": false,
+        "allow_rust_routeros_tcp_connect": false,
+        "routeros_tcp_connect_timeout_seconds": 3
     }
 }

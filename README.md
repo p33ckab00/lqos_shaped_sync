@@ -432,3 +432,8 @@ Adds `codec-routeros-api-frame`, an offline RouterOS API binary frame encoder/de
 ## Rust Core v2.8 RouterOS Offline Session Pipeline
 
 Adds `run-routeros-offline-session`, an end-to-end offline RouterOS API session rehearsal. It composes sentence encoding, frame encoding/decoding, and reply decoding using fixtures only. It performs zero live connections, consumes no MikroTik credentials, and keeps Python collectors authoritative.
+
+
+## Rust Core v2.9 RouterOS TCP Connectivity Pilot
+
+The `lqosync-in-rust` branch now includes a gated RouterOS TCP reachability pilot through `run-routeros-tcp-connectivity-pilot`. This remains a transport bridge, not a full Rust backend. Python collectors remain authoritative by default.

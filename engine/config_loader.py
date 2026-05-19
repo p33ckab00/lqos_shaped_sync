@@ -91,6 +91,9 @@ DEFAULT_CONFIG = {
         "routeros_live_read_timeout_seconds": 5,
         "routeros_read_pilot_adapter": "fixture",
         "allow_rust_routeros_fixture_reads": True,
+        "routeros_tcp_connect_pilot": False,
+        "allow_rust_routeros_tcp_connect": False,
+        "routeros_tcp_connect_timeout_seconds": 3,
     },
     "collector": {
         "selective_fields": True,

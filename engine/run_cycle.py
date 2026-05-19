@@ -37,7 +37,7 @@ from engine.insights import compute_smart_insights
 from engine.lifecycle import update_lifecycle_state
 from engine.rust_core import (
     validate_runtime_outputs, diagnostics_to_messages, validate_collector_output,
-    collector_output_envelope, rust_diff_files, rust_evaluate_policy, rust_normalize_circuits, rust_evaluate_sync_plan,
+    collector_output_envelope, rust_diff_files, rust_evaluate_policy, rust_normalize_circuits, rust_evaluate_sync_plan, rust_build_apply_manifest,
 )
 
 
@@ -511,6 +511,40 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
                 "risk_level": sync_plan_result.get("risk_level"),
                 "authoritative": bool(rust_authority_gate.get("authoritative", False)),
                 "authority_gate": rust_authority_gate.get("reason"),
+            },
+        )
+        t_apply_manifest = time.perf_counter()
+        rust_apply_manifest = rust_build_apply_manifest(
+            config,
+            mode=mode,
+            paths=paths,
+            current_csv_text=current_csv_text,
+            proposed_csv_text=proposed_csv_text,
+            current_network_text=current_network_text,
+            proposed_network_text=proposed_network_text,
+            files_changed=result.files_changed,
+            csv_changed=result.csv_changed,
+            network_changed=result.network_changed,
+            policy_decision=python_policy_dict,
+            rust_sync_plan=rust_sync_plan,
+            rust_authority_gate=rust_authority_gate,
+            state=state_before,
+        )
+        result.diff["rust_apply_manifest"] = rust_apply_manifest
+        apply_manifest_result = rust_apply_manifest.get("result", {}) if isinstance(rust_apply_manifest, dict) else {}
+        if rust_apply_manifest.get("available") and not rust_apply_manifest.get("ok"):
+            manifest_errors, manifest_warnings = diagnostics_to_messages(rust_apply_manifest)
+            result.warnings.extend([f"Rust apply manifest: {msg}" for msg in manifest_errors + manifest_warnings])
+        timeline.record(
+            "rust_apply_manifest",
+            t_apply_manifest,
+            status="ok" if rust_apply_manifest.get("ok") else ("unavailable" if not rust_apply_manifest.get("available") else "check"),
+            details={
+                "available": bool(rust_apply_manifest.get("available")),
+                "ok": bool(rust_apply_manifest.get("ok")),
+                "manifest_id": apply_manifest_result.get("manifest_id"),
+                "status": apply_manifest_result.get("status"),
+                "operations": apply_manifest_result.get("operation_count"),
             },
         )
         result.diff["policy_decision"] = python_policy_dict

@@ -283,3 +283,8 @@ The `lqosync-in-rust` branch now includes `evaluate-sync-plan`, a shadow-only en
 - Added fail-closed behavior when enforced Rust core is unavailable.
 - Dry Run remains preview-only; Python remains default authority unless enforcement is enabled.
 - Added documentation: `docs/RUST_CORE_V08_AUTHORITY_GATES.md`.
+
+
+## Rust Core v0.9 Apply Manifest Preview
+
+The `lqosync-in-rust` branch now includes a non-destructive Rust apply manifest that previews the backup/write/pending-apply/LibreQoS apply transaction before Python executes it. Python remains authoritative by default.

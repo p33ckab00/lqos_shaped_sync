@@ -6,6 +6,7 @@
 //! future Unix socket daemon.
 
 pub mod atomic_state;
+pub mod apply_manifest;
 pub mod bandwidth;
 pub mod circuits;
 pub mod network;

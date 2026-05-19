@@ -358,3 +358,13 @@ git commit -m "rust(core): add opt-in sync plan authority gate" \
   -m "Add rust_core.enforce_sync_plan and authority_mode=enforce_blockers so operators can opt into Rust sync-plan blocker enforcement while keeping Python default behavior unchanged."
 git push -u origin lqosync-in-rust
 ```
+
+
+## v0.9 Commit Example
+
+```bash
+git add .
+git commit -m "rust(core): add apply manifest preview" \
+  -m "Add build-apply-manifest to lqosync-core, Python wrapper integration, Dry Run transaction preview, and documentation for backup/write/pending-apply/LibreQoS apply intent before future Rust transaction authority."
+git push -u origin lqosync-in-rust
+```

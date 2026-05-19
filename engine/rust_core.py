@@ -7,6 +7,7 @@ branch to harden deterministic validation without breaking current installs.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
@@ -588,6 +589,116 @@ def rust_evaluate_policy(config: dict, *, preflight: dict | None = None, collect
     # Treat that as a transport/capability gap and use the Python shadow fallback.
     if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
         return _python_policy_shadow(payload)
+    return response
+
+
+
+def _sha256_text(text: str) -> str:
+    return hashlib.sha256((text or "").encode("utf-8")).hexdigest()
+
+
+def _python_apply_manifest(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    """Fallback for Rust `build-apply-manifest`.
+
+    This mirrors the Rust v0.9 transaction preview shape so Dry Run remains
+    useful even when the Rust daemon/binary is unavailable.
+    """
+    started = started or time.perf_counter()
+    mode = str(payload.get("mode") or "apply")
+    dry_run = mode == "dry_run"
+    config = payload.get("config") if isinstance(payload.get("config"), dict) else {}
+    state = payload.get("state") if isinstance(payload.get("state"), dict) else {}
+    paths = payload.get("paths") if isinstance(payload.get("paths"), dict) else (config.get("paths") or {})
+    current_csv = str(payload.get("current_csv_text") or "")
+    proposed_csv = str(payload.get("proposed_csv_text") or "")
+    current_network = str(payload.get("current_network_text") or "{}")
+    proposed_network = str(payload.get("proposed_network_text") or "{}")
+    csv_changed = bool(payload.get("csv_changed", current_csv != proposed_csv))
+    network_changed = bool(payload.get("network_changed", current_network != proposed_network))
+    files_changed = bool(payload.get("files_changed", csv_changed or network_changed))
+    policy = payload.get("policy_decision") if isinstance(payload.get("policy_decision"), dict) else {}
+    sync_plan = payload.get("rust_sync_plan") if isinstance(payload.get("rust_sync_plan"), dict) else {}
+    sync_result = sync_plan.get("result") if isinstance(sync_plan.get("result"), dict) else {}
+    gate = payload.get("rust_authority_gate") if isinstance(payload.get("rust_authority_gate"), dict) else {}
+    authority_block = bool(gate.get("should_block") or ((sync_result.get("authority") or {}).get("would_block") if isinstance(sync_result.get("authority"), dict) else False))
+    policy_write_allowed = bool(policy.get("write_allowed", True))
+    policy_apply_allowed = bool(policy.get("apply_allowed", True))
+    backup_before_apply = bool((config.get("app") or {}).get("backup_before_apply", False))
+    auto_apply = bool((config.get("app") or {}).get("auto_apply", True))
+    retry_failed = bool((config.get("libreqos") or {}).get("retry_if_last_apply_failed", True))
+    pending_apply = bool(state.get("pending_libreqos_apply") or state.get("last_libreqos_apply_failed"))
+    write_allowed = bool((not dry_run) and files_changed and policy_write_allowed and not authority_block)
+    backup_required = bool(write_allowed and backup_before_apply)
+    apply_required = bool((not dry_run) and policy_apply_allowed and not authority_block and ((auto_apply and files_changed) or (retry_failed and pending_apply) or mode == "force_apply"))
+    operations = []
+    if backup_required:
+        operations.append({"op": "backup_live_files", "phase": "before_write", "required": True, "path": paths.get("backup_dir"), "reason": mode})
+    if csv_changed:
+        operations.append({"op": "write_file", "phase": "write", "file": "ShapedDevices.csv", "path": paths.get("shaped_devices_csv"), "allowed_now": write_allowed, "current_sha256": _sha256_text(current_csv), "proposed_sha256": _sha256_text(proposed_csv), "bytes": len(proposed_csv.encode("utf-8"))})
+    if network_changed:
+        operations.append({"op": "write_file", "phase": "write", "file": "network.json", "path": paths.get("network_json"), "allowed_now": write_allowed, "current_sha256": _sha256_text(current_network), "proposed_sha256": _sha256_text(proposed_network), "bytes": len(proposed_network.encode("utf-8"))})
+    if write_allowed and files_changed:
+        operations.append({"op": "mark_pending_apply", "phase": "post_write_state", "path": paths.get("runtime_state"), "allowed_now": True})
+    if apply_required:
+        operations.append({"op": "run_libreqos_update", "phase": "apply", "allowed_now": True, "cmd": (config.get("libreqos") or {}).get("cmd", "/opt/libreqos/src/LibreQoS.py"), "working_dir": (config.get("libreqos") or {}).get("working_dir", "/opt/libreqos/src"), "reason": "force_apply" if mode == "force_apply" else ("files_changed" if files_changed else "retry_pending_failed_apply")})
+    status = "preview_only" if dry_run else ("blocked_by_authority_gate" if authority_block else ("blocked_by_policy" if not policy_write_allowed else ("no_changes" if not files_changed and not apply_required else "ready")))
+    hashes = {"current_csv": _sha256_text(current_csv), "proposed_csv": _sha256_text(proposed_csv), "current_network": _sha256_text(current_network), "proposed_network": _sha256_text(proposed_network)}
+    basis = json.dumps({"mode": mode, "paths": paths, "hashes": hashes, "operations": operations, "status": status}, sort_keys=True)
+    manifest_id = "apply-" + _sha256_text(basis)[:16]
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "build-apply-manifest",
+        "available": False,
+        "ok": True,
+        "result": {
+            "mode": "transaction_preview",
+            "authoritative": False,
+            "manifest_id": manifest_id,
+            "status": status,
+            "input_mode": mode,
+            "dry_run": dry_run,
+            "files_changed": files_changed,
+            "csv_changed": csv_changed,
+            "network_changed": network_changed,
+            "write_allowed": write_allowed,
+            "apply_required": apply_required,
+            "backup_required": backup_required,
+            "policy_write_allowed": policy_write_allowed,
+            "policy_apply_allowed": policy_apply_allowed,
+            "authority_block": authority_block,
+            "sync_plan_verdict": sync_result.get("verdict", "unknown"),
+            "hashes": hashes,
+            "operations": operations,
+            "operation_count": len(operations),
+            "trace": [],
+        },
+        "errors": [],
+        "warnings": [],
+        "meta": {"engine": "python-wrapper", "mode": "python_apply_manifest_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_apply_manifest(config: dict, *, mode: str, paths: dict, current_csv_text: str, proposed_csv_text: str, current_network_text: str, proposed_network_text: str, files_changed: bool, csv_changed: bool, network_changed: bool, policy_decision: dict | None = None, rust_sync_plan: dict | None = None, rust_authority_gate: dict | None = None, state: dict | None = None) -> dict[str, Any]:
+    payload = {
+        "config": config or {},
+        "mode": mode,
+        "paths": paths or {},
+        "state": state or {},
+        "current_csv_text": current_csv_text or "",
+        "proposed_csv_text": proposed_csv_text or "",
+        "current_network_text": current_network_text or "{}",
+        "proposed_network_text": proposed_network_text or "{}",
+        "files_changed": bool(files_changed),
+        "csv_changed": bool(csv_changed),
+        "network_changed": bool(network_changed),
+        "policy_decision": policy_decision or {},
+        "rust_sync_plan": rust_sync_plan or {},
+        "rust_authority_gate": rust_authority_gate or {},
+    }
+    response = call_rust_core("build-apply-manifest", payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_apply_manifest(payload)
     return response
 
 

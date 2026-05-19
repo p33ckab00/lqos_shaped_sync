@@ -1,8 +1,8 @@
 [package]
 name = "lqosync-core"
-version = "0.8.0"
+version = "0.9.0"
 edition = "2021"
-description = "Deterministic Rust safety core for LQoSync validation, diff, collector trust, atomic state operations, policy shadow evaluation, sync-plan authority gates, and Unix socket daemon support."
+description = "Deterministic Rust safety core for LQoSync validation, diff, collector trust, atomic state operations, policy shadow evaluation, sync-plan authority gates, and apply manifest previews, and Unix socket daemon support."
 license = "MIT"
 
 [dependencies]

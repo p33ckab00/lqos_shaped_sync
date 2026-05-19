@@ -95,3 +95,8 @@ Python uses the daemon only when `rust_core.prefer_daemon=true` and the socket e
 ## v0.8 authority gates
 
 The Rust core can now annotate sync plans with authority metadata. Python enforces the gate only when `rust_core.enforce_sync_plan=true` or `authority_mode=enforce_blockers`.
+
+
+## v0.9 Apply Manifest
+
+Adds `build-apply-manifest`, a non-destructive transaction preview that lists backup, file-write, pending-apply, and LibreQoS apply operations before Python performs them. It is diagnostic by default and designed for future controlled Rust transaction authority.

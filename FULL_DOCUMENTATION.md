@@ -7558,3 +7558,8 @@ Rust Core v0.6 adds the `normalize-circuits` operation. It is shadow-only: Pytho
 - Added fail-closed behavior when enforced Rust core is unavailable.
 - Dry Run remains preview-only; Python remains default authority unless enforcement is enabled.
 - Added documentation: `docs/RUST_CORE_V08_AUTHORITY_GATES.md`.
+
+
+## Rust Core v0.9 Apply Manifest Preview
+
+See `docs/RUST_CORE_V09_APPLY_MANIFEST.md`. v0.9 adds a non-destructive transaction manifest before Python performs backup, generated file writes, pending apply state, or LibreQoS apply.

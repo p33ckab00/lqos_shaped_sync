@@ -1770,3 +1770,10 @@ This update keeps LibreQoS integrity intact while allowing older ZIP/manual inst
 - Added fail-closed behavior when enforced Rust core is unavailable.
 - Dry Run remains preview-only; Python remains default authority unless enforcement is enabled.
 - Added documentation: `docs/RUST_CORE_V08_AUTHORITY_GATES.md`.
+
+
+## v2.79.0-rc1 — Rust Core v0.9 Apply Manifest Preview
+
+- Adds `build-apply-manifest` to `lqosync-core`.
+- Adds Dry Run visibility for backup/write/pending-apply/LibreQoS apply transaction intent.
+- Keeps Python authoritative; manifest is non-destructive and diagnostic by default.

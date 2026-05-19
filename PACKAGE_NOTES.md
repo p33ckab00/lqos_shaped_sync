@@ -136,3 +136,8 @@ Adds `evaluate-sync-plan`, Dry Run sync-plan visibility, and documentation. Pyth
 - Added fail-closed behavior when enforced Rust core is unavailable.
 - Dry Run remains preview-only; Python remains default authority unless enforcement is enabled.
 - Added documentation: `docs/RUST_CORE_V08_AUTHORITY_GATES.md`.
+
+
+## v2.79.0-rc1 Package Notes
+
+Rust core advances to v0.9.0 with a transaction-style apply manifest preview. No generated file write/apply behavior is moved to Rust in this package.

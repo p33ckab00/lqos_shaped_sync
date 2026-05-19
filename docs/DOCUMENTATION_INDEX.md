@@ -141,3 +141,4 @@ Read these docs first:
 - [Rust Core v0.5 Policy Shadow Engine](RUST_CORE_V05_POLICY_SHADOW.md) — Shadow Rust policy decision engine, risk scoring, and Python/Rust parity checks.
 
 - [Rust Core v0.6 Circuit Shadow Normalizer](RUST_CORE_V06_CIRCUIT_SHADOW.md) — Shadow Rust circuit normalization and Dry Run visibility.
+- [Rust Core v0.7 Sync Plan Shadow Engine](RUST_CORE_V07_SYNC_PLAN.md) - End-to-end shadow sync planner for collector trust, diff, validation, circuit shadow, policy shadow, and preflight diagnostics.

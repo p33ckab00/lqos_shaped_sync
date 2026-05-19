@@ -7545,3 +7545,7 @@ Rust Core v0.5 adds `evaluate-policy`, a shadow policy decision engine that revi
 ## Rust Core v0.6 Circuit Shadow Normalizer
 
 Rust Core v0.6 adds the `normalize-circuits` operation. It is shadow-only: Python collectors and builders remain authoritative, while Rust independently normalizes the generated circuit rows and exposes diagnostics in Dry Run. This prepares the future Rust circuit-builder migration without changing live write/apply behavior. See `docs/RUST_CORE_V06_CIRCUIT_SHADOW.md`.
+
+## Rust Core v0.7 Sync Plan Shadow
+
+`lqosync-core 0.7.0` adds the `evaluate-sync-plan` operation. It produces a non-authoritative end-to-end plan containing verdict, risk score, blockers, holds, next actions, and decision trace. It does not write files or trigger LibreQoS apply.

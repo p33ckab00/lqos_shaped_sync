@@ -14,3 +14,5 @@ pub mod shaped_devices;
 pub mod validators;
 pub mod diff;
 pub mod policy;
+
+pub mod sync_plan;

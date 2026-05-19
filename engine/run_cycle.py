@@ -37,7 +37,7 @@ from engine.insights import compute_smart_insights
 from engine.lifecycle import update_lifecycle_state
 from engine.rust_core import (
     validate_runtime_outputs, diagnostics_to_messages, validate_collector_output,
-    collector_output_envelope, rust_diff_files, rust_evaluate_policy, rust_normalize_circuits,
+    collector_output_envelope, rust_diff_files, rust_evaluate_policy, rust_normalize_circuits, rust_evaluate_sync_plan,
 )
 
 
@@ -477,6 +477,37 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
         policy_parity = policy_decision_shadow_result.get("parity", {}) if isinstance(policy_decision_shadow_result, dict) else {}
         if policy_parity and policy_parity.get("available") and policy_parity.get("matches_verdict") is False:
             result.warnings.append("Rust policy shadow verdict differs from Python policy verdict; Python remains authoritative in this release.")
+        t_sync_plan = time.perf_counter()
+        rust_sync_plan = rust_evaluate_sync_plan(
+            config,
+            mode=mode,
+            files_changed=result.files_changed,
+            csv_changed=result.csv_changed,
+            network_changed=result.network_changed,
+            rust_diff=result.diff.get("rust_core_diff", {}),
+            rust_validation=rust_validation,
+            rust_policy_shadow=rust_policy_shadow,
+            rust_circuit_shadow=result.diff.get("rust_circuit_shadow", {}),
+            collector_trust=result.diff.get("collector_trust", []),
+            preflight=preflight,
+            cleanup=cleanup_stats,
+        )
+        result.diff["rust_sync_plan"] = rust_sync_plan
+        sync_plan_result = rust_sync_plan.get("result", {}) if isinstance(rust_sync_plan, dict) else {}
+        if sync_plan_result.get("verdict") == "blocked_by_shadow_plan":
+            result.warnings.append("Rust sync plan shadow found blockers; Python remains authoritative in this release.")
+        timeline.record(
+            "rust_sync_plan_shadow",
+            t_sync_plan,
+            status="ok" if rust_sync_plan.get("ok") else ("unavailable" if not rust_sync_plan.get("available") else "check"),
+            details={
+                "available": bool(rust_sync_plan.get("available")),
+                "ok": bool(rust_sync_plan.get("ok")),
+                "verdict": sync_plan_result.get("verdict"),
+                "risk_level": sync_plan_result.get("risk_level"),
+                "authoritative": bool(sync_plan_result.get("authoritative", False)),
+            },
+        )
         result.diff["policy_decision"] = python_policy_dict
         policy_state["last_policy_decision"] = python_policy_dict
         for w in policy_decision.warnings:

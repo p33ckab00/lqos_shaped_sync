@@ -1754,3 +1754,10 @@ This update keeps LibreQoS integrity intact while allowing older ZIP/manual inst
 - Added Dry Run Rust Policy Shadow panel.
 - Python policy remains authoritative; Rust is diagnostics-only in this release.
 
+## v2.77.0-rc1 - Rust Core v0.7 Sync Plan Shadow
+
+- Added `evaluate-sync-plan` to `lqosync-core`.
+- Added `rust_sync_plan` to Dry Run output.
+- Added Rust Sync Plan Shadow card in Dry Run UI.
+- Added `docs/RUST_CORE_V07_SYNC_PLAN.md`.
+- Python remains authoritative for cleanup, writes, and LibreQoS apply.

@@ -124,3 +124,6 @@ Includes optional Rust core daemon service support. Daemon mode is disabled by d
 
 Adds Rust Core v0.5 policy shadow evaluation, Dry Run parity visibility, and a non-authoritative `evaluate-policy` protocol operation.
 
+## v2.77.0-rc1 Rust Core v0.7 Sync Plan Shadow
+
+Adds `evaluate-sync-plan`, Dry Run sync-plan visibility, and documentation. Python remains authoritative.

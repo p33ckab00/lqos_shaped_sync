@@ -270,3 +270,7 @@ The `lqosync-in-rust` branch now includes an optional Rust `evaluate-policy` ope
 ## Rust Core v0.6 Circuit Shadow
 
 The `lqosync-in-rust` branch now includes an optional Rust `normalize-circuits` operation. It runs in shadow mode beside the Python collectors/builders, reports normalized row counts and diagnostics in Dry Run, and prepares the next migration step toward a Rust circuit builder without changing live behavior.
+
+### Rust Core v0.7 Sync Plan Shadow
+
+The `lqosync-in-rust` branch now includes `evaluate-sync-plan`, a shadow-only end-to-end Rust planner that composes collector trust, Rust diff, Rust circuit shadow, Rust validation, Rust policy shadow, Python preflight, and cleanup stats. Python remains authoritative for writes and LibreQoS apply.

@@ -339,3 +339,12 @@ git commit -m "rust(core): add circuit shadow normalizer" \
   -m "Add non-authoritative Rust normalize-circuits operation, Python wrapper integration, Dry Run circuit shadow visibility, and documentation for the future Rust circuit-builder migration."
 git push -u origin lqosync-in-rust
 ```
+
+## v2.77.0-rc1 Commit
+
+```bash
+git add .
+git commit -m "rust(core): add sync plan shadow engine" \
+  -m "Add evaluate-sync-plan to lqosync-core, Python wrapper integration, Dry Run sync plan visibility, and documentation for end-to-end shadow planning before any Rust authority migration."
+git push -u origin lqosync-in-rust
+```

@@ -378,6 +378,195 @@ def rust_normalize_circuits(config: dict, rows: dict[str, dict[str, Any]], *, me
     return response
 
 
+def _python_sync_plan_shadow(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    """Fallback for Rust `evaluate-sync-plan` shadow mode."""
+    started = started or time.perf_counter()
+    mode = str(payload.get("mode") or "apply")
+    files_changed = bool(payload.get("files_changed"))
+    csv_changed = bool(payload.get("csv_changed"))
+    network_changed = bool(payload.get("network_changed"))
+    rust_validation = payload.get("rust_validation") if isinstance(payload.get("rust_validation"), dict) else {}
+    rust_policy = payload.get("rust_policy_shadow") if isinstance(payload.get("rust_policy_shadow"), dict) else {}
+    rust_circuit = payload.get("rust_circuit_shadow") if isinstance(payload.get("rust_circuit_shadow"), dict) else {}
+    preflight = payload.get("preflight") if isinstance(payload.get("preflight"), dict) else {}
+    collector_trust = payload.get("collector_trust") if isinstance(payload.get("collector_trust"), list) else []
+    cleanup = payload.get("cleanup") if isinstance(payload.get("cleanup"), dict) else {}
+    rust_diff = payload.get("rust_diff") if isinstance(payload.get("rust_diff"), dict) else {}
+    risk_score = 0
+    blockers = []
+    holds = []
+    trace = []
+    warnings = []
+    errors = []
+
+    validation_errors = len(rust_validation.get("errors") or [])
+    if validation_errors or rust_validation.get("ok") is False:
+        risk_score += 35
+        blockers.append({"code": "rust_validation_failed", "title": "Rust validation reported errors", "message": "Proposed CSV/network output failed Rust validation.", "severity": "critical", "count": validation_errors})
+        errors.append({"code": "sync_plan_validation_blocker", "severity": "error", "path": "rust_validation", "message": "Rust validation errors block the shadow sync plan"})
+        trace.append({"step": "validation", "decision": "block", "errors": validation_errors})
+    else:
+        trace.append({"step": "validation", "decision": "ok"})
+
+    preflight_errors = len(preflight.get("errors") or [])
+    if preflight_errors:
+        risk_score += 35
+        blockers.append({"code": "preflight_failed", "title": "Python preflight reported errors", "message": "The authoritative Python preflight returned one or more errors.", "severity": "critical", "count": preflight_errors})
+        trace.append({"step": "preflight", "decision": "block", "errors": preflight_errors})
+    else:
+        trace.append({"step": "preflight", "decision": "ok"})
+
+    unsafe = []
+    for item in collector_trust:
+        res = item.get("result") if isinstance(item, dict) and isinstance(item.get("result"), dict) else item
+        if isinstance(res, dict) and res.get("safe_for_cleanup") is False:
+            unsafe.append(f"{res.get('router','unknown')}/{res.get('source','unknown')}")
+    if unsafe:
+        risk_score += 25
+        holds.append({"code": "collector_cleanup_held", "title": "Collector cleanup held", "message": "One or more collectors are not trusted for cleanup.", "severity": "high", "sources": unsafe})
+        warnings.append({"code": "sync_plan_collector_cleanup_held", "severity": "warning", "path": "collector_trust", "message": "One or more collector outputs are not trusted for cleanup", "safe_for_cleanup": False})
+        trace.append({"step": "collector_trust", "decision": "hold_cleanup"})
+    else:
+        trace.append({"step": "collector_trust", "decision": "ok"})
+
+    policy_result = rust_policy.get("result") if isinstance(rust_policy.get("result"), dict) else {}
+    policy_verdict = str(policy_result.get("verdict") or "unknown")
+    try:
+        risk_score = max(risk_score, int(policy_result.get("risk_score") or 0))
+    except Exception:
+        pass
+    if policy_verdict == "blocked_by_policy":
+        risk_score += 30
+        blockers.append({"code": "policy_shadow_blocked", "title": "Rust policy shadow blocked", "message": "Rust policy shadow returned blocked_by_policy. Python policy remains authoritative.", "severity": "high"})
+        trace.append({"step": "policy_shadow", "decision": "block_hint", "verdict": policy_verdict})
+    elif policy_verdict == "apply_with_caution":
+        risk_score += 12
+        holds.append({"code": "policy_shadow_caution", "title": "Rust policy shadow recommends caution", "message": "Rust policy shadow returned apply_with_caution.", "severity": "warning"})
+        trace.append({"step": "policy_shadow", "decision": "caution", "verdict": policy_verdict})
+    else:
+        trace.append({"step": "policy_shadow", "decision": "ok", "verdict": policy_verdict})
+
+    circuit_errors = len(rust_circuit.get("errors") or [])
+    circuit_warnings = len(rust_circuit.get("warnings") or [])
+    if circuit_errors:
+        risk_score += 25
+        blockers.append({"code": "circuit_shadow_errors", "title": "Rust circuit shadow reported errors", "message": "Circuit normalization shadow reported invalid circuit rows.", "severity": "high", "count": circuit_errors})
+    elif circuit_warnings:
+        risk_score += 8
+
+    diff_result = rust_diff.get("result") if isinstance(rust_diff.get("result"), dict) else {}
+    csv_diff = diff_result.get("csv") if isinstance(diff_result.get("csv"), dict) else {}
+    try:
+        csv_change_count = int(csv_diff.get("added_count") or 0) + int(csv_diff.get("updated_count") or 0) + int(csv_diff.get("removed_count") or 0)
+    except Exception:
+        csv_change_count = 0
+    if csv_change_count or network_changed:
+        risk_score += 18 if csv_change_count > 20 else 6
+
+    try:
+        removed = int(cleanup.get("removed") or 0)
+        queued = int(cleanup.get("queued") or 0)
+    except Exception:
+        removed, queued = 0, 0
+    if removed:
+        risk_score += min(18, removed * 3)
+        holds.append({"code": "cleanup_removal_present", "title": "Cleanup removes rows", "message": f"Cleanup would remove {removed} row(s).", "severity": "high" if removed >= 10 else "warning", "affected_rows": removed})
+    if queued:
+        risk_score += 5
+
+    risk_score = min(100, risk_score)
+    risk_level = _risk_level(risk_score)
+    dry_run = mode == "dry_run"
+    write_allowed = not blockers and not dry_run
+    apply_allowed = not blockers and not dry_run and files_changed
+    cleanup_allowed = not blockers and not any(h.get("code") == "collector_cleanup_held" for h in holds)
+    if blockers or risk_level == "critical":
+        verdict = "blocked_by_shadow_plan"
+        write_allowed = False
+        apply_allowed = False
+    elif holds or risk_level in {"medium", "high"}:
+        verdict = "manual_review_recommended"
+    elif not files_changed:
+        verdict = "no_changes"
+        write_allowed = False
+        apply_allowed = False
+    else:
+        verdict = "ready_by_shadow_plan"
+
+    next_actions = []
+    if dry_run:
+        next_actions.append({"title": "Review Dry Run", "action": "Inspect Rust/Python shadow diagnostics before switching to apply mode.", "severity": "info"})
+    elif blockers:
+        next_actions.append({"title": "Resolve blockers", "action": "Review validation, collector trust, circuit shadow, and policy diagnostics before applying.", "severity": "critical"})
+    elif not files_changed:
+        next_actions.append({"title": "No file changes", "action": "No generated file write/apply is needed.", "severity": "info"})
+    else:
+        next_actions.append({"title": "Apply candidate", "action": "Python remains authoritative; this Rust plan agrees there are no shadow blockers.", "severity": "info"})
+
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "evaluate-sync-plan",
+        "available": False,
+        "ok": not errors,
+        "result": {
+            "mode": "shadow",
+            "authoritative": False,
+            "transport_safe": True,
+            "input_mode": mode,
+            "verdict": verdict,
+            "risk_score": risk_score,
+            "risk_level": risk_level,
+            "write_allowed": write_allowed,
+            "apply_allowed": apply_allowed,
+            "cleanup_allowed": cleanup_allowed,
+            "files_changed": files_changed,
+            "csv_changed": csv_changed,
+            "network_changed": network_changed,
+            "summary": {
+                "csv_change_count": csv_change_count,
+                "network_changed": network_changed,
+                "collector_checks": len(collector_trust),
+                "blocked_count": len(blockers),
+                "hold_count": len(holds),
+                "validation_errors": validation_errors,
+                "preflight_errors": preflight_errors,
+                "circuit_errors": circuit_errors,
+                "policy_verdict": policy_verdict,
+                "policy_risk_level": policy_result.get("risk_level", "unknown"),
+            },
+            "blockers": blockers,
+            "holds": holds,
+            "next_actions": next_actions,
+            "decision_trace": trace,
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_sync_plan_shadow_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_evaluate_sync_plan(config: dict, *, mode: str, files_changed: bool, csv_changed: bool, network_changed: bool, rust_diff: dict | None = None, rust_validation: dict | None = None, rust_policy_shadow: dict | None = None, rust_circuit_shadow: dict | None = None, collector_trust: list[dict[str, Any]] | None = None, preflight: dict | None = None, cleanup: dict | None = None) -> dict[str, Any]:
+    payload = {
+        "config": config or {},
+        "mode": mode,
+        "files_changed": bool(files_changed),
+        "csv_changed": bool(csv_changed),
+        "network_changed": bool(network_changed),
+        "rust_diff": rust_diff or {},
+        "rust_validation": rust_validation or {},
+        "rust_policy_shadow": rust_policy_shadow or {},
+        "rust_circuit_shadow": rust_circuit_shadow or {},
+        "collector_trust": collector_trust or [],
+        "preflight": preflight or {},
+        "cleanup": cleanup or {},
+    }
+    response = call_rust_core("evaluate-sync-plan", payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_sync_plan_shadow(payload)
+    return response
+
+
 def rust_evaluate_policy(config: dict, *, preflight: dict | None = None, collector_trust: list[dict[str, Any]] | None = None, cleanup: dict | None = None, rust_validation: dict | None = None, python_policy_decision: dict | None = None, diff_summary: dict | None = None) -> dict[str, Any]:
     payload = {
         "config": config or {},

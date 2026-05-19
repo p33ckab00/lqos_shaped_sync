@@ -8,6 +8,7 @@ use lqosync_core::network::{collect_node_names, parse_network_text, validate_net
 use lqosync_core::policy::evaluate_policy_payload;
 use lqosync_core::protocol::{CoreRequest, CoreResponse, PROTOCOL_VERSION};
 use lqosync_core::shaped_devices::{parse_csv_text, render_csv_text, validate_rows};
+use lqosync_core::sync_plan::evaluate_sync_plan_payload;
 use lqosync_core::validators::{validate_collector_output_payload, validate_config_value, validate_files_payload};
 use serde_json::{json, Value};
 use std::io::{self, Read, Write};
@@ -153,7 +154,8 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
                 "write-text-file",
                 "append-audit-jsonl",
                 "evaluate-policy",
-                "normalize-circuits"
+                "normalize-circuits",
+                "evaluate-sync-plan"
             ]
         }), started)),
         "parse-bandwidth" => Ok(handle_parse_bandwidth(req, started)),
@@ -206,6 +208,10 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
         }
         "normalize-circuits" => {
             let (result, errors, warnings) = normalize_circuits_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "evaluate-sync-plan" => {
+            let (result, errors, warnings) = evaluate_sync_plan_payload(&req.payload);
             Ok(CoreResponse::validation(req, result, errors, warnings, started))
         }
         other => Ok(CoreResponse::failure(

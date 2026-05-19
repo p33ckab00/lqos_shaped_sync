@@ -324,3 +324,7 @@ Fallback rule:
 If the Rust binary is unavailable, engine.rust_core returns ok=true, skipped=true,
 available=false so the current Python path can continue safely.
 ```
+
+## v0.7 Operation
+
+`evaluate-sync-plan` uses the same protocol envelope and returns an end-to-end shadow plan.

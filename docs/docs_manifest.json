@@ -403,7 +403,7 @@
         "title": "Custom Policy Mode Persistence Hotfix",
         "file": "docs/content/custom_policy_mode_persistence.md",
         "anchor": "custom-policy-mode-persistence-hotfix",
-        "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center \u2192 Policies."
+        "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center → Policies."
     },
     "policy_overview_custom_wiring_hotfix": {
         "title": "Policy Overview Custom Wiring Hotfix",
@@ -458,5 +458,11 @@
         "file": "docs/RUST_CORE_V06_CIRCUIT_SHADOW.md",
         "anchor": "rust-core-v06-circuit-shadow-normalizer",
         "summary": "Shadow Rust circuit normalization, typed circuit row diagnostics, and Dry Run visibility for the lqosync-in-rust branch."
+    },
+    "rust.v07_sync_plan": {
+        "title": "Rust Core v0.7 Sync Plan Shadow Engine",
+        "file": "docs/RUST_CORE_V07_SYNC_PLAN.md",
+        "anchor": "rust-core-v07-sync-plan-shadow-engine",
+        "summary": "End-to-end shadow sync planner that composes collector trust, diff, validation, circuit shadow, policy shadow, and preflight diagnostics."
     }
 }

@@ -86,3 +86,7 @@ Python uses the daemon only when `rust_core.prefer_daemon=true` and the socket e
 ## v0.6 Circuit Shadow
 
 `normalize-circuits` builds a typed ShapedDevices-compatible row view from normalized circuit records. It is diagnostic/shadow-only and prepares for a future Rust circuit builder while Python remains authoritative.
+
+## v0.7.0 Operation
+
+`evaluate-sync-plan` composes collector trust, diff, validation, policy shadow, circuit shadow, preflight, and cleanup stats into one non-authoritative sync plan.

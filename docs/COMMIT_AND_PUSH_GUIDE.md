@@ -445,3 +445,13 @@ git commit -m "rust(core): add authority readiness evaluator" \
   -m "Add evaluate-authority-readiness, read-only WebUI API visibility, self-test coverage, and documentation for piloting Rust authority flags safely."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Commit for Rust Core v1.7
+
+```bash
+git add .
+git commit -m "rust(core): add full backend readiness evaluator" \
+  -m "Add evaluate-full-rust-readiness and build-authority-pilot-plan operations, read-only WebUI APIs, self-test coverage, and documentation for staged Rust authority migration without claiming full Rust backend status."
+git push -u origin lqosync-in-rust
+```

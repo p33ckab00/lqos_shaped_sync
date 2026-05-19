@@ -1839,3 +1839,11 @@ Read: `docs/RUST_CORE_V11_SELF_TEST.md`.
 - Adds `/api/rust-core/authority-readiness` for read-only operator visibility.
 - Keeps Python authoritative by default and treats partial authority flags as blockers.
 - Documents readiness verdicts before sync-plan enforcement, file-write authority, journal persistence, or rollback authority are enabled.
+
+
+## v2.87.0-rc1 — Rust Core v1.7 Full Backend Readiness + Authority Pilot Plan
+
+- Added `evaluate-full-rust-readiness` and `build-authority-pilot-plan`.
+- Added read-only APIs for full backend readiness and staged authority pilot planning.
+- Documented that the branch is still a hybrid Rust safety core + Python authority system by default, not a full Rust backend yet.
+- Added self-test coverage for the new readiness and pilot-plan operations.

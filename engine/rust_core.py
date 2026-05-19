@@ -1613,3 +1613,103 @@ def rust_authority_readiness(config: dict) -> dict[str, Any]:
         return _python_authority_readiness(config or {}, status=status, self_test=self_test, journal_summary=payload["journal_summary"], started=started)
     return response
 
+
+def _python_full_rust_readiness(config: dict, *, status: dict | None = None, self_test: dict | None = None, authority_readiness: dict | None = None, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rc = (config or {}).get("rust_core", {}) if isinstance(config, dict) else {}
+    status = status or {}
+    self_test = self_test or {}
+    operations = (((self_test.get("result") or {}).get("operations")) or []) if isinstance(self_test, dict) else []
+    implemented = [
+        {"component": "rust_protocol_daemon", "status": "ready" if status.get("available", True) else "not_ready", "rust_owned": True},
+        {"component": "validation_diff_core", "status": "ready", "rust_owned": True},
+        {"component": "collector_trust_contract", "status": "ready", "rust_owned": True, "note": "Rust validates collector output, but Python still collects RouterOS data."},
+        {"component": "policy_engine", "status": "shadow", "rust_owned": "partial"},
+        {"component": "circuit_normalizer", "status": "shadow", "rust_owned": "partial"},
+        {"component": "sync_plan_apply_transaction_journal_rollback", "status": "gated_ready", "rust_owned": True},
+    ]
+    remaining = [
+        {"component": "webui_auth_routes_templates", "owner": "python", "reason": "Flask/Jinja UI remains the operator surface."},
+        {"component": "scheduler_runner", "owner": "python", "reason": "Python scheduler still starts sync jobs."},
+        {"component": "run_cycle_orchestration", "owner": "python", "reason": "Python run_cycle remains authoritative by default."},
+        {"component": "routeros_api_collectors", "owner": "python", "reason": "RouterOS PPPoE/DHCP/Hotspot collectors still use Python routeros-api."},
+        {"component": "libreqos_external_apply", "owner": "python", "reason": "Rust does not invoke LibreQoS.py in this release."},
+    ]
+    authority_flags = any(bool(rc.get(k)) for k in ("enforce_sync_plan", "execute_apply_manifest", "allow_rust_file_writes", "append_transaction_journal", "allow_transaction_journal_writes", "execute_rollback", "allow_rust_rollback_file_writes"))
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "evaluate-full-rust-readiness",
+        "available": False,
+        "ok": True,
+        "result": {
+            "mode": "full_rust_readiness",
+            "full_backend_ready": False,
+            "backend_model": "hybrid_rust_authority_pilot" if authority_flags else "hybrid_python_authoritative_rust_safety_core",
+            "maturity": "authority_pilot_active" if authority_flags else "hybrid_shadow_ready",
+            "verdict": "not_full_rust_backend_yet",
+            "summary": "LQoSync is a hybrid system: Python remains WebUI/orchestrator/collector authority by default while Rust provides safety, planning, transaction, journal, rollback, and optional authority gates.",
+            "rust_operations_count": len(operations),
+            "implemented_rust_capabilities": implemented,
+            "remaining_python_authoritative_components": remaining,
+            "authority_readiness_verdict": ((authority_readiness or {}).get("result") or {}).get("verdict", "unknown"),
+            "blockers": [],
+            "next_steps": [
+                {"step": 1, "title": "Pilot sync-plan enforcement", "action": "Enable enforce_sync_plan only after authority readiness is clean."},
+                {"step": 2, "title": "Pilot transaction journal persistence", "action": "Enable append_transaction_journal before Rust file writes."},
+                {"step": 3, "title": "Move collector normalization", "action": "Migrate PPPoE/DHCP/Hotspot row-building to Rust before replacing RouterOS API transport."},
+            ],
+        },
+        "errors": [],
+        "warnings": [{"code": "python_fallback_full_readiness", "severity": "warning", "path": "rust_core", "message": "Rust full-readiness evaluator unavailable; Python returned a conservative hybrid readiness report."}],
+        "meta": {"engine": "python-wrapper", "mode": "python_full_rust_readiness_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_full_backend_readiness(config: dict) -> dict[str, Any]:
+    started = time.perf_counter()
+    status = rust_core_status(config)
+    self_test = rust_core_self_test(config, strict=False) if status.get("available") else {"ok": False, "result": {"status": "unavailable", "operations": []}}
+    authority = rust_authority_readiness(config)
+    payload = {"config": config or {}, "rust_core_status": status, "self_test": self_test, "authority_readiness": authority}
+    response = call_rust_core("evaluate-full-rust-readiness", payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_full_rust_readiness(config or {}, status=status, self_test=self_test, authority_readiness=authority, started=started)
+    return response
+
+
+def _python_authority_pilot_plan(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    readiness = ((payload.get("authority_readiness") or {}).get("result") or {}).get("verdict", "shadow_safe")
+    stages = [
+        {"stage": 0, "name": "Shadow baseline", "status": "current_or_complete", "description": "Rust shadows Python authority."},
+        {"stage": 1, "name": "Daemon and self-test", "status": "ready" if readiness != "not_ready" else "blocked", "description": "Prefer daemon and verify self-test."},
+        {"stage": 2, "name": "Sync-plan enforcement", "status": "available", "config_delta": {"enforce_sync_plan": True, "fail_closed_when_enforced": True, "authority_mode": "enforce_blockers"}},
+        {"stage": 3, "name": "Transaction journal persistence", "status": "available", "config_delta": {"append_transaction_journal": True, "allow_transaction_journal_writes": True}},
+        {"stage": 4, "name": "Rust file-write pilot", "status": "available_after_journal", "config_delta": {"execute_apply_manifest": True, "allow_rust_file_writes": True}},
+        {"stage": 5, "name": "Rollback execution pilot", "status": "available_after_file_write_pilot", "config_delta": {"execute_rollback": True, "allow_rust_rollback_file_writes": True, "rollback_authority": "execute_file_restores"}},
+        {"stage": 6, "name": "Collector/circuit migration", "status": "future_work"},
+    ]
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "build-authority-pilot-plan",
+        "available": False,
+        "ok": readiness != "not_ready",
+        "result": {"mode": "authority_pilot_plan", "full_backend_ready": False, "pilot_only": True, "readiness_verdict": readiness, "recommended_next_stage": stages[2], "stages": stages, "guardrails": ["Keep Python authoritative until multiple clean Rust authority pilot cycles pass.", "Enable journal persistence before Rust file writes."]},
+        "errors": [] if readiness != "not_ready" else [{"code": "authority_pilot_blocked", "severity": "error", "path": "authority_readiness", "message": "Authority readiness is not clean."}],
+        "warnings": [{"code": "python_fallback_authority_pilot_plan", "severity": "warning", "path": "rust_core", "message": "Rust pilot-plan evaluator unavailable; Python returned conservative staged plan."}],
+        "meta": {"engine": "python-wrapper", "mode": "python_authority_pilot_plan_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_authority_pilot_plan(config: dict) -> dict[str, Any]:
+    started = time.perf_counter()
+    authority = rust_authority_readiness(config)
+    full = rust_full_backend_readiness(config)
+    payload = {"config": config or {}, "authority_readiness": authority, "full_backend_readiness": full}
+    response = call_rust_core("build-authority-pilot-plan", payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_authority_pilot_plan(payload, started=started)
+    return response
+

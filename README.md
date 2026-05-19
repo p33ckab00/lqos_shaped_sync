@@ -332,3 +332,21 @@ This package adds `execute-rollback`, a gated rollback executor. It rehearses ro
 - Adds `/api/rust-core/authority-readiness` for read-only operator visibility.
 - Keeps Python authoritative by default and treats partial authority flags as blockers.
 - Documents readiness verdicts before sync-plan enforcement, file-write authority, journal persistence, or rollback authority are enabled.
+
+### Rust Core v1.7 Full Backend Readiness
+
+The `lqosync-in-rust` branch now includes read-only full backend readiness and authority pilot planning. This confirms the current system is still a hybrid architecture: Python remains authoritative for the WebUI, scheduler, RouterOS collectors, and default run cycle, while Rust provides validation, planning, transactions, journaling, rollback, and optional authority gates.
+
+New operations:
+
+```text
+evaluate-full-rust-readiness
+build-authority-pilot-plan
+```
+
+New read-only APIs:
+
+```text
+/api/rust-core/full-backend-readiness
+/api/rust-core/authority-pilot-plan
+```

@@ -160,3 +160,5 @@ Read these docs first:
 - [Rust Core v1.5 Rollback Execution Rehearsal](RUST_CORE_V15_ROLLBACK_EXECUTOR.md) — gated `execute-rollback` operation and confirmation-based file restore preview/execution model.
 
 - [Rust Core v1.6 Authority Readiness Report](RUST_CORE_V16_AUTHORITY_READINESS.md)
+
+- [Rust Core v1.7 Full Backend Readiness + Authority Pilot Plan](RUST_CORE_V17_FULL_BACKEND_READINESS.md)

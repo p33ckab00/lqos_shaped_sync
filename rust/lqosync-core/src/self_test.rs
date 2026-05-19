@@ -1,6 +1,7 @@
 use crate::apply_manifest::build_apply_manifest_payload;
 use crate::apply_transaction::execute_apply_transaction_payload;
 use crate::authority_readiness::evaluate_authority_readiness_payload;
+use crate::authority_pilot::{build_authority_pilot_plan_payload, evaluate_full_rust_readiness_payload};
 use crate::bandwidth::{convert_to_mbps, parse_comment_bandwidth, parse_rate_limit};
 use crate::protocol::Diagnostic;
 use crate::rollback_executor::execute_rollback_payload;
@@ -34,6 +35,8 @@ pub const OP_READ_TRANSACTION_JOURNAL: &str = "read-transaction-journal";
 pub const OP_BUILD_ROLLBACK_FROM_JOURNAL: &str = "build-rollback-from-journal";
 pub const OP_EXECUTE_ROLLBACK: &str = "execute-rollback";
 pub const OP_EVALUATE_AUTHORITY_READINESS: &str = "evaluate-authority-readiness";
+pub const OP_EVALUATE_FULL_RUST_READINESS: &str = "evaluate-full-rust-readiness";
+pub const OP_BUILD_AUTHORITY_PILOT_PLAN: &str = "build-authority-pilot-plan";
 pub const OP_SELF_TEST: &str = "self-test";
 
 pub fn advertised_operations() -> &'static [&'static str] {
@@ -64,6 +67,8 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_ROLLBACK_FROM_JOURNAL,
         OP_EXECUTE_ROLLBACK,
         OP_EVALUATE_AUTHORITY_READINESS,
+        OP_EVALUATE_FULL_RUST_READINESS,
+        OP_BUILD_AUTHORITY_PILOT_PLAN,
         OP_SELF_TEST,
     ]
 }
@@ -242,6 +247,37 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     checks.push(check("authority_readiness_shadow_safe", authority_readiness_ok, json!({"verdict": authority_readiness.get("verdict"), "risk_level": authority_readiness.get("risk_level")})));
     if !authority_readiness_ok {
         errors.push(Diagnostic::error("self_test_authority_readiness_failed", Some("evaluate-authority-readiness".to_string()), "Self-test authority readiness should report shadow_safe for default shadow mode."));
+    }
+
+
+    let (full_readiness, full_readiness_errors, _full_readiness_warnings) = evaluate_full_rust_readiness_payload(&json!({
+        "config": {
+            "rust_core": {"enabled": true, "authority_mode": "shadow"},
+            "paths": {"shaped_devices_csv": "/opt/libreqos/src/ShapedDevices.csv", "network_json": "/opt/libreqos/src/network.json", "transaction_journal": "/opt/lqosync/logs/transaction_journal.jsonl"}
+        },
+        "rust_core_status": {"available": true, "ok": true},
+        "self_test": {"ok": true, "result": {"status": "ok", "operations": operations}},
+        "authority_readiness": {"result": authority_readiness.clone()}
+    }));
+    let full_readiness_ok = full_readiness_errors.is_empty()
+        && full_readiness.get("full_backend_ready").and_then(Value::as_bool).unwrap_or(true) == false
+        && full_readiness.get("verdict").and_then(Value::as_str).unwrap_or("") == "not_full_rust_backend_yet";
+    checks.push(check("full_rust_readiness_reports_hybrid", full_readiness_ok, json!({"verdict": full_readiness.get("verdict"), "maturity": full_readiness.get("maturity")})));
+    if !full_readiness_ok {
+        errors.push(Diagnostic::error("self_test_full_rust_readiness_failed", Some("evaluate-full-rust-readiness".to_string()), "Self-test full Rust readiness should report hybrid/not full backend yet."));
+    }
+
+    let (pilot_plan, pilot_plan_errors, _pilot_plan_warnings) = build_authority_pilot_plan_payload(&json!({
+        "config": {"rust_core": {"enabled": true, "authority_mode": "shadow"}},
+        "authority_readiness": {"result": authority_readiness.clone()},
+        "full_backend_readiness": {"result": full_readiness.clone()}
+    }));
+    let pilot_plan_ok = pilot_plan_errors.is_empty()
+        && pilot_plan.get("pilot_only").and_then(Value::as_bool).unwrap_or(false)
+        && pilot_plan.get("stages").and_then(Value::as_array).map(|v| v.len() >= 6).unwrap_or(false);
+    checks.push(check("authority_pilot_plan_available", pilot_plan_ok, json!({"pilot_only": pilot_plan.get("pilot_only"), "stage_count": pilot_plan.get("stages").and_then(Value::as_array).map(|v| v.len()).unwrap_or(0)})));
+    if !pilot_plan_ok {
+        errors.push(Diagnostic::error("self_test_authority_pilot_plan_failed", Some("build-authority-pilot-plan".to_string()), "Self-test authority pilot plan should produce ordered non-mutating stages."));
     }
 
     let strict = payload.get("strict").and_then(Value::as_bool).unwrap_or(false);

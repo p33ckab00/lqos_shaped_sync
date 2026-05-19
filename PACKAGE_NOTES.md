@@ -186,3 +186,8 @@ This package adds `execute-rollback`, a gated rollback executor. It rehearses ro
 - Adds `/api/rust-core/authority-readiness` for read-only operator visibility.
 - Keeps Python authoritative by default and treats partial authority flags as blockers.
 - Documents readiness verdicts before sync-plan enforcement, file-write authority, journal persistence, or rollback authority are enabled.
+
+
+## v2.87.0-rc1 Package Notes
+
+Adds Rust Core v1.7 full backend readiness and authority pilot plan operations. No default live behavior changes; all new endpoints are read-only.

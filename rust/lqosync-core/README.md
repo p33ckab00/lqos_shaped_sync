@@ -150,3 +150,8 @@ Adds `execute-rollback`, default rehearsal-only, with explicit `CONFIRM_ROLLBACK
 ## v1.6 Authority Readiness
 
 Adds `evaluate-authority-readiness`, a read-only operation for checking Rust authority readiness before enabling enforcement, file writes, journal persistence, or rollback restores.
+
+
+## v1.7 Full Backend Readiness
+
+New operations: `evaluate-full-rust-readiness` and `build-authority-pilot-plan`. These are read-only helpers for distinguishing hybrid authority-pilot status from a future full Rust backend.

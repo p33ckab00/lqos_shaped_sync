@@ -81,3 +81,8 @@ Python uses the daemon only when `rust_core.prefer_daemon=true` and the socket e
 ## v0.5 Policy Shadow
 
 `evaluate-policy` computes a non-authoritative policy verdict, risk score, write/apply hints, and parity against Python policy decisions.
+
+
+## v0.6 Circuit Shadow
+
+`normalize-circuits` builds a typed ShapedDevices-compatible row view from normalized circuit records. It is diagnostic/shadow-only and prepares for a future Rust circuit builder while Python remains authoritative.

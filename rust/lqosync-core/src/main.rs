@@ -2,6 +2,7 @@ use anyhow::Context;
 use clap::Parser;
 use lqosync_core::atomic_state::{append_audit_jsonl_payload, atomic_write_json_state_payload, atomic_write_text_payload, validate_json_state_payload};
 use lqosync_core::bandwidth::{convert_to_mbps, parse_comment_bandwidth, parse_rate_limit};
+use lqosync_core::circuits::normalize_circuits_payload;
 use lqosync_core::diff::{diff_files_payload, diff_network_text, diff_shaped_devices_text};
 use lqosync_core::network::{collect_node_names, parse_network_text, validate_network};
 use lqosync_core::policy::evaluate_policy_payload;
@@ -151,7 +152,8 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
                 "write-json-state",
                 "write-text-file",
                 "append-audit-jsonl",
-                "evaluate-policy"
+                "evaluate-policy",
+                "normalize-circuits"
             ]
         }), started)),
         "parse-bandwidth" => Ok(handle_parse_bandwidth(req, started)),
@@ -200,6 +202,10 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
         }
         "evaluate-policy" => {
             let (result, errors, warnings) = evaluate_policy_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "normalize-circuits" => {
+            let (result, errors, warnings) = normalize_circuits_payload(&req.payload);
             Ok(CoreResponse::validation(req, result, errors, warnings, started))
         }
         other => Ok(CoreResponse::failure(

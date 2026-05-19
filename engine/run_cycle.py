@@ -37,7 +37,7 @@ from engine.insights import compute_smart_insights
 from engine.lifecycle import update_lifecycle_state
 from engine.rust_core import (
     validate_runtime_outputs, diagnostics_to_messages, validate_collector_output,
-    collector_output_envelope, rust_diff_files, rust_evaluate_policy,
+    collector_output_envelope, rust_diff_files, rust_evaluate_policy, rust_normalize_circuits,
 )
 
 
@@ -390,6 +390,27 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
         result.diff["cache_metrics"] = ctx.cache_metrics
         result.counts["cache_hits"] = int(ctx.cache_metrics.get("hits", 0))
         result.counts["cache_misses"] = int(ctx.cache_metrics.get("misses", 0))
+
+        t_circuit_shadow = time.perf_counter()
+        rust_circuit_shadow = rust_normalize_circuits(config, ctx.existing_data, meta=ctx.meta, source="mixed", router="mixed")
+        result.diff["rust_circuit_shadow"] = rust_circuit_shadow
+        circuit_shadow_errors, circuit_shadow_warnings = diagnostics_to_messages(rust_circuit_shadow)
+        if circuit_shadow_errors:
+            result.warnings.extend([f"Rust circuit shadow: {msg}" for msg in circuit_shadow_errors])
+        if rust_circuit_shadow.get("available"):
+            result.warnings.extend([f"Rust circuit shadow: {msg}" for msg in circuit_shadow_warnings])
+        timeline.record(
+            "rust_circuit_shadow",
+            t_circuit_shadow,
+            status="ok" if rust_circuit_shadow.get("ok") else ("unavailable" if not rust_circuit_shadow.get("available") else "check"),
+            details={
+                "available": bool(rust_circuit_shadow.get("available")),
+                "ok": bool(rust_circuit_shadow.get("ok")),
+                "normalized_count": (rust_circuit_shadow.get("result") or {}).get("normalized_count"),
+                "errors": len(rust_circuit_shadow.get("errors") or []),
+                "warnings": len(rust_circuit_shadow.get("warnings") or []),
+            },
+        )
         result.file_hashes = {
             "current_csv": sha256_text(current_csv_text),
             "current_network": sha256_text(current_network_text),

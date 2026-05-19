@@ -1,3 +1,9 @@
+# Package Notes
+
+## v2.76.0-rc1 - Rust Core v0.6 Circuit Shadow Normalizer
+
+Adds the Rust `normalize-circuits` operation and Dry Run circuit shadow panel. This release remains fallback-safe and does not move live circuit building authority away from Python. It also removes the harmless v0.5 Rust unused-mut warning.
+
 ## v2.73.1-rc1 Package Notes
 
 - Rust Core v0.3 build hotfix for the `csv` crate line terminator API.

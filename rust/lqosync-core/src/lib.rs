@@ -7,6 +7,7 @@
 
 pub mod atomic_state;
 pub mod bandwidth;
+pub mod circuits;
 pub mod network;
 pub mod protocol;
 pub mod shaped_devices;

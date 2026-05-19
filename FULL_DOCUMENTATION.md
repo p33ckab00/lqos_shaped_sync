@@ -7540,3 +7540,8 @@ The `lqosync-in-rust` branch now includes optional Unix socket daemon support fo
 
 Rust Core v0.5 adds `evaluate-policy`, a shadow policy decision engine that reviews preflight, collector trust, Rust validation, cleanup impact, and Python policy output. Python remains authoritative; Rust provides risk/verdict/parity diagnostics in Dry Run. See `docs/RUST_CORE_V05_POLICY_SHADOW.md`.
 
+
+
+## Rust Core v0.6 Circuit Shadow Normalizer
+
+Rust Core v0.6 adds the `normalize-circuits` operation. It is shadow-only: Python collectors and builders remain authoritative, while Rust independently normalizes the generated circuit rows and exposes diagnostics in Dry Run. This prepares the future Rust circuit-builder migration without changing live write/apply behavior. See `docs/RUST_CORE_V06_CIRCUIT_SHADOW.md`.

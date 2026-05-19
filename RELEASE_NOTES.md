@@ -1,3 +1,12 @@
+# Release Notes
+
+## v2.76.0-rc1 - Rust Core v0.6 Circuit Shadow Normalizer
+
+- Adds Rust `normalize-circuits` protocol operation.
+- Adds shadow circuit normalization diagnostics in Dry Run as `rust_circuit_shadow`.
+- Keeps Python collectors and builders authoritative while Rust verifies normalized circuit row shape.
+- Fixes the v0.5 unused `mut` Rust warning in `policy.rs`.
+
 ## v2.73.1-rc1 - Rust Core v0.3 Build Hotfix
 
 - Fixes Rust build failure in `shaped_devices.rs` by using `csv::Terminator::Any(b'\n')` instead of the non-existent `csv::Terminator::LF` variant.

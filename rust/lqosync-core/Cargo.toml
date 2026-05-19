@@ -1,6 +1,6 @@
 [package]
 name = "lqosync-core"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 description = "Deterministic Rust safety core for LQoSync validation, diff, collector trust, atomic state operations, policy shadow evaluation, and Unix socket daemon support."
 license = "MIT"

@@ -85,6 +85,23 @@
 </section>
 {% endif %}
 
+
+{% set rust_circuit = result.diff.rust_circuit_shadow if result and result.diff and result.diff.rust_circuit_shadow else None %}
+{% if rust_circuit %}
+<section class="card" style="margin-top:10px;border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.06)">
+  <div class="card-title"><i class="ti ti-cpu-2"></i> Rust Circuit Shadow</div>
+  {% set rc = rust_circuit.result if rust_circuit.result else {} %}
+  <div class="grid-stats" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+    <div class="stat"><div class="stat-label">Normalizer</div><div class="stat-value {{ 'text-accent' if rust_circuit.ok else 'text-warn' }}">{{ 'OK' if rust_circuit.ok else 'Check' }}</div></div>
+    <div class="stat"><div class="stat-label">Input rows</div><div class="stat-value text-dhcp">{{ rc.input_count if rc.input_count is defined else 0 }}</div></div>
+    <div class="stat"><div class="stat-label">Normalized</div><div class="stat-value text-accent">{{ rc.normalized_count if rc.normalized_count is defined else 0 }}</div></div>
+    <div class="stat"><div class="stat-label">Diagnostics</div><div class="stat-value {{ 'text-warn' if (rust_circuit.errors or rust_circuit.warnings) else 'text-accent' }}">{{ (rust_circuit.errors|length if rust_circuit.errors else 0) + (rust_circuit.warnings|length if rust_circuit.warnings else 0) }}</div></div>
+  </div>
+  <p class="text-sm" style="color:var(--muted);margin-top:10px">Rust circuit normalization is shadow-only in v0.6. Python collectors and builders remain authoritative while Rust validates normalized circuit rows and prepares for a future controlled circuit-builder migration.</p>
+  <details style="margin-top:10px"><summary class="mono text-sm text-dhcp" style="cursor:pointer">Show Rust circuit shadow JSON</summary><pre class="mono text-xs scroll-panel" style="margin-top:10px;background:var(--bg0);border:1px solid var(--br0);border-radius:10px;padding:12px;white-space:pre-wrap">{{ rust_circuit | tojson(indent=2) }}</pre></details>
+</section>
+{% endif %}
+
 {% include "dry_run_policy_verdict_fragment.html" %}
 {% include "dry_run_smart_insights_fragment.html" %}
 

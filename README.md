@@ -265,3 +265,8 @@ The optional Rust safety core now supports a Unix socket daemon. The daemon uses
 
 The `lqosync-in-rust` branch now includes an optional Rust `evaluate-policy` operation. It runs in shadow mode beside Python policy decisions, reports risk/verdict/parity in Dry Run, and remains non-authoritative until parity is proven.
 
+
+
+## Rust Core v0.6 Circuit Shadow
+
+The `lqosync-in-rust` branch now includes an optional Rust `normalize-circuits` operation. It runs in shadow mode beside the Python collectors/builders, reports normalized row counts and diagnostics in Dry Run, and prepares the next migration step toward a Rust circuit builder without changing live behavior.

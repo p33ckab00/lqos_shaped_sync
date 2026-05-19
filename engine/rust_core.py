@@ -242,6 +242,142 @@ def _python_policy_shadow(payload: dict[str, Any], *, started: float | None = No
     }
 
 
+
+def _record_number(record: dict[str, Any], *keys: str) -> float | None:
+    for key in keys:
+        val = record.get(key)
+        if val is None or val == "":
+            continue
+        try:
+            num = float(val)
+            if num == num:
+                return num
+        except Exception:
+            continue
+    return None
+
+
+def _python_normalize_circuits(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    """Fallback for Rust `normalize-circuits` shadow mode."""
+    started = started or time.perf_counter()
+    source = str(payload.get("source") or "mixed")
+    router = str(payload.get("router") or "mixed")
+    records = payload.get("records") if isinstance(payload.get("records"), list) else []
+    try:
+        min_rate = float(payload.get("min_rate_percentage", 0.5))
+    except Exception:
+        min_rate = 0.5
+    min_rate = min(max(min_rate, 0.0), 1.0)
+    normalized = []
+    errors = []
+    warnings = []
+    seen_ips: dict[str, str] = {}
+    for idx, rec in enumerate(records):
+        rec = rec if isinstance(rec, dict) else {}
+        code = str(rec.get("code") or rec.get("circuit_name") or rec.get("Circuit Name") or "").strip()
+        name = str(rec.get("device_name") or rec.get("Device Name") or rec.get("name") or code).strip()
+        parent = str(rec.get("parent_node") or rec.get("Parent Node") or "").strip()
+        ipv4 = str(rec.get("ipv4") or rec.get("IPv4") or rec.get("address") or "").strip()
+        mac = str(rec.get("mac") or rec.get("MAC") or "").strip()
+        down = _record_number(rec, "download_max_mbps", "Download Max Mbps", "download_mbps", "base_rx")
+        up = _record_number(rec, "upload_max_mbps", "Upload Max Mbps", "upload_mbps", "base_tx")
+        label = code or f"record[{idx}]"
+        if not code:
+            errors.append({"code": "missing_circuit_name", "severity": "error", "path": f"records[{idx}].circuit_name", "message": "Circuit record is missing circuit_name/code"})
+        if not parent:
+            warnings.append({"code": "missing_parent_node", "severity": "warning", "path": f"records[{idx}].parent_node", "message": f"Circuit {label} has no Parent Node"})
+        if not down or not up or down <= 0 or up <= 0:
+            errors.append({"code": "invalid_circuit_speed", "severity": "error", "path": f"records[{idx}].speed", "message": f"Circuit {label} has invalid or missing download/upload Mbps"})
+            continue
+        if ipv4:
+            if ipv4 in seen_ips:
+                warnings.append({"code": "duplicate_ip", "severity": "warning", "path": f"records[{idx}].ipv4", "message": f"Duplicate IPv4 {ipv4}: {seen_ips[ipv4]} and {code}", "value": ipv4})
+            else:
+                seen_ips[ipv4] = code
+        comment = str(rec.get("comment") or rec.get("Comment") or source).strip()
+        comment = {"pppoe": "PPP", "ppp": "PPP", "hotspot": "HS", "hs": "HS", "dhcp": "DHCP"}.get(comment.lower(), comment.upper() if comment else "UNKNOWN")
+        normalized.append({
+            "Circuit ID": code,
+            "Circuit Name": code,
+            "Device ID": code,
+            "Device Name": name,
+            "Parent Node": parent,
+            "MAC": mac,
+            "IPv4": ipv4,
+            "IPv6": str(rec.get("ipv6") or rec.get("IPv6") or ""),
+            "Download Min Mbps": round(down * min_rate, 3),
+            "Upload Min Mbps": round(up * min_rate, 3),
+            "Download Max Mbps": round(down, 3),
+            "Upload Max Mbps": round(up, 3),
+            "Comment": comment,
+        })
+    source_counts: dict[str, int] = {}
+    for row in normalized:
+        source_counts[row.get("Comment", "UNKNOWN")] = source_counts.get(row.get("Comment", "UNKNOWN"), 0) + 1
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "normalize-circuits",
+        "available": False,
+        "ok": not errors,
+        "result": {
+            "mode": "shadow",
+            "authoritative": False,
+            "source": source,
+            "router": router,
+            "input_count": len(records),
+            "normalized_count": len(normalized),
+            "invalid_count": len(errors),
+            "warning_count": len(warnings),
+            "source_counts": source_counts,
+            "normalized_rows": normalized,
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_circuit_shadow_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def _rows_to_circuit_records(rows: dict[str, dict[str, Any]], meta: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    meta = meta or {}
+    records = []
+    for code, row in (rows or {}).items():
+        row = row or {}
+        m = meta.get(code, {}) if isinstance(meta.get(code, {}), dict) else {}
+        records.append({
+            "code": code,
+            "circuit_name": row.get("Circuit Name") or code,
+            "device_name": row.get("Device Name") or row.get("Circuit Name") or code,
+            "parent_node": row.get("Parent Node") or "",
+            "mac": row.get("MAC") or "",
+            "ipv4": row.get("IPv4") or "",
+            "ipv6": row.get("IPv6") or "",
+            "download_min_mbps": row.get("Download Min Mbps") or "",
+            "upload_min_mbps": row.get("Upload Min Mbps") or "",
+            "download_max_mbps": row.get("Download Max Mbps") or m.get("base_rx") or "",
+            "upload_max_mbps": row.get("Upload Max Mbps") or m.get("base_tx") or "",
+            "comment": row.get("Comment") or m.get("source_type") or "",
+            "source_type": m.get("source_type") or row.get("Comment") or "",
+            "speed_source": m.get("speed_source") or "",
+            "router": m.get("router") or "",
+        })
+    return records
+
+
+def rust_normalize_circuits(config: dict, rows: dict[str, dict[str, Any]], *, meta: dict[str, Any] | None = None, source: str = "mixed", router: str = "mixed") -> dict[str, Any]:
+    defaults = (config or {}).get("defaults", {}) if isinstance(config, dict) else {}
+    payload = {
+        "source": source,
+        "router": router,
+        "min_rate_percentage": defaults.get("min_rate_percentage", 0.5),
+        "records": _rows_to_circuit_records(rows, meta),
+    }
+    response = call_rust_core("normalize-circuits", payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_normalize_circuits(payload)
+    return response
+
+
 def rust_evaluate_policy(config: dict, *, preflight: dict | None = None, collector_trust: list[dict[str, Any]] | None = None, cleanup: dict | None = None, rust_validation: dict | None = None, python_policy_decision: dict | None = None, diff_summary: dict | None = None) -> dict[str, Any]:
     payload = {
         "config": config or {},

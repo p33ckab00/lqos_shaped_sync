@@ -18,7 +18,7 @@ pub fn evaluate_policy_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<
     let mut warnings_out: Vec<Value> = Vec::new();
     let mut recommendations: Vec<Value> = Vec::new();
     let mut decision_trace: Vec<Value> = Vec::new();
-    let mut diagnostics_errors: Vec<Diagnostic> = Vec::new();
+    let diagnostics_errors: Vec<Diagnostic> = Vec::new();
     let mut diagnostics_warnings: Vec<Diagnostic> = Vec::new();
     let mut risk_score: i64 = 0;
     let mut cleanup_allowed = true;

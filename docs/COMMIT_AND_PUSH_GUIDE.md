@@ -329,3 +329,13 @@ git commit -m "rust(core): add policy shadow evaluator" \
   -m "Add non-authoritative Rust evaluate-policy operation, Python wrapper integration, Dry Run policy shadow visibility, and documentation for comparing Rust and Python policy decisions before future enforcement."
 git push -u origin lqosync-in-rust
 ```
+
+
+## v0.6 circuit shadow commit
+
+```bash
+git add .
+git commit -m "rust(core): add circuit shadow normalizer" \
+  -m "Add non-authoritative Rust normalize-circuits operation, Python wrapper integration, Dry Run circuit shadow visibility, and documentation for the future Rust circuit-builder migration."
+git push -u origin lqosync-in-rust
+```

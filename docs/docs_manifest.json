@@ -452,5 +452,11 @@
         "file": "docs/RUST_CORE_V05_POLICY_SHADOW.md",
         "anchor": "rust-core-v05-policy-shadow-engine",
         "summary": "Shadow Rust policy decision engine, risk scoring, Python/Rust parity checks, and Dry Run visibility for the lqosync-in-rust branch."
+    },
+    "rust.v06_circuit_shadow": {
+        "title": "Rust Core v0.6 Circuit Shadow Normalizer",
+        "file": "docs/RUST_CORE_V06_CIRCUIT_SHADOW.md",
+        "anchor": "rust-core-v06-circuit-shadow-normalizer",
+        "summary": "Shadow Rust circuit normalization, typed circuit row diagnostics, and Dry Run visibility for the lqosync-in-rust branch."
     }
 }

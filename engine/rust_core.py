@@ -919,7 +919,7 @@ def rust_core_status(config: dict | None = None) -> dict[str, Any]:
     rc = rust_core_config(config)
     binary = find_rust_core_binary(config)
     daemon_available = daemon_socket_available(config)
-    return {
+    status = {
         "enabled": rc["enabled"],
         "available": bool(binary or daemon_available),
         "binary": binary,
@@ -932,7 +932,11 @@ def rust_core_status(config: dict | None = None) -> dict[str, Any]:
         "prefer_daemon": rc["prefer_daemon"],
         "unix_socket": rc["unix_socket"],
         "mode": "daemon" if rc["prefer_daemon"] and daemon_available else ("subprocess" if binary else "python_fallback"),
+        "self_test_on_status": bool(rc.get("self_test_on_status", False)),
     }
+    if rc.get("self_test_on_status"):
+        status["self_test"] = rust_core_self_test(config)
+    return status
 
 
 def call_rust_core(op: str, payload: dict[str, Any] | None = None, *, config: dict | None = None, request_id: str | None = None, timeout: int | None = None) -> dict[str, Any]:
@@ -1084,3 +1088,27 @@ def _wrapper_error(op: str, request_id: str | None, code: str, message: str, sta
             "duration_ms": round((time.perf_counter() - started) * 1000, 3),
         },
     }
+
+
+def rust_core_self_test(config: dict | None = None, *, strict: bool = False) -> dict[str, Any]:
+    """Run the Rust core runtime self-test without mutating files."""
+    response = call_rust_core("self-test", {"strict": bool(strict)}, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return {
+            "version": PROTOCOL_VERSION,
+            "op": "self-test",
+            "available": False,
+            "ok": False,
+            "skipped": bool(response.get("skipped", False)),
+            "result": {
+                "status": "unavailable",
+                "checks": [],
+                "operation_count": 0,
+                "purpose": "Rust core runtime self-test unavailable; install or upgrade lqosync-core.",
+            },
+            "errors": response.get("errors") or [{"code": "rust_core_self_test_unavailable", "severity": "error", "message": "Rust core self-test is unavailable."}],
+            "warnings": response.get("warnings") or [],
+            "meta": response.get("meta") or {"engine": "python-wrapper"},
+        }
+    return response

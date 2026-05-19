@@ -1784,3 +1784,10 @@ This update keeps LibreQoS integrity intact while allowing older ZIP/manual inst
 - Add Rust Core v1.0 apply transaction executor operation `execute-apply-transaction`.
 - Keep transaction execution disabled by default; Dry Run shows rehearsal status.
 - Add config flags for future opt-in Rust file-write authority.
+
+
+## v2.81.0-rc1 — Rust Core v1.1 Runtime Self-Test and Capability Audit
+
+This package adds a safe Rust core `self-test` operation and `/api/rust-core/self-test` endpoint. It also routes `execute-apply-transaction` through the CLI/daemon protocol and centralizes advertised Rust operations so future operation-list mismatches are easier to catch before enabling authority flags.
+
+Read: `docs/RUST_CORE_V11_SELF_TEST.md`.

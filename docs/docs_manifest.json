@@ -482,5 +482,11 @@
         "file": "docs/RUST_CORE_V10_APPLY_TRANSACTION.md",
         "anchor": "rust-core-v10-apply-transaction-executor",
         "summary": "Opt-in Rust apply transaction rehearsal/executor for safe file writes, with Python remaining authoritative by default."
+    },
+    "rust.v11_self_test": {
+        "title": "Rust Core v1.1 Runtime Self-Test and Capability Audit",
+        "file": "docs/RUST_CORE_V11_SELF_TEST.md",
+        "anchor": "rust-core-v11-runtime-self-test-and-capability-audit",
+        "summary": "Runtime self-test operation, operation routing audit, and WebUI API endpoint for validating the installed Rust core before enabling authority flags."
     }
 }

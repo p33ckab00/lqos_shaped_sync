@@ -18,3 +18,5 @@ pub mod diff;
 pub mod policy;
 
 pub mod sync_plan;
+
+pub mod self_test;

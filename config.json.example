@@ -540,6 +540,10 @@
         "transaction_authority": "preview",
         "execute_apply_manifest": false,
         "allow_rust_file_writes": false,
-        "allow_rust_libreqos_apply": false
+        "allow_rust_libreqos_apply": false,
+        "enforce_sync_plan": false,
+        "fail_closed_when_enforced": true,
+        "authority_mode": "shadow",
+        "self_test_on_status": false
     }
 }

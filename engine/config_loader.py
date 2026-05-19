@@ -78,6 +78,7 @@ DEFAULT_CONFIG = {
         "execute_apply_manifest": False,
         "allow_rust_file_writes": False,
         "allow_rust_libreqos_apply": False,
+        "self_test_on_status": False,
     },
     "collector": {
         "selective_fields": True,
@@ -517,6 +518,11 @@ def validate_config(cfg: dict):
     rust_core.setdefault("authority_mode", "shadow")
     rust_core.setdefault("prefer_daemon", False)
     rust_core.setdefault("unix_socket", "/run/lqosync-core.sock")
+    rust_core.setdefault("transaction_authority", "preview")
+    rust_core.setdefault("execute_apply_manifest", False)
+    rust_core.setdefault("allow_rust_file_writes", False)
+    rust_core.setdefault("allow_rust_libreqos_apply", False)
+    rust_core.setdefault("self_test_on_status", False)
     if rust_core.get("authority_mode") not in ("shadow", "enforce_blockers"):
         errors.append(f"rust_core.authority_mode invalid: {rust_core.get('authority_mode')}")
     # Compatibility: authority_mode=enforce_blockers implies sync-plan enforcement.

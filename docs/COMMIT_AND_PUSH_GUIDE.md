@@ -378,3 +378,12 @@ git commit -m "rust(core): add apply transaction executor" \
   -m "Add execute-apply-transaction to lqosync-core with rehearsal-only defaults, opt-in file-write execution, Dry Run visibility, and documentation while keeping Python authoritative."
 git push -u origin lqosync-in-rust
 ```
+
+
+## v2.81.0-rc1 commit example
+
+```bash
+git add .
+git commit -m "rust(core): add runtime self-test and capability audit"   -m "Route execute-apply-transaction through the Rust CLI/daemon protocol, add the self-test operation, expose /api/rust-core/self-test, and document capability checks before enabling authority flags."
+git push -u origin lqosync-in-rust
+```

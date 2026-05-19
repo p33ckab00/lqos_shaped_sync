@@ -293,3 +293,10 @@ The `lqosync-in-rust` branch now includes a non-destructive Rust apply manifest 
 ## Rust Core v1.0 Apply Transaction Executor
 
 This package adds the optional `execute-apply-transaction` Rust operation. It rehearses transactions by default and only writes files when explicit Rust transaction flags are enabled. Python remains authoritative for normal production sync/apply behavior.
+
+
+## Rust Core v1.1 Runtime Self-Test
+
+This package adds a safe Rust core `self-test` operation and `/api/rust-core/self-test` endpoint. It also routes `execute-apply-transaction` through the CLI/daemon protocol and centralizes advertised Rust operations so future operation-list mismatches are easier to catch before enabling authority flags.
+
+Read: `docs/RUST_CORE_V11_SELF_TEST.md`.

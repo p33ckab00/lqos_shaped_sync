@@ -9,6 +9,7 @@ use lqosync_core::diff::{diff_files_payload, diff_network_text, diff_shaped_devi
 use lqosync_core::network::{collect_node_names, parse_network_text, validate_network};
 use lqosync_core::policy::evaluate_policy_payload;
 use lqosync_core::protocol::{CoreRequest, CoreResponse, PROTOCOL_VERSION};
+use lqosync_core::self_test::{advertised_operations, self_test_payload};
 use lqosync_core::shaped_devices::{parse_csv_text, render_csv_text, validate_rows};
 use lqosync_core::sync_plan::evaluate_sync_plan_payload;
 use lqosync_core::validators::{validate_collector_output_payload, validate_config_value, validate_files_payload};
@@ -140,27 +141,7 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
             "status": "ok",
             "mode": "daemon_or_cli",
             "protocol_version": PROTOCOL_VERSION,
-            "operations": [
-                "health",
-                "parse-bandwidth",
-                "validate-config",
-                "validate-shaped-devices",
-                "validate-network",
-                "validate-files",
-                "validate-collector-output",
-                "diff-shaped-devices",
-                "diff-network",
-                "diff-files",
-                "validate-json-state",
-                "write-json-state",
-                "write-text-file",
-                "append-audit-jsonl",
-                "evaluate-policy",
-                "normalize-circuits",
-                "evaluate-sync-plan",
-                "build-apply-manifest",
-                "execute-apply-transaction"
-            ]
+            "operations": advertised_operations()
         }), started)),
         "parse-bandwidth" => Ok(handle_parse_bandwidth(req, started)),
         "validate-config" => Ok(handle_validate_config(req, started)),
@@ -220,6 +201,14 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
         }
         "build-apply-manifest" => {
             let (result, errors, warnings) = build_apply_manifest_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "execute-apply-transaction" => {
+            let (result, errors, warnings) = execute_apply_transaction_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "self-test" => {
+            let (result, errors, warnings) = self_test_payload(&req.payload);
             Ok(CoreResponse::validation(req, result, errors, warnings, started))
         }
         other => Ok(CoreResponse::failure(

@@ -105,3 +105,12 @@ Adds `build-apply-manifest`, a non-destructive transaction preview that lists ba
 ## v1.0 Apply Transaction Executor
 
 `execute-apply-transaction` executes the safe file-write part of a previously previewed apply manifest only when explicitly requested with `execute=true` and `allow_file_writes=true`. It does not run `LibreQoS.py`; Python remains authoritative for external apply execution. By default it behaves as a rehearsal and returns the write plan without mutating files.
+
+
+## v1.1 self-test
+
+```bash
+printf '{"version":"1","op":"self-test","payload":{}}' | lqosync-core
+```
+
+The self-test is read-only and verifies advertised operations, parser basics, apply manifest generation, and transaction rehearsal.

@@ -165,3 +165,16 @@ Adds `build-collector-circuit-bundle`, a shadow operation that normalizes raw PP
 ## Rust Core v1.9 Collector Bundle Parity Report
 
 Adds `compare-collector-bundle-parity`, a diagnostic operation and API endpoint for comparing Python-authoritative rows with Rust-shadow collector bundle rows before any collector authority migration.
+
+
+## v2.0 RouterOS Collector Plan
+
+`build-routeros-collector-plan` produces a deterministic RouterOS read plan from LQoSync config.
+
+It is a plan-only operation:
+- no RouterOS socket is opened;
+- no credentials are used;
+- no files are written;
+- Python collectors remain authoritative.
+
+The operation is a bridge toward a future Rust RouterOS transport by freezing the expected RouterOS resources, selected fields, and source trust roles before live collection is migrated.

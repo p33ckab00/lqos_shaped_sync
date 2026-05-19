@@ -200,3 +200,15 @@ Includes Rust Core v1.8 collector-bundle shadow builder and documentation. No de
 ## Rust Core v1.9 Collector Bundle Parity Report
 
 Adds `compare-collector-bundle-parity`, a diagnostic operation and API endpoint for comparing Python-authoritative rows with Rust-shadow collector bundle rows before any collector authority migration.
+
+
+## Rust Core v2.0 RouterOS Collector Plan
+
+This package adds `build-routeros-collector-plan`, a read-only Rust operation that derives the RouterOS resource/field plan for enabled PPPoE, DHCP, and Hotspot sources. It does not connect to MikroTik and does not replace Python collectors. It is a bridge toward a future Rust RouterOS transport while keeping Python authoritative by default.
+
+New API:
+
+```text
+GET /api/rust-core/routeros-collector-plan
+POST /api/rust-core/routeros-collector-plan
+```

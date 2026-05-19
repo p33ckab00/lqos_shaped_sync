@@ -1715,6 +1715,101 @@ def rust_authority_pilot_plan(config: dict) -> dict[str, Any]:
 
 
 
+
+def _python_build_routeros_collector_plan(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    cfg = payload.get("config") if isinstance(payload.get("config"), dict) else payload
+    routers = payload.get("routers") if isinstance(payload.get("routers"), list) else cfg.get("routers", [])
+    requested_router = str(payload.get("router") or "")
+    requested_source = str(payload.get("source") or "").lower()
+    include_disabled = bool(payload.get("include_disabled_routers", False))
+    commands: list[dict[str, Any]] = []
+    source_counts: dict[str, int] = {}
+
+    def add(router_name: str, source: str, path: str, fields: list[str], required: bool, purpose: str, **extra):
+        commands.append({
+            "router": router_name,
+            "source": source,
+            "path": path,
+            "fields": fields,
+            "required": required,
+            "purpose": purpose,
+            "transport": "routeros-api",
+            "mode": "plan_only",
+            **extra,
+        })
+        source_counts[source] = source_counts.get(source, 0) + 1
+
+    routers_seen = len(routers) if isinstance(routers, list) else 0
+    routers_planned = 0
+    for router in routers if isinstance(routers, list) else []:
+        if not isinstance(router, dict):
+            continue
+        name = str(router.get("name") or "Router")
+        if requested_router and requested_router != name:
+            continue
+        if not bool(router.get("enabled", True)) and not include_disabled:
+            continue
+        routers_planned += 1
+        if router.get("pppoe", {}).get("enabled") and requested_source in {"", "pppoe", "ppp"}:
+            add(name, "pppoe", "/ppp/active", ["name", "address", "caller-id", "comment"], True, "Read active PPPoE sessions.", trust_role="active_presence")
+            add(name, "pppoe", "/ppp/secret", ["name", "profile", "comment", "caller-id", "disabled", "inactive"], True, "Read PPPoE secrets for profile and disabled/inactive state.", trust_role="identity_profile")
+            add(name, "pppoe", "/ppp/profile", ["name", "comment", "rate-limit"], True, "Read PPPoE profiles for rate-limit fallback.", trust_role="speed_profile")
+        if router.get("dhcp", {}).get("enabled") and requested_source in {"", "dhcp"}:
+            servers = [str(s.get("name")) for s in router.get("dhcp", {}).get("servers", []) if isinstance(s, dict) and s.get("enabled", True) and s.get("name")]
+            add(name, "dhcp", "/ip/dhcp-server/lease", ["address", "mac-address", "host-name", "server", "status", "comment", "dynamic", "disabled"], True, "Read DHCP leases for IP/MAC/hostname/server mapping.", trust_role="lease_presence", server_filter=servers)
+            if cfg.get("collector", {}).get("dhcp", {}).get("read_server_metadata", True):
+                add(name, "dhcp", "/ip/dhcp-server", ["name", "interface", "comment", "disabled", "lease-script"], False, "Read DHCP server metadata for speed/comment context.", trust_role="source_metadata")
+        if router.get("hotspot", {}).get("enabled") and requested_source in {"", "hotspot", "hs"}:
+            add(name, "hotspot", "/ip/hotspot/active", ["user", "address", "mac-address", "server", "uptime", "comment"], True, "Read active Hotspot sessions.", trust_role="active_presence")
+            add(name, "hotspot", "/ip/hotspot/user", ["name", "profile", "comment", "mac-address", "disabled"], False, "Read Hotspot users for profile/comment speed hints.", trust_role="identity_profile")
+            add(name, "hotspot", "/ip/hotspot/user/profile", ["name", "rate-limit", "comment"], False, "Read Hotspot profiles for rate-limit fallback.", trust_role="speed_profile")
+
+    warnings = []
+    if routers_seen == 0:
+        warnings.append({"code": "routeros_plan_no_routers", "severity": "warning", "path": "config.routers", "message": "No routers were present in the config, so the RouterOS collector plan is empty."})
+    elif routers_planned == 0:
+        warnings.append({"code": "routeros_plan_no_enabled_router_match", "severity": "warning", "path": "config.routers", "message": "No enabled routers matched the requested RouterOS collector plan filter."})
+    if not commands:
+        warnings.append({"code": "routeros_plan_no_enabled_sources", "severity": "warning", "path": "config.routers", "message": "No enabled PPPoE, DHCP, or Hotspot sources matched the requested RouterOS collector plan."})
+
+    result = {
+        "mode": "plan_only",
+        "authority": "none",
+        "status": "empty" if not commands else "ready",
+        "router_count": routers_planned,
+        "command_count": len(commands),
+        "required_command_count": len([c for c in commands if c.get("required")]),
+        "source_counts": source_counts,
+        "commands": commands,
+        "next_stage": "rust_routeros_transport_shadow",
+        "full_rust_backend": False,
+        "note": "This is a deterministic RouterOS read plan only. It does not open RouterOS connections or replace Python collectors.",
+    }
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "build-routeros-collector-plan",
+        "ok": True,
+        "available": False,
+        "skipped": True,
+        "result": result,
+        "errors": [],
+        "warnings": warnings,
+        "meta": {"engine": "python-fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_routeros_collector_plan(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config or {})
+    response = call_rust_core("build-routeros-collector-plan", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_routeros_collector_plan(req_payload, started=started)
+    return response
+
+
 def rust_build_collector_circuit_bundle(config: dict, payload: dict[str, Any]) -> dict[str, Any]:
     """Build a shadow ShapedDevices-compatible circuit bundle from raw collector snapshots.
 

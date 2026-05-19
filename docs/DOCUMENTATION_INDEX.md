@@ -169,3 +169,5 @@ Read these docs first:
 ## Rust Core v1.9 Collector Bundle Parity Report
 
 Adds `compare-collector-bundle-parity`, a diagnostic operation and API endpoint for comparing Python-authoritative rows with Rust-shadow collector bundle rows before any collector authority migration.
+
+- [Rust Core v2.0 RouterOS Collector Plan](RUST_CORE_V20_ROUTEROS_COLLECTOR_PLAN.md) — Read-only RouterOS resource/field command planning before live Rust transport migration.

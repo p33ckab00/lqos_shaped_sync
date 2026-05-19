@@ -1,8 +1,8 @@
 [package]
 name = "lqosync-core"
-version = "1.9.0"
+version = "2.0.0"
 edition = "2021"
-description = "Deterministic Rust safety core for LQoSync validation, diff, collector trust, atomic state operations, policy shadow evaluation, sync-plan authority gates, apply manifest previews, transaction rehearsal/execution, runtime self-test, transaction journal persistence, journal history/rollback planning, collector-bundle parity reporting, authority readiness scoring, and Unix socket daemon support."
+description = "Deterministic Rust safety core for LQoSync validation, diff, collector trust, atomic state operations, policy shadow evaluation, sync-plan authority gates, apply manifest previews, transaction rehearsal/execution, runtime self-test, transaction journal persistence, journal history/rollback planning, collector-bundle parity reporting, RouterOS collector planning, authority readiness scoring, and Unix socket daemon support."
 license = "MIT"
 
 [dependencies]

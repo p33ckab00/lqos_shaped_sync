@@ -1,540 +1,546 @@
 {
-  "rust.core_migration": {
-    "title": "LQoSync-in-Rust Core Migration Plan",
-    "file": "docs/RUST_CORE_MIGRATION.md",
-    "anchor": "lqosync-in-rust-core-migration-plan",
-    "summary": "Phased plan for adding a Rust safety core while preserving Python Flask WebUI, pure JSON/files, and autosave behavior."
-  },
-  "rust.core_protocol": {
-    "title": "Rust Core Protocol",
-    "file": "docs/RUST_CORE_PROTOCOL.md",
-    "anchor": "rust-core-protocol",
-    "summary": "Transport-neutral JSON request/response envelope for subprocess CLI and future Unix socket daemon."
-  },
-  "rust.collector_output_contract": {
-    "title": "Collector Output Contract",
-    "file": "docs/COLLECTOR_OUTPUT_CONTRACT.md",
-    "anchor": "collector-output-contract",
-    "summary": "Typed source trust contract to prevent silent partial or suspicious zero RouterOS results from triggering unsafe cleanup."
-  },
-  "rust.autosave_atomic_state": {
-    "title": "Autosave and Atomic State Model",
-    "file": "docs/AUTOSAVE_AND_ATOMIC_STATE.md",
-    "anchor": "autosave-and-atomic-state-model",
-    "summary": "No-save-button autosave flow, dangerous-change confirmation, atomic file/state writes, and rollback guidance."
-  },
-  "rust.commit_push_guide": {
-    "title": "Commit and Push Guide for lqosync-in-rust",
-    "file": "docs/COMMIT_AND_PUSH_GUIDE.md",
-    "anchor": "commit-and-push-guide-for-lqosync-in-rust",
-    "summary": "Branch workflow, review checklist, commit message, pull request, and push instructions for the Rust migration branch."
-  },
-  "policy.settings_integration": {
-    "title": "Policy Settings Integration",
-    "file": "docs/content/policy_settings_integration.md",
-    "anchor": "policy-settings-integration"
-  },
-  "setup_repair.center": {
-    "title": "Setup & Repair Center",
-    "file": "docs/content/setup_repair_center.md",
-    "anchor": "setup--repair-center"
-  },
-  "policy.smart_policy_center": {
-    "title": "Smart Policy Center",
-    "file": "docs/SMART_POLICY_CENTER.md",
-    "anchor": "smart-policy-center"
-  },
-  "setup_repair.smart_setup_repair": {
-    "title": "Smart Setup / Repair",
-    "file": "docs/SMART_SETUP_REPAIR.md",
-    "anchor": "smart-setup--repair"
-  },
-  "policy_aware_cleanup_intelligence": {
-    "title": "Policy-Aware Cleanup Intelligence",
-    "file": "docs/content/policy_aware_cleanup_intelligence.md",
-    "anchor": "policy-aware-cleanup-intelligence",
-    "summary": "v2.50 source-aware stale lifecycle, optional grace, risk-aware auto apply, and decision trace."
-  },
-  "config.schema_policy_simulation": {
-    "title": "Config Schema + Policy Simulation Engine",
-    "file": "docs/content/config_schema_policy_simulation.md",
-    "anchor": "config-schema--policy-simulation-engine",
-    "summary": "v2.51 config_schema_version, config health, unsaved config preview, policy simulation, and impact verdicts."
-  },
-  "reports.smart_operator_audit": {
-    "title": "Smart Reports + Operator Audit",
-    "file": "docs/content/smart_reports_operator_audit.md",
-    "anchor": "smart-reports--operator-audit",
-    "summary": "v2.52 operator report page with 24h summary, policy decision report, cleanup report, client changes, config audit, and exports."
-  },
-  "lifecycle.client_timeline": {
-    "title": "Client Lifecycle Timeline",
-    "file": "docs/content/client_lifecycle_timeline.md",
-    "anchor": "client-lifecycle-timeline",
-    "summary": "v2.53 client lifecycle timeline, active/stale/queued/removed/returned states, cleanup queue, confirmations, and exports."
-  },
-  "setup_wizard.first_run": {
-    "title": "First Run Setup Wizard",
-    "file": "docs/content/setup_wizard_first_run.md",
-    "anchor": "first-run-setup-wizard",
-    "summary": "v2.54 guided first-run onboarding for paths, routers, sources, layout, policy preset, Dry Run, and scheduler readiness."
-  },
-  "smart_reports_route_hotfix": {
-    "title": "Smart Reports route hotfix",
-    "file": "docs/content/smart_reports_route_hotfix.md",
-    "anchor": "v2541-smart-reports-route-hotfix"
-  },
-  "policy_center_settings_guidelines": {
-    "title": "Policy Center Settings Guidelines",
-    "file": "docs/content/policy_center_settings_guidelines.md",
-    "anchor": "policy-center-settings-guidelines",
-    "description": "Atomic operator explanations for every editable Policy Center setting."
-  },
-  "network_layout.drag_drop": {
-    "title": "Network Layout Drag-and-Drop",
-    "file": "docs/content/network_layout_drag_drop.md",
-    "anchor": "network-layout-drag-and-drop",
-    "description": "v2.54.3 wired desktop drag-and-drop for moving topology nodes with safe validation and preview-before-save behavior."
-  },
-  "ai_assisted_development": {
-    "title": "AI-Assisted Development Disclosure and Acknowledgement",
-    "file": "AI_ASSISTED_DEVELOPMENT.md",
-    "anchor": "ai-assisted-development-disclosure-and-acknowledgement"
-  },
-  "privacy_icon_polish": {
-    "title": "Privacy Icon Polish",
-    "file": "docs/content/privacy_icon_polish.md",
-    "anchor": "v2545-privacy-icon-polish"
-  },
-  "package_quality.environment_doctor": {
-    "title": "Package Quality + Environment Doctor",
-    "file": "docs/content/package_quality_environment_doctor.md",
-    "anchor": "v255-package-quality--environment-doctor",
-    "summary": "v2.55 release integrity checks, environment doctor, route/template validation, and Smart Defaults Repair."
-  },
-  "policy_ux.conflict_identity": {
-    "title": "Policy UX + Conflict Intelligence",
-    "file": "docs/content/policy_ux_conflict_identity.md",
-    "anchor": "v256-policy-ux--conflict-intelligence",
-    "summary": "v2.56 Policy Conflict Resolver, richer preset comparison, and client identity handling guidance."
-  },
-  "health.source_performance_trends": {
-    "title": "Source Health + Performance Trends",
-    "file": "docs/content/source_health_performance_trends.md",
-    "anchor": "v257-source-health--performance-trends",
-    "summary": "v2.57 source health dashboard, RouterOS API timing trends, LibreQoS apply health, and internal notification candidates."
-  },
-  "source_health_performance_trends": {
-    "title": "Source Health & Performance Trends",
-    "file": "docs/content/source_health_performance_trends.md",
-    "description": "Dashboard-consolidated source health, RouterOS API timing, LibreQoS apply health, and internal notification candidates."
-  },
-  "notifications.telegram": {
-    "title": "Telegram Notifications",
-    "file": "docs/content/telegram_notifications.md",
-    "anchor": "v258-telegram-notifications",
-    "summary": "v2.58 optional Telegram delivery for internal health, policy, apply, and source notification candidates."
-  },
-  "docs.search_ui_polish": {
-    "title": "Documentation Search + UI/Mobile Polish",
-    "file": "docs/content/documentation_search_ui_polish.md",
-    "anchor": "v259-documentation-search--uimobile-polish",
-    "summary": "v2.59 local documentation search, docs view pages, read-only docs API, and reusable UI/mobile consistency helpers."
-  },
-  "setup_wizard.better_fresh_install": {
-    "title": "Better Fresh Install Experience",
-    "file": "docs/content/better_fresh_install_experience.md",
-    "anchor": "better-fresh-install-experience",
-    "summary": "v2.60 first-run gate, scheduler readiness protection, setup wizard redirect, and fresh install workflow."
-  },
-  "lifecycle.view_filter_hotfix": {
-    "title": "Client Lifecycle View and Filter Hotfix",
-    "file": "docs/content/client_lifecycle_timeline.md",
-    "anchor": "v2601-client-lifecycle-view-and-filter-hotfix",
-    "summary": "v2.60.1 fixes Lifecycle View button wiring, adds instant table/card filtering, and adds timeline pagination/row limits."
-  },
-  "backup_pagination_actions": {
-    "title": "Backup Pagination and Actions",
-    "file": "docs/content/backup_pagination_actions.md",
-    "anchor": "backup-pagination-and-actions"
-  },
-  "compact_information_architecture": {
-    "title": "Compact Information Architecture",
-    "file": "docs/content/compact_information_architecture.md",
-    "anchor": "compact-information-architecture-and-documentation-consolidation",
-    "summary": "v2.61 Operations Center consolidation, compact sidebar, Dashboard/Reports separation, and documentation source-of-truth cleanup."
-  },
-  "config.policy_notification_unification": {
-    "title": "Config + Policy + Notification Unification",
-    "file": "docs/content/config_policy_notification_unification.md",
-    "anchor": "config--policy--notification-unification",
-    "summary": "v2.62 consolidates Policy Center and Telegram notification delivery settings into Config Center while keeping compatibility redirects."
-  },
-  "documentation.consolidation": {
-    "title": "Documentation Consolidation and Source of Truth",
-    "file": "docs/content/documentation_consolidation.md",
-    "anchor": "documentation-consolidation-and-source-of-truth",
-    "summary": "v2.63 consolidates GitHub and WebUI documentation into docs/content, docs_manifest, README, and FULL_DOCUMENTATION as one coherent source-of-truth system."
-  },
-  "documentation.index": {
-    "title": "LQoSync Documentation Index",
-    "file": "docs/DOCUMENTATION_INDEX.md",
-    "anchor": "lqosync-documentation-index",
-    "summary": "GitHub-friendly documentation table of contents that points to the consolidated LQoSync manual topics."
-  },
-  "entries": [
-    {
-      "id": "ui_consistency_redundancy_polish",
-      "title": "UI Consistency and Redundancy Polish",
-      "path": "docs/content/ui_consistency_redundancy_polish.md",
-      "category": "Operations",
-      "summary": "Explains the v2.64 compact operator model, UI consistency helpers, dashboard shortcuts, and Operations Center pagination polish."
+    "rust.core_migration": {
+        "title": "LQoSync-in-Rust Core Migration Plan",
+        "file": "docs/RUST_CORE_MIGRATION.md",
+        "anchor": "lqosync-in-rust-core-migration-plan",
+        "summary": "Phased plan for adding a Rust safety core while preserving Python Flask WebUI, pure JSON/files, and autosave behavior."
     },
-    {
-      "id": "production-hardening-regression-suite",
-      "title": "Production Hardening + Regression Suite",
-      "path": "docs/content/production_hardening_regression_suite.md",
-      "category": "operations",
-      "summary": "Offline release/regression checks for routes, templates, config migration, policy behavior, Operations Center, and documentation integrity."
+    "rust.core_protocol": {
+        "title": "Rust Core Protocol",
+        "file": "docs/RUST_CORE_PROTOCOL.md",
+        "anchor": "rust-core-protocol",
+        "summary": "Transport-neutral JSON request/response envelope for subprocess CLI and future Unix socket daemon."
     },
-    {
-      "id": "backup_restore_center_polish",
-      "title": "Backup / Restore Center Polish",
-      "path": "docs/content/backup_restore_center_polish.md",
-      "category": "Operations",
-      "summary": "Backup preview, integrity check, live diff, zip download, and retention preview for Operations Center."
+    "rust.collector_output_contract": {
+        "title": "Collector Output Contract",
+        "file": "docs/COLLECTOR_OUTPUT_CONTRACT.md",
+        "anchor": "collector-output-contract",
+        "summary": "Typed source trust contract to prevent silent partial or suspicious zero RouterOS results from triggering unsafe cleanup."
     },
-    {
-      "id": "production_readiness_score",
-      "title": "Production Readiness Score",
-      "path": "docs/content/production_readiness_score.md",
-      "category": "Operations",
-      "summary": "v2.68 Dashboard production readiness score, go-live checks, blockers, recommendations, and read-only readiness API."
+    "rust.autosave_atomic_state": {
+        "title": "Autosave and Atomic State Model",
+        "file": "docs/AUTOSAVE_AND_ATOMIC_STATE.md",
+        "anchor": "autosave-and-atomic-state-model",
+        "summary": "No-save-button autosave flow, dangerous-change confirmation, atomic file/state writes, and rollback guidance."
     },
-    {
-      "id": "stable_rc_stale_template_cleanup",
-      "title": "Stable RC Stale Template Cleanup Hotfix",
-      "path": "docs/content/stable_rc_stale_template_cleanup.md",
-      "category": "Release",
-      "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html."
+    "rust.commit_push_guide": {
+        "title": "Commit and Push Guide for lqosync-in-rust",
+        "file": "docs/COMMIT_AND_PUSH_GUIDE.md",
+        "anchor": "commit-and-push-guide-for-lqosync-in-rust",
+        "summary": "Branch workflow, review checklist, commit message, pull request, and push instructions for the Rust migration branch."
     },
-    {
-      "id": "ui_wiring_audit_role_visibility",
-      "title": "UI Wiring Audit + Role Visibility Hotfix",
-      "path": "docs/content/ui_wiring_audit_role_visibility.md",
-      "category": "Stable Release",
-      "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation."
+    "policy.settings_integration": {
+        "title": "Policy Settings Integration",
+        "file": "docs/content/policy_settings_integration.md",
+        "anchor": "policy-settings-integration"
     },
-    {
-      "id": "settings_ui_state_wiring_hotfix",
-      "title": "Settings UI State Wiring Hotfix",
-      "path": "docs/content/settings_ui_state_wiring_hotfix.md",
-      "category": "UI Wiring",
-      "summary": "v2.70.5-rc1 fixes Config Center preset active-state mismatch and adds deeper Config Center state wiring audit coverage."
+    "setup_repair.center": {
+        "title": "Setup & Repair Center",
+        "file": "docs/content/setup_repair_center.md",
+        "anchor": "setup--repair-center"
     },
-    {
-      "id": "checkbox_state_wiring_hotfix",
-      "title": "Checkbox State Wiring Hotfix",
-      "path": "docs/content/checkbox_state_wiring_hotfix.md",
-      "category": "Config Center",
-      "summary": "v2.70.6 fixes Config Center checkbox checked-state binding and visual checked marks for boolean policy fields."
+    "policy.smart_policy_center": {
+        "title": "Smart Policy Center",
+        "file": "docs/SMART_POLICY_CENTER.md",
+        "anchor": "smart-policy-center"
+    },
+    "setup_repair.smart_setup_repair": {
+        "title": "Smart Setup / Repair",
+        "file": "docs/SMART_SETUP_REPAIR.md",
+        "anchor": "smart-setup--repair"
+    },
+    "policy_aware_cleanup_intelligence": {
+        "title": "Policy-Aware Cleanup Intelligence",
+        "file": "docs/content/policy_aware_cleanup_intelligence.md",
+        "anchor": "policy-aware-cleanup-intelligence",
+        "summary": "v2.50 source-aware stale lifecycle, optional grace, risk-aware auto apply, and decision trace."
+    },
+    "config.schema_policy_simulation": {
+        "title": "Config Schema + Policy Simulation Engine",
+        "file": "docs/content/config_schema_policy_simulation.md",
+        "anchor": "config-schema--policy-simulation-engine",
+        "summary": "v2.51 config_schema_version, config health, unsaved config preview, policy simulation, and impact verdicts."
+    },
+    "reports.smart_operator_audit": {
+        "title": "Smart Reports + Operator Audit",
+        "file": "docs/content/smart_reports_operator_audit.md",
+        "anchor": "smart-reports--operator-audit",
+        "summary": "v2.52 operator report page with 24h summary, policy decision report, cleanup report, client changes, config audit, and exports."
+    },
+    "lifecycle.client_timeline": {
+        "title": "Client Lifecycle Timeline",
+        "file": "docs/content/client_lifecycle_timeline.md",
+        "anchor": "client-lifecycle-timeline",
+        "summary": "v2.53 client lifecycle timeline, active/stale/queued/removed/returned states, cleanup queue, confirmations, and exports."
+    },
+    "setup_wizard.first_run": {
+        "title": "First Run Setup Wizard",
+        "file": "docs/content/setup_wizard_first_run.md",
+        "anchor": "first-run-setup-wizard",
+        "summary": "v2.54 guided first-run onboarding for paths, routers, sources, layout, policy preset, Dry Run, and scheduler readiness."
+    },
+    "smart_reports_route_hotfix": {
+        "title": "Smart Reports route hotfix",
+        "file": "docs/content/smart_reports_route_hotfix.md",
+        "anchor": "v2541-smart-reports-route-hotfix"
+    },
+    "policy_center_settings_guidelines": {
+        "title": "Policy Center Settings Guidelines",
+        "file": "docs/content/policy_center_settings_guidelines.md",
+        "anchor": "policy-center-settings-guidelines",
+        "description": "Atomic operator explanations for every editable Policy Center setting."
+    },
+    "network_layout.drag_drop": {
+        "title": "Network Layout Drag-and-Drop",
+        "file": "docs/content/network_layout_drag_drop.md",
+        "anchor": "network-layout-drag-and-drop",
+        "description": "v2.54.3 wired desktop drag-and-drop for moving topology nodes with safe validation and preview-before-save behavior."
+    },
+    "ai_assisted_development": {
+        "title": "AI-Assisted Development Disclosure and Acknowledgement",
+        "file": "AI_ASSISTED_DEVELOPMENT.md",
+        "anchor": "ai-assisted-development-disclosure-and-acknowledgement"
+    },
+    "privacy_icon_polish": {
+        "title": "Privacy Icon Polish",
+        "file": "docs/content/privacy_icon_polish.md",
+        "anchor": "v2545-privacy-icon-polish"
+    },
+    "package_quality.environment_doctor": {
+        "title": "Package Quality + Environment Doctor",
+        "file": "docs/content/package_quality_environment_doctor.md",
+        "anchor": "v255-package-quality--environment-doctor",
+        "summary": "v2.55 release integrity checks, environment doctor, route/template validation, and Smart Defaults Repair."
+    },
+    "policy_ux.conflict_identity": {
+        "title": "Policy UX + Conflict Intelligence",
+        "file": "docs/content/policy_ux_conflict_identity.md",
+        "anchor": "v256-policy-ux--conflict-intelligence",
+        "summary": "v2.56 Policy Conflict Resolver, richer preset comparison, and client identity handling guidance."
+    },
+    "health.source_performance_trends": {
+        "title": "Source Health + Performance Trends",
+        "file": "docs/content/source_health_performance_trends.md",
+        "anchor": "v257-source-health--performance-trends",
+        "summary": "v2.57 source health dashboard, RouterOS API timing trends, LibreQoS apply health, and internal notification candidates."
+    },
+    "source_health_performance_trends": {
+        "title": "Source Health & Performance Trends",
+        "file": "docs/content/source_health_performance_trends.md",
+        "description": "Dashboard-consolidated source health, RouterOS API timing, LibreQoS apply health, and internal notification candidates."
+    },
+    "notifications.telegram": {
+        "title": "Telegram Notifications",
+        "file": "docs/content/telegram_notifications.md",
+        "anchor": "v258-telegram-notifications",
+        "summary": "v2.58 optional Telegram delivery for internal health, policy, apply, and source notification candidates."
+    },
+    "docs.search_ui_polish": {
+        "title": "Documentation Search + UI/Mobile Polish",
+        "file": "docs/content/documentation_search_ui_polish.md",
+        "anchor": "v259-documentation-search--uimobile-polish",
+        "summary": "v2.59 local documentation search, docs view pages, read-only docs API, and reusable UI/mobile consistency helpers."
+    },
+    "setup_wizard.better_fresh_install": {
+        "title": "Better Fresh Install Experience",
+        "file": "docs/content/better_fresh_install_experience.md",
+        "anchor": "better-fresh-install-experience",
+        "summary": "v2.60 first-run gate, scheduler readiness protection, setup wizard redirect, and fresh install workflow."
+    },
+    "lifecycle.view_filter_hotfix": {
+        "title": "Client Lifecycle View and Filter Hotfix",
+        "file": "docs/content/client_lifecycle_timeline.md",
+        "anchor": "v2601-client-lifecycle-view-and-filter-hotfix",
+        "summary": "v2.60.1 fixes Lifecycle View button wiring, adds instant table/card filtering, and adds timeline pagination/row limits."
+    },
+    "backup_pagination_actions": {
+        "title": "Backup Pagination and Actions",
+        "file": "docs/content/backup_pagination_actions.md",
+        "anchor": "backup-pagination-and-actions"
+    },
+    "compact_information_architecture": {
+        "title": "Compact Information Architecture",
+        "file": "docs/content/compact_information_architecture.md",
+        "anchor": "compact-information-architecture-and-documentation-consolidation",
+        "summary": "v2.61 Operations Center consolidation, compact sidebar, Dashboard/Reports separation, and documentation source-of-truth cleanup."
+    },
+    "config.policy_notification_unification": {
+        "title": "Config + Policy + Notification Unification",
+        "file": "docs/content/config_policy_notification_unification.md",
+        "anchor": "config--policy--notification-unification",
+        "summary": "v2.62 consolidates Policy Center and Telegram notification delivery settings into Config Center while keeping compatibility redirects."
+    },
+    "documentation.consolidation": {
+        "title": "Documentation Consolidation and Source of Truth",
+        "file": "docs/content/documentation_consolidation.md",
+        "anchor": "documentation-consolidation-and-source-of-truth",
+        "summary": "v2.63 consolidates GitHub and WebUI documentation into docs/content, docs_manifest, README, and FULL_DOCUMENTATION as one coherent source-of-truth system."
+    },
+    "documentation.index": {
+        "title": "LQoSync Documentation Index",
+        "file": "docs/DOCUMENTATION_INDEX.md",
+        "anchor": "lqosync-documentation-index",
+        "summary": "GitHub-friendly documentation table of contents that points to the consolidated LQoSync manual topics."
+    },
+    "entries": [
+        {
+            "id": "ui_consistency_redundancy_polish",
+            "title": "UI Consistency and Redundancy Polish",
+            "path": "docs/content/ui_consistency_redundancy_polish.md",
+            "category": "Operations",
+            "summary": "Explains the v2.64 compact operator model, UI consistency helpers, dashboard shortcuts, and Operations Center pagination polish."
+        },
+        {
+            "id": "production-hardening-regression-suite",
+            "title": "Production Hardening + Regression Suite",
+            "path": "docs/content/production_hardening_regression_suite.md",
+            "category": "operations",
+            "summary": "Offline release/regression checks for routes, templates, config migration, policy behavior, Operations Center, and documentation integrity."
+        },
+        {
+            "id": "backup_restore_center_polish",
+            "title": "Backup / Restore Center Polish",
+            "path": "docs/content/backup_restore_center_polish.md",
+            "category": "Operations",
+            "summary": "Backup preview, integrity check, live diff, zip download, and retention preview for Operations Center."
+        },
+        {
+            "id": "production_readiness_score",
+            "title": "Production Readiness Score",
+            "path": "docs/content/production_readiness_score.md",
+            "category": "Operations",
+            "summary": "v2.68 Dashboard production readiness score, go-live checks, blockers, recommendations, and read-only readiness API."
+        },
+        {
+            "id": "stable_rc_stale_template_cleanup",
+            "title": "Stable RC Stale Template Cleanup Hotfix",
+            "path": "docs/content/stable_rc_stale_template_cleanup.md",
+            "category": "Release",
+            "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html."
+        },
+        {
+            "id": "ui_wiring_audit_role_visibility",
+            "title": "UI Wiring Audit + Role Visibility Hotfix",
+            "path": "docs/content/ui_wiring_audit_role_visibility.md",
+            "category": "Stable Release",
+            "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation."
+        },
+        {
+            "id": "settings_ui_state_wiring_hotfix",
+            "title": "Settings UI State Wiring Hotfix",
+            "path": "docs/content/settings_ui_state_wiring_hotfix.md",
+            "category": "UI Wiring",
+            "summary": "v2.70.5-rc1 fixes Config Center preset active-state mismatch and adds deeper Config Center state wiring audit coverage."
+        },
+        {
+            "id": "checkbox_state_wiring_hotfix",
+            "title": "Checkbox State Wiring Hotfix",
+            "path": "docs/content/checkbox_state_wiring_hotfix.md",
+            "category": "Config Center",
+            "summary": "v2.70.6 fixes Config Center checkbox checked-state binding and visual checked marks for boolean policy fields."
+        }
+    ],
+    "docs": [
+        {
+            "id": "ui_consistency_redundancy_polish",
+            "title": "UI Consistency and Redundancy Polish",
+            "path": "docs/content/ui_consistency_redundancy_polish.md",
+            "category": "Operations",
+            "summary": "Explains the v2.64 compact operator model, UI consistency helpers, dashboard shortcuts, and Operations Center pagination polish."
+        },
+        {
+            "id": "backup_restore_center_polish",
+            "title": "Backup / Restore Center Polish",
+            "path": "docs/content/backup_restore_center_polish.md",
+            "category": "Operations",
+            "summary": "Backup preview, integrity check, live diff, zip download, and retention preview for Operations Center."
+        },
+        {
+            "id": "production_readiness_score",
+            "title": "Production Readiness Score",
+            "path": "docs/content/production_readiness_score.md",
+            "category": "Operations",
+            "summary": "v2.68 Dashboard production readiness score, go-live checks, blockers, recommendations, and read-only readiness API."
+        },
+        {
+            "id": "stable_rc_stale_template_cleanup",
+            "title": "Stable RC Stale Template Cleanup Hotfix",
+            "path": "docs/content/stable_rc_stale_template_cleanup.md",
+            "category": "Release",
+            "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html."
+        },
+        {
+            "id": "ui_wiring_audit_role_visibility",
+            "title": "UI Wiring Audit + Role Visibility Hotfix",
+            "path": "docs/content/ui_wiring_audit_role_visibility.md",
+            "category": "Stable Release",
+            "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation."
+        },
+        {
+            "id": "settings_ui_state_wiring_hotfix",
+            "title": "Settings UI State Wiring Hotfix",
+            "path": "docs/content/settings_ui_state_wiring_hotfix.md",
+            "category": "UI Wiring",
+            "summary": "v2.70.5-rc1 fixes Config Center preset active-state mismatch and adds deeper Config Center state wiring audit coverage."
+        },
+        {
+            "id": "checkbox_state_wiring_hotfix",
+            "title": "Checkbox State Wiring Hotfix",
+            "path": "docs/content/checkbox_state_wiring_hotfix.md",
+            "category": "Config Center",
+            "summary": "v2.70.6 fixes Config Center checkbox checked-state binding and visual checked marks for boolean policy fields."
+        }
+    ],
+    "backup_restore_center_polish": {
+        "title": "Backup / Restore Center Polish",
+        "file": "docs/content/backup_restore_center_polish.md",
+        "anchor": "v266-backup--restore-center-polish",
+        "summary": "v2.66 backup preview, integrity check, live diff, zip download, and retention preview for Operations Center backups."
+    },
+    "security.access_control_role_hardening": {
+        "title": "Access Control + Role Hardening",
+        "file": "docs/content/access_control_role_hardening.md",
+        "anchor": "access-control--role-hardening",
+        "summary": "v2.67 owner/admin/operator/viewer role hierarchy, owner-only controls, and upgrade-safe role migration."
+    },
+    "production_readiness_score": {
+        "title": "Production Readiness Score",
+        "file": "docs/content/production_readiness_score.md",
+        "anchor": "production-readiness-score",
+        "summary": "v2.68 Dashboard production readiness score, go-live checks, blockers, recommendations, and read-only readiness API."
+    },
+    "router.overview_multi_router_ux": {
+        "title": "Router Overview + Multi-Router UX Polish",
+        "file": "docs/content/router_overview_multi_router_ux.md",
+        "anchor": "router-overview--multi-router-ux-polish",
+        "summary": "v2.69 read-only router overview, per-router source visibility, row ownership hints, and multi-router operator workflow polish."
+    },
+    "router.insight_dedup_policy_path_audit": {
+        "title": "Router Insight De-duplication + Policy/Path Audit",
+        "file": "docs/content/router_insight_dedup_policy_path_audit.md",
+        "anchor": "router-insight-de-duplication--policypath-audit",
+        "summary": "v2.69.1 moves Router Insight into Config Center, keeps /routers as a redirect alias, removes duplicate router page UI, and adds policy/path audit checks."
+    },
+    "stable.stable_release_candidate": {
+        "title": "Stable Release Candidate",
+        "file": "docs/content/stable_release_candidate.md",
+        "anchor": "stable-release-candidate",
+        "summary": "v2.70 feature freeze, validation chain, and stable candidate rules."
+    },
+    "stable.route_compatibility_map": {
+        "title": "Route Compatibility Map",
+        "file": "docs/ROUTE_COMPATIBILITY.md",
+        "anchor": "route-compatibility-map",
+        "summary": "Compatibility aliases for compact canonical UI routes."
+    },
+    "stable.stable_release_checklist": {
+        "title": "Stable Release Checklist",
+        "file": "docs/STABLE_RELEASE_CHECKLIST.md",
+        "anchor": "stable-release-checklist",
+        "summary": "Preflight, operator review, and release discipline checklist."
+    },
+    "stable.upgrade_guide": {
+        "title": "Upgrade Guide",
+        "file": "docs/UPGRADE_GUIDE.md",
+        "anchor": "upgrade-guide",
+        "summary": "Safe GitHub update, diverged Git handling, and post-upgrade checks."
+    },
+    "stable.policy_path_reference": {
+        "title": "Policy / Path Reference",
+        "file": "docs/POLICY_PATH_REFERENCE.md",
+        "anchor": "policy--path-reference",
+        "summary": "Policy/path audit purpose and important policy groups."
+    },
+    "stable_rc_stale_template_cleanup": {
+        "title": "Stable RC Stale Template Cleanup Hotfix",
+        "file": "docs/content/stable_rc_stale_template_cleanup.md",
+        "anchor": "stable-rc-stale-template-cleanup-hotfix",
+        "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html."
+    },
+    "policy.hierarchy_ui": {
+        "title": "Config Policy Hierarchy UI",
+        "file": "docs/content/policy_hierarchy_ui.md",
+        "anchor": "config-policy-hierarchy-ui",
+        "summary": "v2.70.2-rc1 compact Config Center policy hierarchy, required/recommended/optional setting classes, and auto-apply vs optional auto-backup behavior."
+    },
+    "policy.preset_wiring_hotfix": {
+        "title": "Policy Preset Wiring Hotfix",
+        "file": "docs/content/policy_preset_wiring_hotfix.md",
+        "anchor": "policy-preset-wiring-hotfix",
+        "summary": "v2.70.3-rc1 fixes Config Center policy preset apply controls and managed policies.mode display."
+    },
+    "ui_wiring_audit_role_visibility": {
+        "title": "UI Wiring Audit + Role Visibility Hotfix",
+        "file": "docs/content/ui_wiring_audit_role_visibility.md",
+        "anchor": "ui-wiring-audit--role-visibility-hotfix",
+        "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation."
+    },
+    "settings_ui_state_wiring_hotfix": {
+        "title": "Settings UI State Wiring Hotfix",
+        "file": "docs/content/settings_ui_state_wiring_hotfix.md",
+        "anchor": "settings-ui-state-wiring-hotfix",
+        "summary": "v2.70.5-rc1 fixes Config Center preset active-state mismatch and adds deeper Config Center state wiring audit coverage."
+    },
+    "config.checkbox_state_wiring_hotfix": {
+        "title": "Checkbox State Wiring Hotfix",
+        "file": "docs/content/checkbox_state_wiring_hotfix.md",
+        "anchor": "checkbox-state-wiring-hotfix",
+        "summary": "v2.70.6 fixes Config Center checkbox checked-state binding and visual checked marks for boolean policy fields."
+    },
+    "operations.apply_failure_visibility": {
+        "title": "LibreQoS Apply Failure Visibility",
+        "file": "docs/content/apply_failure_visibility.md",
+        "anchor": "libreqos-apply-failure-visibility",
+        "summary": "v2.70.7-rc1 apply failure diagnostics page, notification targets, Operations detail/resolve buttons, and stderr/stdout resolution workflow."
+    },
+    "policy.preset_alignment_save_semantics": {
+        "title": "Policy Preset Alignment + Save Semantics",
+        "file": "docs/content/policy_preset_alignment_save_semantics.md",
+        "anchor": "policy-preset-alignment--save-semantics",
+        "summary": "v2.70.8 aligns Conservative/Balanced/Aggressive presets and adds server-side custom mode reconciliation."
+    },
+    "policy.custom_policy_mode_persistence": {
+        "title": "Custom Policy Mode Persistence Hotfix",
+        "file": "docs/content/custom_policy_mode_persistence.md",
+        "anchor": "custom-policy-mode-persistence-hotfix",
+        "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center → Policies."
+    },
+    "policy_overview_custom_wiring_hotfix": {
+        "title": "Policy Overview Custom Wiring Hotfix",
+        "file": "docs/content/policy_overview_custom_wiring_hotfix.md",
+        "anchor": "policy-overview-custom-wiring-hotfix",
+        "summary": "v2.70.10 fixes Custom policy mode for Operation Mode, Auto Apply, Optional Auto Backup, and Backup Retention changes inside Config Center Policies."
+    },
+    "install.update_safety": {
+        "title": "Install and Update Safety",
+        "file": "docs/content/install_update_safety.md",
+        "anchor": "install-and-update-safety",
+        "summary": "Backup-first fresh install behavior and preserve-existing update rules for operator-owned LibreQoS files."
+    },
+    "operator.overview": {
+        "title": "Operator Overview",
+        "file": "docs/content/operator_overview.md",
+        "anchor": "operator-overview",
+        "summary": "Atomic explanation of how LQoSync collects, builds, validates, writes, applies, and reports."
+    },
+    "rust.core_scaffold": {
+        "title": "Rust Core Scaffold Implementation",
+        "file": "docs/RUST_CORE_MIGRATION.md",
+        "anchor": "current-package-implementation-status",
+        "summary": "Current optional lqosync-core scaffold files, operations, build commands, and Python fallback behavior."
+    },
+    "rust.v02_trust_diff": {
+        "title": "Rust Core v0.2 Trust and Diff Update",
+        "file": "docs/RUST_CORE_V02_TRUST_DIFF.md",
+        "anchor": "rust-core-v02-trust-and-diff-update",
+        "summary": "Collector output trust guard, suspicious zero protection, and Rust diff operations for the lqosync-in-rust branch."
+    },
+    "rust.v03_atomic_state": {
+        "title": "Rust Core v0.3 Atomic State and File Engine",
+        "file": "docs/RUST_CORE_V03_ATOMIC_STATE.md",
+        "anchor": "rust-core-v03-atomic-state-and-file-engine",
+        "summary": "Atomic runtime_state, policy_state, collector_cache, audit JSONL, generated file write protocol, and v2.73.1 CSV terminator build hotfix for the lqosync-in-rust branch."
+    },
+    "rust.v04_daemon": {
+        "title": "Rust Core v0.4 Daemon Mode",
+        "file": "docs/RUST_CORE_V04_DAEMON.md",
+        "anchor": "rust-core-v04-daemon-mode",
+        "summary": "Optional Unix socket daemon for the Rust core with subprocess and Python fallback safety."
+    },
+    "rust.v05_policy_shadow": {
+        "title": "Rust Core v0.5 Policy Shadow Engine",
+        "file": "docs/RUST_CORE_V05_POLICY_SHADOW.md",
+        "anchor": "rust-core-v05-policy-shadow-engine",
+        "summary": "Shadow Rust policy decision engine, risk scoring, Python/Rust parity checks, and Dry Run visibility for the lqosync-in-rust branch."
+    },
+    "rust.v06_circuit_shadow": {
+        "title": "Rust Core v0.6 Circuit Shadow Normalizer",
+        "file": "docs/RUST_CORE_V06_CIRCUIT_SHADOW.md",
+        "anchor": "rust-core-v06-circuit-shadow-normalizer",
+        "summary": "Shadow Rust circuit normalization, typed circuit row diagnostics, and Dry Run visibility for the lqosync-in-rust branch."
+    },
+    "rust.v07_sync_plan": {
+        "title": "Rust Core v0.7 Sync Plan Shadow Engine",
+        "file": "docs/RUST_CORE_V07_SYNC_PLAN.md",
+        "anchor": "rust-core-v07-sync-plan-shadow-engine",
+        "summary": "End-to-end shadow sync planner that composes collector trust, diff, validation, circuit shadow, policy shadow, and preflight diagnostics."
+    },
+    "rust.v08_authority_gates": {
+        "title": "Rust Core v0.8 Authority Gates",
+        "file": "docs/RUST_CORE_V08_AUTHORITY_GATES.md",
+        "anchor": "rust-core-v08-authority-gates",
+        "summary": "Opt-in Rust sync-plan authority gate that can block unsafe non-dry-run writes while preserving Python default behavior."
+    },
+    "rust.v09_apply_manifest": {
+        "title": "Rust Core v0.9 Apply Manifest Preview",
+        "file": "docs/RUST_CORE_V09_APPLY_MANIFEST.md",
+        "anchor": "rust-core-v09-apply-manifest--transaction-preview",
+        "summary": "Non-destructive Rust transaction manifest for backup, generated file writes, pending-apply state, and LibreQoS apply intent."
+    },
+    "rust.v10_apply_transaction": {
+        "title": "Rust Core v1.0 Apply Transaction Executor",
+        "file": "docs/RUST_CORE_V10_APPLY_TRANSACTION.md",
+        "anchor": "rust-core-v10-apply-transaction-executor",
+        "summary": "Opt-in Rust apply transaction rehearsal/executor for safe file writes, with Python remaining authoritative by default."
+    },
+    "rust.v11_self_test": {
+        "title": "Rust Core v1.1 Runtime Self-Test and Capability Audit",
+        "file": "docs/RUST_CORE_V11_SELF_TEST.md",
+        "anchor": "rust-core-v11-runtime-self-test-and-capability-audit",
+        "summary": "Runtime self-test, capability audit, transaction routing, and v1.1.1 build/daemon restart hotfix for the lqosync-in-rust branch."
+    },
+    "rust.v12_transaction_journal": {
+        "title": "Rust Core v1.2 Transaction Journal and Rollback Manifest",
+        "file": "docs/RUST_CORE_V12_TRANSACTION_JOURNAL.md",
+        "anchor": "rust-core-v12-transaction-journal-and-rollback-manifest",
+        "summary": "Non-mutating transaction journal and rollback manifest previews for Rust apply transaction accountability."
+    },
+    "rust.v13_transaction_journal_persistence": {
+        "title": "Rust Core v1.3 Transaction Journal Persistence",
+        "file": "docs/RUST_CORE_V13_TRANSACTION_JOURNAL_PERSISTENCE.md",
+        "anchor": "rust-core-v13-transaction-journal-persistence",
+        "summary": "Opt-in append-transaction-journal operation for durable Rust apply transaction accountability."
+    },
+    "rust.v14_transaction_history": {
+        "title": "Rust Core v1.4 Transaction History and Rollback Plan Viewer",
+        "file": "docs/RUST_CORE_V14_TRANSACTION_HISTORY.md",
+        "anchor": "rust-core-v14-transaction-history-and-rollback-plan-viewer",
+        "summary": "Read-only Rust transaction journal history APIs and rollback-plan-from-journal preview for Operations visibility."
+    },
+    "rust.v15_rollback_executor": {
+        "title": "Rust Core v1.5 Rollback Execution Rehearsal",
+        "file": "docs/RUST_CORE_V15_ROLLBACK_EXECUTOR.md",
+        "anchor": "rust-core-v15-rollback-execution-rehearsal",
+        "summary": "Gated execute-rollback operation, rollback rehearsal, confirmation requirements, and opt-in file restore authority."
+    },
+    "rust.v16_authority_readiness": {
+        "title": "Rust Core v1.6 Authority Readiness Report",
+        "file": "docs/RUST_CORE_V16_AUTHORITY_READINESS.md",
+        "anchor": "rust-core-v16-authority-readiness-report",
+        "summary": "Read-only Rust authority readiness scoring before enabling sync-plan enforcement, file-write authority, journal persistence, or rollback authority."
+    },
+    "rust.v17_full_backend_readiness": {
+        "title": "Rust Core v1.7 Full Backend Readiness + Authority Pilot Plan",
+        "file": "docs/RUST_CORE_V17_FULL_BACKEND_READINESS.md",
+        "anchor": "rust-core-v17-full-backend-readiness--authority-pilot-plan",
+        "summary": "Read-only full Rust backend readiness report and staged authority pilot plan for safely moving beyond hybrid mode."
+    },
+    "rust.v18_collector_bundle": {
+        "title": "Rust Core v1.8 Collector Bundle Shadow Builder",
+        "file": "docs/RUST_CORE_V18_COLLECTOR_BUNDLE.md",
+        "anchor": "rust-core-v18-collector-bundle-shadow-builder",
+        "summary": "Shadow Rust collector-bundle builder that converts raw PPPoE/DHCP/Hotspot snapshots into ShapedDevices-compatible circuit rows without replacing Python collectors."
+    },
+    "rust.v19_collector_parity": {
+        "title": "Rust Core v1.9 Collector Bundle Parity Report",
+        "file": "docs/RUST_CORE_V19_COLLECTOR_PARITY.md",
+        "anchor": "rust-core-v19-collector-bundle-parity-report",
+        "summary": "Diagnostic parity comparison between Python-authoritative generated rows and Rust-shadow collector bundle rows."
+    },
+    "rust.v20_routeros_collector_plan": {
+        "title": "Rust Core v2.0 RouterOS Collector Plan",
+        "file": "docs/RUST_CORE_V20_ROUTEROS_COLLECTOR_PLAN.md",
+        "anchor": "rust-core-v20-routeros-collector-plan",
+        "summary": "Read-only RouterOS collector command planning for PPPoE, DHCP, and Hotspot before live Rust RouterOS transport migration."
     }
-  ],
-  "docs": [
-    {
-      "id": "ui_consistency_redundancy_polish",
-      "title": "UI Consistency and Redundancy Polish",
-      "path": "docs/content/ui_consistency_redundancy_polish.md",
-      "category": "Operations",
-      "summary": "Explains the v2.64 compact operator model, UI consistency helpers, dashboard shortcuts, and Operations Center pagination polish."
-    },
-    {
-      "id": "backup_restore_center_polish",
-      "title": "Backup / Restore Center Polish",
-      "path": "docs/content/backup_restore_center_polish.md",
-      "category": "Operations",
-      "summary": "Backup preview, integrity check, live diff, zip download, and retention preview for Operations Center."
-    },
-    {
-      "id": "production_readiness_score",
-      "title": "Production Readiness Score",
-      "path": "docs/content/production_readiness_score.md",
-      "category": "Operations",
-      "summary": "v2.68 Dashboard production readiness score, go-live checks, blockers, recommendations, and read-only readiness API."
-    },
-    {
-      "id": "stable_rc_stale_template_cleanup",
-      "title": "Stable RC Stale Template Cleanup Hotfix",
-      "path": "docs/content/stable_rc_stale_template_cleanup.md",
-      "category": "Release",
-      "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html."
-    },
-    {
-      "id": "ui_wiring_audit_role_visibility",
-      "title": "UI Wiring Audit + Role Visibility Hotfix",
-      "path": "docs/content/ui_wiring_audit_role_visibility.md",
-      "category": "Stable Release",
-      "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation."
-    },
-    {
-      "id": "settings_ui_state_wiring_hotfix",
-      "title": "Settings UI State Wiring Hotfix",
-      "path": "docs/content/settings_ui_state_wiring_hotfix.md",
-      "category": "UI Wiring",
-      "summary": "v2.70.5-rc1 fixes Config Center preset active-state mismatch and adds deeper Config Center state wiring audit coverage."
-    },
-    {
-      "id": "checkbox_state_wiring_hotfix",
-      "title": "Checkbox State Wiring Hotfix",
-      "path": "docs/content/checkbox_state_wiring_hotfix.md",
-      "category": "Config Center",
-      "summary": "v2.70.6 fixes Config Center checkbox checked-state binding and visual checked marks for boolean policy fields."
-    }
-  ],
-  "backup_restore_center_polish": {
-    "title": "Backup / Restore Center Polish",
-    "file": "docs/content/backup_restore_center_polish.md",
-    "anchor": "v266-backup--restore-center-polish",
-    "summary": "v2.66 backup preview, integrity check, live diff, zip download, and retention preview for Operations Center backups."
-  },
-  "security.access_control_role_hardening": {
-    "title": "Access Control + Role Hardening",
-    "file": "docs/content/access_control_role_hardening.md",
-    "anchor": "access-control--role-hardening",
-    "summary": "v2.67 owner/admin/operator/viewer role hierarchy, owner-only controls, and upgrade-safe role migration."
-  },
-  "production_readiness_score": {
-    "title": "Production Readiness Score",
-    "file": "docs/content/production_readiness_score.md",
-    "anchor": "production-readiness-score",
-    "summary": "v2.68 Dashboard production readiness score, go-live checks, blockers, recommendations, and read-only readiness API."
-  },
-  "router.overview_multi_router_ux": {
-    "title": "Router Overview + Multi-Router UX Polish",
-    "file": "docs/content/router_overview_multi_router_ux.md",
-    "anchor": "router-overview--multi-router-ux-polish",
-    "summary": "v2.69 read-only router overview, per-router source visibility, row ownership hints, and multi-router operator workflow polish."
-  },
-  "router.insight_dedup_policy_path_audit": {
-    "title": "Router Insight De-duplication + Policy/Path Audit",
-    "file": "docs/content/router_insight_dedup_policy_path_audit.md",
-    "anchor": "router-insight-de-duplication--policypath-audit",
-    "summary": "v2.69.1 moves Router Insight into Config Center, keeps /routers as a redirect alias, removes duplicate router page UI, and adds policy/path audit checks."
-  },
-  "stable.stable_release_candidate": {
-    "title": "Stable Release Candidate",
-    "file": "docs/content/stable_release_candidate.md",
-    "anchor": "stable-release-candidate",
-    "summary": "v2.70 feature freeze, validation chain, and stable candidate rules."
-  },
-  "stable.route_compatibility_map": {
-    "title": "Route Compatibility Map",
-    "file": "docs/ROUTE_COMPATIBILITY.md",
-    "anchor": "route-compatibility-map",
-    "summary": "Compatibility aliases for compact canonical UI routes."
-  },
-  "stable.stable_release_checklist": {
-    "title": "Stable Release Checklist",
-    "file": "docs/STABLE_RELEASE_CHECKLIST.md",
-    "anchor": "stable-release-checklist",
-    "summary": "Preflight, operator review, and release discipline checklist."
-  },
-  "stable.upgrade_guide": {
-    "title": "Upgrade Guide",
-    "file": "docs/UPGRADE_GUIDE.md",
-    "anchor": "upgrade-guide",
-    "summary": "Safe GitHub update, diverged Git handling, and post-upgrade checks."
-  },
-  "stable.policy_path_reference": {
-    "title": "Policy / Path Reference",
-    "file": "docs/POLICY_PATH_REFERENCE.md",
-    "anchor": "policy--path-reference",
-    "summary": "Policy/path audit purpose and important policy groups."
-  },
-  "stable_rc_stale_template_cleanup": {
-    "title": "Stable RC Stale Template Cleanup Hotfix",
-    "file": "docs/content/stable_rc_stale_template_cleanup.md",
-    "anchor": "stable-rc-stale-template-cleanup-hotfix",
-    "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html."
-  },
-  "policy.hierarchy_ui": {
-    "title": "Config Policy Hierarchy UI",
-    "file": "docs/content/policy_hierarchy_ui.md",
-    "anchor": "config-policy-hierarchy-ui",
-    "summary": "v2.70.2-rc1 compact Config Center policy hierarchy, required/recommended/optional setting classes, and auto-apply vs optional auto-backup behavior."
-  },
-  "policy.preset_wiring_hotfix": {
-    "title": "Policy Preset Wiring Hotfix",
-    "file": "docs/content/policy_preset_wiring_hotfix.md",
-    "anchor": "policy-preset-wiring-hotfix",
-    "summary": "v2.70.3-rc1 fixes Config Center policy preset apply controls and managed policies.mode display."
-  },
-  "ui_wiring_audit_role_visibility": {
-    "title": "UI Wiring Audit + Role Visibility Hotfix",
-    "file": "docs/content/ui_wiring_audit_role_visibility.md",
-    "anchor": "ui-wiring-audit--role-visibility-hotfix",
-    "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation."
-  },
-  "settings_ui_state_wiring_hotfix": {
-    "title": "Settings UI State Wiring Hotfix",
-    "file": "docs/content/settings_ui_state_wiring_hotfix.md",
-    "anchor": "settings-ui-state-wiring-hotfix",
-    "summary": "v2.70.5-rc1 fixes Config Center preset active-state mismatch and adds deeper Config Center state wiring audit coverage."
-  },
-  "config.checkbox_state_wiring_hotfix": {
-    "title": "Checkbox State Wiring Hotfix",
-    "file": "docs/content/checkbox_state_wiring_hotfix.md",
-    "anchor": "checkbox-state-wiring-hotfix",
-    "summary": "v2.70.6 fixes Config Center checkbox checked-state binding and visual checked marks for boolean policy fields."
-  },
-  "operations.apply_failure_visibility": {
-    "title": "LibreQoS Apply Failure Visibility",
-    "file": "docs/content/apply_failure_visibility.md",
-    "anchor": "libreqos-apply-failure-visibility",
-    "summary": "v2.70.7-rc1 apply failure diagnostics page, notification targets, Operations detail/resolve buttons, and stderr/stdout resolution workflow."
-  },
-  "policy.preset_alignment_save_semantics": {
-    "title": "Policy Preset Alignment + Save Semantics",
-    "file": "docs/content/policy_preset_alignment_save_semantics.md",
-    "anchor": "policy-preset-alignment--save-semantics",
-    "summary": "v2.70.8 aligns Conservative/Balanced/Aggressive presets and adds server-side custom mode reconciliation."
-  },
-  "policy.custom_policy_mode_persistence": {
-    "title": "Custom Policy Mode Persistence Hotfix",
-    "file": "docs/content/custom_policy_mode_persistence.md",
-    "anchor": "custom-policy-mode-persistence-hotfix",
-    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center \u2192 Policies."
-  },
-  "policy_overview_custom_wiring_hotfix": {
-    "title": "Policy Overview Custom Wiring Hotfix",
-    "file": "docs/content/policy_overview_custom_wiring_hotfix.md",
-    "anchor": "policy-overview-custom-wiring-hotfix",
-    "summary": "v2.70.10 fixes Custom policy mode for Operation Mode, Auto Apply, Optional Auto Backup, and Backup Retention changes inside Config Center Policies."
-  },
-  "install.update_safety": {
-    "title": "Install and Update Safety",
-    "file": "docs/content/install_update_safety.md",
-    "anchor": "install-and-update-safety",
-    "summary": "Backup-first fresh install behavior and preserve-existing update rules for operator-owned LibreQoS files."
-  },
-  "operator.overview": {
-    "title": "Operator Overview",
-    "file": "docs/content/operator_overview.md",
-    "anchor": "operator-overview",
-    "summary": "Atomic explanation of how LQoSync collects, builds, validates, writes, applies, and reports."
-  },
-  "rust.core_scaffold": {
-    "title": "Rust Core Scaffold Implementation",
-    "file": "docs/RUST_CORE_MIGRATION.md",
-    "anchor": "current-package-implementation-status",
-    "summary": "Current optional lqosync-core scaffold files, operations, build commands, and Python fallback behavior."
-  },
-  "rust.v02_trust_diff": {
-    "title": "Rust Core v0.2 Trust and Diff Update",
-    "file": "docs/RUST_CORE_V02_TRUST_DIFF.md",
-    "anchor": "rust-core-v02-trust-and-diff-update",
-    "summary": "Collector output trust guard, suspicious zero protection, and Rust diff operations for the lqosync-in-rust branch."
-  },
-  "rust.v03_atomic_state": {
-    "title": "Rust Core v0.3 Atomic State and File Engine",
-    "file": "docs/RUST_CORE_V03_ATOMIC_STATE.md",
-    "anchor": "rust-core-v03-atomic-state-and-file-engine",
-    "summary": "Atomic runtime_state, policy_state, collector_cache, audit JSONL, generated file write protocol, and v2.73.1 CSV terminator build hotfix for the lqosync-in-rust branch."
-  },
-  "rust.v04_daemon": {
-    "title": "Rust Core v0.4 Daemon Mode",
-    "file": "docs/RUST_CORE_V04_DAEMON.md",
-    "anchor": "rust-core-v04-daemon-mode",
-    "summary": "Optional Unix socket daemon for the Rust core with subprocess and Python fallback safety."
-  },
-  "rust.v05_policy_shadow": {
-    "title": "Rust Core v0.5 Policy Shadow Engine",
-    "file": "docs/RUST_CORE_V05_POLICY_SHADOW.md",
-    "anchor": "rust-core-v05-policy-shadow-engine",
-    "summary": "Shadow Rust policy decision engine, risk scoring, Python/Rust parity checks, and Dry Run visibility for the lqosync-in-rust branch."
-  },
-  "rust.v06_circuit_shadow": {
-    "title": "Rust Core v0.6 Circuit Shadow Normalizer",
-    "file": "docs/RUST_CORE_V06_CIRCUIT_SHADOW.md",
-    "anchor": "rust-core-v06-circuit-shadow-normalizer",
-    "summary": "Shadow Rust circuit normalization, typed circuit row diagnostics, and Dry Run visibility for the lqosync-in-rust branch."
-  },
-  "rust.v07_sync_plan": {
-    "title": "Rust Core v0.7 Sync Plan Shadow Engine",
-    "file": "docs/RUST_CORE_V07_SYNC_PLAN.md",
-    "anchor": "rust-core-v07-sync-plan-shadow-engine",
-    "summary": "End-to-end shadow sync planner that composes collector trust, diff, validation, circuit shadow, policy shadow, and preflight diagnostics."
-  },
-  "rust.v08_authority_gates": {
-    "title": "Rust Core v0.8 Authority Gates",
-    "file": "docs/RUST_CORE_V08_AUTHORITY_GATES.md",
-    "anchor": "rust-core-v08-authority-gates",
-    "summary": "Opt-in Rust sync-plan authority gate that can block unsafe non-dry-run writes while preserving Python default behavior."
-  },
-  "rust.v09_apply_manifest": {
-    "title": "Rust Core v0.9 Apply Manifest Preview",
-    "file": "docs/RUST_CORE_V09_APPLY_MANIFEST.md",
-    "anchor": "rust-core-v09-apply-manifest--transaction-preview",
-    "summary": "Non-destructive Rust transaction manifest for backup, generated file writes, pending-apply state, and LibreQoS apply intent."
-  },
-  "rust.v10_apply_transaction": {
-    "title": "Rust Core v1.0 Apply Transaction Executor",
-    "file": "docs/RUST_CORE_V10_APPLY_TRANSACTION.md",
-    "anchor": "rust-core-v10-apply-transaction-executor",
-    "summary": "Opt-in Rust apply transaction rehearsal/executor for safe file writes, with Python remaining authoritative by default."
-  },
-  "rust.v11_self_test": {
-    "title": "Rust Core v1.1 Runtime Self-Test and Capability Audit",
-    "file": "docs/RUST_CORE_V11_SELF_TEST.md",
-    "anchor": "rust-core-v11-runtime-self-test-and-capability-audit",
-    "summary": "Runtime self-test, capability audit, transaction routing, and v1.1.1 build/daemon restart hotfix for the lqosync-in-rust branch."
-  },
-  "rust.v12_transaction_journal": {
-    "title": "Rust Core v1.2 Transaction Journal and Rollback Manifest",
-    "file": "docs/RUST_CORE_V12_TRANSACTION_JOURNAL.md",
-    "anchor": "rust-core-v12-transaction-journal-and-rollback-manifest",
-    "summary": "Non-mutating transaction journal and rollback manifest previews for Rust apply transaction accountability."
-  },
-  "rust.v13_transaction_journal_persistence": {
-    "title": "Rust Core v1.3 Transaction Journal Persistence",
-    "file": "docs/RUST_CORE_V13_TRANSACTION_JOURNAL_PERSISTENCE.md",
-    "anchor": "rust-core-v13-transaction-journal-persistence",
-    "summary": "Opt-in append-transaction-journal operation for durable Rust apply transaction accountability."
-  },
-  "rust.v14_transaction_history": {
-    "title": "Rust Core v1.4 Transaction History and Rollback Plan Viewer",
-    "file": "docs/RUST_CORE_V14_TRANSACTION_HISTORY.md",
-    "anchor": "rust-core-v14-transaction-history-and-rollback-plan-viewer",
-    "summary": "Read-only Rust transaction journal history APIs and rollback-plan-from-journal preview for Operations visibility."
-  },
-  "rust.v15_rollback_executor": {
-    "title": "Rust Core v1.5 Rollback Execution Rehearsal",
-    "file": "docs/RUST_CORE_V15_ROLLBACK_EXECUTOR.md",
-    "anchor": "rust-core-v15-rollback-execution-rehearsal",
-    "summary": "Gated execute-rollback operation, rollback rehearsal, confirmation requirements, and opt-in file restore authority."
-  },
-  "rust.v16_authority_readiness": {
-    "title": "Rust Core v1.6 Authority Readiness Report",
-    "file": "docs/RUST_CORE_V16_AUTHORITY_READINESS.md",
-    "anchor": "rust-core-v16-authority-readiness-report",
-    "summary": "Read-only Rust authority readiness scoring before enabling sync-plan enforcement, file-write authority, journal persistence, or rollback authority."
-  },
-  "rust.v17_full_backend_readiness": {
-    "title": "Rust Core v1.7 Full Backend Readiness + Authority Pilot Plan",
-    "file": "docs/RUST_CORE_V17_FULL_BACKEND_READINESS.md",
-    "anchor": "rust-core-v17-full-backend-readiness--authority-pilot-plan",
-    "summary": "Read-only full Rust backend readiness report and staged authority pilot plan for safely moving beyond hybrid mode."
-  },
-  "rust.v18_collector_bundle": {
-    "title": "Rust Core v1.8 Collector Bundle Shadow Builder",
-    "file": "docs/RUST_CORE_V18_COLLECTOR_BUNDLE.md",
-    "anchor": "rust-core-v18-collector-bundle-shadow-builder",
-    "summary": "Shadow Rust collector-bundle builder that converts raw PPPoE/DHCP/Hotspot snapshots into ShapedDevices-compatible circuit rows without replacing Python collectors."
-  },
-  "rust.v19_collector_parity": {
-    "title": "Rust Core v1.9 Collector Bundle Parity Report",
-    "file": "docs/RUST_CORE_V19_COLLECTOR_PARITY.md",
-    "anchor": "rust-core-v19-collector-bundle-parity-report",
-    "summary": "Diagnostic parity comparison between Python-authoritative generated rows and Rust-shadow collector bundle rows."
-  }
 }

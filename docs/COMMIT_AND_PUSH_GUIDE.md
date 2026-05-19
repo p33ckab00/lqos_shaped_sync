@@ -555,3 +555,13 @@ git commit -m "rust(core): add RouterOS TCP connectivity pilot" \
   -m "Add run-routeros-tcp-connectivity-pilot, gated TCP reachability checks, Python/API wrapper, self-test coverage, and documentation before RouterOS authentication or live API reads."
 git push -u origin lqosync-in-rust
 ```
+
+
+### v3.2 commit example
+
+```bash
+git add .
+git commit -m "rust(core): add RouterOS auth session contract" \
+  -m "Add build-routeros-auth-session-contract, a redacted authenticated-session contract built from offline auth fixtures before live Rust authenticated reads."
+git push -u origin lqosync-in-rust
+```

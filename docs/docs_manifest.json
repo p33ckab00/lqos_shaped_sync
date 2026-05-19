@@ -614,5 +614,11 @@
         "file": "docs/RUST_CORE_V31_AUTH_HANDSHAKE_FIXTURE.md",
         "anchor": "rust-core-v31-routeros-auth-handshake-fixture",
         "summary": "Offline RouterOS authentication handshake fixture that decodes login replies without opening sockets or emitting credentials."
+    },
+    "rust.v32_auth_session_contract": {
+        "title": "Rust Core v3.2 RouterOS Auth Session Contract",
+        "file": "docs/RUST_CORE_V32_AUTH_SESSION_CONTRACT.md",
+        "anchor": "rust-core-v32-routeros-auth-session-contract",
+        "summary": "Redacted authenticated-session contract built from RouterOS auth fixture replies before live Rust authenticated reads."
     }
 }

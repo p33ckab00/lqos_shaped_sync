@@ -98,6 +98,9 @@ DEFAULT_CONFIG = {
         "routeros_auth_timeout_seconds": 5,
         "routeros_auth_handshake_pilot": False,
         "allow_rust_routeros_auth_fixture": True,
+        "routeros_auth_session_pilot": False,
+        "allow_rust_routeros_session_state": False,
+        "routeros_session_authority": "contract_only",
     },
     "collector": {
         "selective_fields": True,

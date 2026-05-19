@@ -19,6 +19,7 @@ use crate::routeros_offline_session::run_routeros_offline_session_payload;
 use crate::routeros_tcp_probe::run_routeros_tcp_connectivity_pilot_payload;
 use crate::routeros_auth_plan::build_routeros_auth_plan_payload;
 use crate::routeros_auth_handshake::run_routeros_auth_handshake_payload;
+use crate::routeros_auth_session::build_routeros_auth_session_contract_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -51,6 +52,7 @@ pub const OP_RUN_ROUTEROS_OFFLINE_SESSION: &str = "run-routeros-offline-session"
 pub const OP_RUN_ROUTEROS_TCP_CONNECTIVITY_PILOT: &str = "run-routeros-tcp-connectivity-pilot";
 pub const OP_BUILD_ROUTEROS_AUTH_PLAN: &str = "build-routeros-auth-plan";
 pub const OP_RUN_ROUTEROS_AUTH_HANDSHAKE: &str = "run-routeros-auth-handshake";
+pub const OP_BUILD_ROUTEROS_AUTH_SESSION_CONTRACT: &str = "build-routeros-auth-session-contract";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -97,6 +99,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_RUN_ROUTEROS_TCP_CONNECTIVITY_PILOT,
         OP_BUILD_ROUTEROS_AUTH_PLAN,
         OP_RUN_ROUTEROS_AUTH_HANDSHAKE,
+        OP_BUILD_ROUTEROS_AUTH_SESSION_CONTRACT,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -400,6 +403,22 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     })));
     if !auth_handshake_ok {
         errors.push(Diagnostic::error("self_test_routeros_auth_handshake_failed", Some("run-routeros-auth-handshake".to_string()), "Self-test RouterOS auth handshake fixture should accept !done without opening sockets or emitting credentials."));
+    }
+
+    let auth_session_payload = json!({
+        "router": {"name":"RB5009", "address":"10.0.0.1", "port":8728, "username":"selftest", "password":"redacted-by-test"},
+        "adapter":"fixture",
+        "execute": true,
+        "fixture_reply_words": ["!done"]
+    });
+    let (auth_session, auth_session_errors, _auth_session_warnings) = build_routeros_auth_session_contract_payload(&auth_session_payload);
+    let auth_session_ok = auth_session_errors.is_empty()
+        && auth_session.get("status").and_then(Value::as_str) == Some("auth_session_contract_ready")
+        && auth_session.get("connection_attempt_count").and_then(Value::as_u64).unwrap_or(1) == 0
+        && auth_session.get("authenticated").and_then(Value::as_bool).unwrap_or(false);
+    checks.push(check("routeros_auth_session_contract", auth_session_ok, json!({"status": auth_session.get("status"), "authenticated": auth_session.get("authenticated"), "connection_attempt_count": auth_session.get("connection_attempt_count")})));
+    if !auth_session_ok {
+        errors.push(Diagnostic::error("self_test_routeros_auth_session_failed", Some("build-routeros-auth-session-contract".to_string()), "Self-test RouterOS auth session contract should build an authenticated fixture session without network access."));
     }
 
     let collector_bundle_payload = json!({

@@ -2670,3 +2670,68 @@ def rust_run_routeros_auth_handshake(config: dict, payload: dict[str, Any] | Non
     if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
         return _python_run_routeros_auth_handshake(req_payload, started=started)
     return response
+
+
+
+def _python_build_routeros_auth_session_contract(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    """Fallback for the v3.2 RouterOS authenticated-session contract.
+
+    This never opens sockets, authenticates, emits credentials, or persists tokens.
+    """
+    started = started or time.perf_counter()
+    hs = _python_run_routeros_auth_handshake({**(payload or {}), "execute": bool((payload or {}).get("execute", False))}, started=started)
+    errors = list(hs.get("errors") or [])
+    result_hs = hs.get("result") or {}
+    authenticated = not errors and result_hs.get("status") == "auth_fixture_accepted"
+    adapter = str((payload or {}).get("adapter") or "fixture")
+    router = (payload or {}).get("router") or {}
+    router_name = router.get("name") if isinstance(router, dict) else ((payload or {}).get("router") or "unknown")
+    address = router.get("address") if isinstance(router, dict) else (payload or {}).get("address")
+    if adapter in {"live", "tcp", "routeros"}:
+        errors.append({"code": "routeros_auth_session_live_adapter_not_implemented", "severity": "error", "path": "adapter", "message": "RouterOS auth session fallback is fixture-only and cannot create live sessions."})
+    import hashlib
+    sid = "ros-session-" + hashlib.sha256(f"{router_name}|{address or ''}|{result_hs.get('status')}".encode()).hexdigest()[:16]
+    status = "blocked" if errors else ("auth_session_contract_ready" if authenticated else "auth_session_not_established")
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "build-routeros-auth-session-contract",
+        "available": False,
+        "ok": not errors,
+        "result": {
+            "mode": "routeros_auth_session_contract",
+            "status": status,
+            "adapter": adapter,
+            "router": router_name or "unknown",
+            "router_address_present": bool(address),
+            "session_id": sid,
+            "session_state": "authenticated_fixture" if authenticated else "not_authenticated",
+            "authenticated": authenticated,
+            "auth_status": result_hs.get("status"),
+            "auth_handshake": result_hs,
+            "credential_material": "redacted",
+            "username_emitted": False,
+            "password_emitted": False,
+            "session_token_emitted": False,
+            "connection_attempt_count": 0,
+            "authentication_attempt_count": 0,
+            "api_sentence_write_count": 0,
+            "api_reply_read_count": 0,
+            "live_session_supported": False,
+            "full_rust_backend": False,
+            "authority_note": "Python fallback only builds redacted auth session contracts from fixtures. It never authenticates."
+        },
+        "errors": errors,
+        "warnings": [],
+        "meta": {"engine": "python-wrapper", "mode": "python_routeros_auth_session_contract_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_routeros_auth_session_contract(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-routeros-auth-session-contract", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_routeros_auth_session_contract(req_payload, started=started)
+    return response

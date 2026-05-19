@@ -569,6 +569,9 @@
         "routeros_auth_pilot": false,
         "routeros_auth_timeout_seconds": 5,
         "routeros_auth_handshake_pilot": false,
-        "allow_rust_routeros_auth_fixture": true
+        "allow_rust_routeros_auth_fixture": true,
+        "routeros_auth_session_pilot": false,
+        "allow_rust_routeros_session_state": false,
+        "routeros_session_authority": "contract_only"
     }
 }

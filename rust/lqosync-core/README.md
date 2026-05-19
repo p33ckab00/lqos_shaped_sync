@@ -245,3 +245,8 @@ Adds `build-routeros-auth-plan` for redacted auth planning. This does not authen
 ## v3.1 Auth Handshake Fixture
 
 Adds `run-routeros-auth-handshake`, an offline RouterOS auth handshake fixture. It redacts credentials, decodes fixture login replies, and performs zero live connection/auth attempts.
+
+
+## Rust Core v3.2 RouterOS Auth Session Contract
+
+Adds `build-routeros-auth-session-contract`, a redacted authenticated-session contract built from fixture auth replies. It performs zero socket/auth attempts, emits no credentials or tokens, and keeps Python collectors authoritative.

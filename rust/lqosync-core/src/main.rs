@@ -13,6 +13,7 @@ use lqosync_core::self_test::{advertised_operations, self_test_payload};
 use lqosync_core::shaped_devices::{parse_csv_text, render_csv_text, validate_rows};
 use lqosync_core::sync_plan::evaluate_sync_plan_payload;
 use lqosync_core::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
+use lqosync_core::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use lqosync_core::validators::{validate_collector_output_payload, validate_config_value, validate_files_payload};
 use serde_json::{json, Value};
 use std::io::{self, Read, Write};
@@ -215,6 +216,14 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
 
         "append-transaction-journal" => {
             let (result, errors, warnings) = append_transaction_journal_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "read-transaction-journal" => {
+            let (result, errors, warnings) = read_transaction_journal_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "build-rollback-from-journal" => {
+            let (result, errors, warnings) = build_rollback_from_journal_payload(&req.payload);
             Ok(CoreResponse::validation(req, result, errors, warnings, started))
         }
         "build-rollback-manifest" => {

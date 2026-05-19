@@ -1,3 +1,10 @@
+## 2.84.0-rc1 — Rust Core v1.4 Transaction History and Rollback Plan Viewer
+
+- Add read-only Rust transaction journal history operation.
+- Add rollback-plan-from-journal preview operation.
+- Add `/api/rust-core/transaction-journal` and `/api/rust-core/rollback-plan`.
+- Keep rollback execution disabled; Python remains authoritative by default.
+
 # Release Notes
 
 ## v2.76.0-rc1 - Rust Core v0.6 Circuit Shadow Normalizer

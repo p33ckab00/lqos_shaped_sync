@@ -130,3 +130,13 @@ Adds `build-transaction-journal` and `build-rollback-manifest`. Both operations 
 ## v1.3 transaction journal persistence
 
 New operation: `append-transaction-journal`. It appends the Rust transaction journal event to JSONL only when explicitly requested and allowed. Defaults are rehearsal-only.
+
+
+## v1.4 transaction history operations
+
+```text
+read-transaction-journal
+build-rollback-from-journal
+```
+
+These operations are read-only and are intended for Operations Center visibility and rollback plan preview.

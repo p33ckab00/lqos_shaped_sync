@@ -3,6 +3,7 @@ use crate::apply_transaction::execute_apply_transaction_payload;
 use crate::bandwidth::{convert_to_mbps, parse_comment_bandwidth, parse_rate_limit};
 use crate::protocol::Diagnostic;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
+use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
 
 pub const OP_HEALTH: &str = "health";
@@ -27,6 +28,8 @@ pub const OP_EXECUTE_APPLY_TRANSACTION: &str = "execute-apply-transaction";
 pub const OP_BUILD_TRANSACTION_JOURNAL: &str = "build-transaction-journal";
 pub const OP_APPEND_TRANSACTION_JOURNAL: &str = "append-transaction-journal";
 pub const OP_BUILD_ROLLBACK_MANIFEST: &str = "build-rollback-manifest";
+pub const OP_READ_TRANSACTION_JOURNAL: &str = "read-transaction-journal";
+pub const OP_BUILD_ROLLBACK_FROM_JOURNAL: &str = "build-rollback-from-journal";
 pub const OP_SELF_TEST: &str = "self-test";
 
 pub fn advertised_operations() -> &'static [&'static str] {
@@ -53,6 +56,8 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_TRANSACTION_JOURNAL,
         OP_APPEND_TRANSACTION_JOURNAL,
         OP_BUILD_ROLLBACK_MANIFEST,
+        OP_READ_TRANSACTION_JOURNAL,
+        OP_BUILD_ROLLBACK_FROM_JOURNAL,
         OP_SELF_TEST,
     ]
 }
@@ -187,6 +192,26 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
         errors.push(Diagnostic::error("self_test_rollback_manifest_failed", Some("build-rollback-manifest".to_string()), "Self-test rollback manifest should be preview-only and valid."));
     }
 
+    let journal_event = journal.get("event").cloned().unwrap_or_else(|| json!({}));
+    let temp_journal_path = std::env::temp_dir().join(format!("lqosync-core-self-test-journal-{}.jsonl", std::process::id()));
+    let _ = std::fs::write(&temp_journal_path, format!("{}\n", serde_json::to_string(&journal_event).unwrap_or_default()));
+    let temp_journal = temp_journal_path.to_string_lossy().to_string();
+    let (history, history_errors, _history_warnings) = read_transaction_journal_payload(&json!({"path": temp_journal, "limit": 1}));
+    let history_ok = history_errors.is_empty() && history.get("returned_count").and_then(Value::as_u64).unwrap_or(0) >= 1;
+    checks.push(check("transaction_journal_reader", history_ok, json!({"returned_count": history.get("returned_count"), "status": history.get("status")})));
+    if !history_ok {
+        errors.push(Diagnostic::error("self_test_transaction_journal_reader_failed", Some("read-transaction-journal".to_string()), "Self-test transaction journal reader should read a temporary JSONL entry."));
+    }
+
+    let journal_id = journal_event.get("journal_id").and_then(Value::as_str).unwrap_or("");
+    let (rollback_from_journal, rollback_from_journal_errors, _rollback_from_journal_warnings) = build_rollback_from_journal_payload(&json!({"path": temp_journal_path.to_string_lossy(), "journal_id": journal_id}));
+    let rollback_from_journal_ok = rollback_from_journal_errors.is_empty() && rollback_from_journal.get("execute_supported").and_then(Value::as_bool).unwrap_or(true) == false;
+    checks.push(check("rollback_from_journal_preview", rollback_from_journal_ok, json!({"status": rollback_from_journal.get("status"), "source": rollback_from_journal.get("source")})));
+    if !rollback_from_journal_ok {
+        errors.push(Diagnostic::error("self_test_rollback_from_journal_failed", Some("build-rollback-from-journal".to_string()), "Self-test rollback-from-journal should build a preview from a temporary JSONL entry."));
+    }
+    let _ = std::fs::remove_file(temp_journal_path);
+
     let strict = payload.get("strict").and_then(Value::as_bool).unwrap_or(false);
     let status = if errors.is_empty() { "ok" } else { "failed" };
     let failed_check_count = checks.iter().filter(|c| !c.get("ok").and_then(Value::as_bool).unwrap_or(false)).count();
@@ -221,6 +246,8 @@ mod tests {
         assert!(ops.contains(&OP_BUILD_TRANSACTION_JOURNAL));
         assert!(ops.contains(&OP_APPEND_TRANSACTION_JOURNAL));
         assert!(ops.contains(&OP_BUILD_ROLLBACK_MANIFEST));
+        assert!(ops.contains(&OP_READ_TRANSACTION_JOURNAL));
+        assert!(ops.contains(&OP_BUILD_ROLLBACK_FROM_JOURNAL));
         assert!(ops.contains(&OP_SELF_TEST));
     }
 }

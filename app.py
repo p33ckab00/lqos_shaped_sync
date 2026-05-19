@@ -41,7 +41,7 @@ from engine.config_schema import migrate_config_schema, validate_schema, CONFIG_
 from engine.release_integrity import compute_release_integrity, repair_config_defaults
 from engine.lifecycle import lifecycle_summary, client_event_timeline
 from engine.lifecycle_report import compute_lifecycle_report, lifecycle_report_to_csv, lifecycle_report_to_markdown
-from engine.rust_core import rust_core_status, rust_core_self_test
+from engine.rust_core import rust_core_status, rust_core_self_test, rust_read_transaction_journal, rust_build_rollback_from_journal
 from applier.atomic_writer import atomic_write_text
 from monitoring.service_monitor import (
     all_service_status, service_status, restart_service as monitor_restart_service,
@@ -1988,6 +1988,45 @@ def api_rust_core_self_test():
     cfg = load_config(CONFIG_PATH)
     strict = str(request.args.get("strict") or "").lower() in {"1", "true", "yes", "on"}
     return jsonify(rust_core_self_test(cfg, strict=strict))
+
+
+@app.route("/api/rust-core/transaction-journal")
+@login_required
+def api_rust_core_transaction_journal():
+    cfg = load_config(CONFIG_PATH)
+    try:
+        limit = int(request.args.get("limit") or 50)
+        offset = int(request.args.get("offset") or 0)
+    except Exception:
+        return jsonify({"ok": False, "error": "invalid_limit_or_offset"}), 400
+    executed_raw = request.args.get("executed")
+    executed = None
+    if executed_raw is not None and str(executed_raw).strip() != "":
+        executed = str(executed_raw).lower() in {"1", "true", "yes", "on"}
+    include_event = str(request.args.get("include_event", "1")).lower() not in {"0", "false", "no", "off"}
+    reverse = str(request.args.get("reverse", "1")).lower() not in {"0", "false", "no", "off"}
+    return jsonify(rust_read_transaction_journal(
+        cfg,
+        limit=limit,
+        offset=offset,
+        journal_id=request.args.get("journal_id") or "",
+        manifest_id=request.args.get("manifest_id") or "",
+        transaction_status=request.args.get("transaction_status") or "",
+        executed=executed,
+        include_event=include_event,
+        reverse=reverse,
+    ))
+
+
+@app.route("/api/rust-core/rollback-plan")
+@login_required
+def api_rust_core_rollback_plan():
+    cfg = load_config(CONFIG_PATH)
+    journal_id = request.args.get("journal_id") or ""
+    manifest_id = request.args.get("manifest_id") or ""
+    if not journal_id and not manifest_id:
+        return jsonify({"ok": False, "error": "journal_id_or_manifest_id_required"}), 400
+    return jsonify(rust_build_rollback_from_journal(cfg, journal_id=journal_id, manifest_id=manifest_id))
 
 
 @app.route("/api/sync/run", methods=["POST"])

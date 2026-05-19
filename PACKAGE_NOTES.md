@@ -168,3 +168,8 @@ Adds Rust Core v1.2 transaction journal and rollback manifest previews. This is 
 ## v2.83.0-rc1 package notes
 
 Adds Rust Core v1.3 transaction journal persistence preview/write path. Defaults remain non-mutating unless transaction journal write flags are explicitly enabled.
+
+
+## Rust Core v1.4 Transaction History and Rollback Plan Viewer
+
+This package adds read-only Rust operations `read-transaction-journal` and `build-rollback-from-journal`, plus WebUI API endpoints for transaction history and rollback plan preview. Rollback execution remains unsupported/disabled.

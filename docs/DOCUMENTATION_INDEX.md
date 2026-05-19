@@ -154,3 +154,5 @@ Read these docs first:
 - [Rust Core v1.2 Transaction Journal and Rollback Manifest](RUST_CORE_V12_TRANSACTION_JOURNAL.md) — non-mutating journal and rollback previews for Rust transaction accountability.
 
 - [Rust Core v1.3 Transaction Journal Persistence](RUST_CORE_V13_TRANSACTION_JOURNAL_PERSISTENCE.md) — opt-in JSONL persistence for Rust transaction journal events.
+
+- [Rust Core v1.4 Transaction History and Rollback Plan Viewer](RUST_CORE_V14_TRANSACTION_HISTORY.md) — Read-only journal history and rollback plan API.

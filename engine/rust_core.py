@@ -956,6 +956,152 @@ def rust_build_rollback_manifest(config: dict, *, rust_apply_manifest: dict | No
         return _python_rollback_manifest(payload)
     return response
 
+
+def _python_read_transaction_journal(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    path = str(payload.get("path") or payload.get("journal_path") or "/opt/lqosync/logs/transaction_journal.jsonl")
+    limit = min(int(payload.get("limit") or 50), 500)
+    offset = max(int(payload.get("offset") or 0), 0)
+    reverse = bool(payload.get("reverse", True))
+    include_event = bool(payload.get("include_event", True))
+    filters = {
+        "journal_id": str(payload.get("journal_id") or ""),
+        "manifest_id": str(payload.get("manifest_id") or ""),
+        "transaction_status": str(payload.get("transaction_status") or ""),
+        "sync_plan_verdict": str(payload.get("sync_plan_verdict") or ""),
+        "executed": payload.get("executed"),
+    }
+    target = Path(path)
+    entries = []
+    invalid = 0
+    warnings = []
+    if target.exists():
+        for line_number, line in enumerate(target.read_text(encoding="utf-8", errors="ignore").splitlines(), start=1):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                event = json.loads(line)
+            except Exception as exc:
+                invalid += 1
+                warnings.append({"code": "transaction_journal_invalid_jsonl", "severity": "warning", "path": f"line[{line_number}]", "message": f"Invalid transaction journal JSONL line: {exc}"})
+                continue
+            if not isinstance(event, dict):
+                invalid += 1
+                continue
+            def _match(key):
+                return not filters[key] or str(event.get(key) or "") == filters[key]
+            if not (_match("journal_id") and _match("manifest_id") and _match("transaction_status") and _match("sync_plan_verdict")):
+                continue
+            if filters["executed"] is not None:
+                expected = str(filters["executed"]).lower() in {"1", "true", "yes", "on"}
+                if bool(event.get("executed")) != expected:
+                    continue
+            item = {
+                "line_number": line_number,
+                "journal_id": event.get("journal_id"),
+                "generated_at_unix": event.get("generated_at_unix"),
+                "event": event.get("event"),
+                "mode": event.get("mode"),
+                "manifest_id": event.get("manifest_id"),
+                "manifest_status": event.get("manifest_status"),
+                "transaction_status": event.get("transaction_status"),
+                "executed": bool(event.get("executed", False)),
+                "write_count": int(event.get("write_count") or 0),
+                "operation_count": int(event.get("operation_count") or 0),
+                "rollback_available": bool(event.get("rollback_available", False)),
+                "policy_verdict": event.get("policy_verdict"),
+                "sync_plan_verdict": event.get("sync_plan_verdict"),
+                "authority_reason": (event.get("authority_gate") or {}).get("reason") if isinstance(event.get("authority_gate"), dict) else None,
+            }
+            if include_event:
+                item["raw_event"] = event
+            entries.append(item)
+    if reverse:
+        entries = list(reversed(entries))
+    returned = entries[offset:offset + limit]
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "read-transaction-journal",
+        "available": False,
+        "ok": True,
+        "result": {
+            "mode": "transaction_journal_reader",
+            "authoritative": False,
+            "read_only": True,
+            "status": "ok" if target.exists() else "missing",
+            "path": path,
+            "limit": limit,
+            "offset": offset,
+            "reverse": reverse,
+            "include_event": include_event,
+            "filters": filters,
+            "total_line_count": len(entries) + invalid,
+            "parsed_count": len(entries),
+            "invalid_line_count": invalid,
+            "matched_count": len(entries),
+            "returned_count": len(returned),
+            "entries": returned,
+        },
+        "errors": [],
+        "warnings": warnings + [{"code": "rust_transaction_journal_reader_unavailable", "severity": "warning", "path": "rust_core", "message": "Rust read-transaction-journal is unavailable; Python fallback read the JSONL file."}],
+        "meta": {"engine": "python-wrapper", "mode": "python_transaction_journal_reader_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_read_transaction_journal(config: dict, *, limit: int = 50, offset: int = 0, journal_id: str = "", manifest_id: str = "", transaction_status: str = "", executed: bool | None = None, include_event: bool = True, reverse: bool = True) -> dict[str, Any]:
+    paths = (config or {}).get("paths", {}) if isinstance(config, dict) else {}
+    payload: dict[str, Any] = {
+        "path": paths.get("transaction_journal") or "/opt/lqosync/logs/transaction_journal.jsonl",
+        "limit": int(limit or 50),
+        "offset": int(offset or 0),
+        "journal_id": journal_id or "",
+        "manifest_id": manifest_id or "",
+        "transaction_status": transaction_status or "",
+        "include_event": bool(include_event),
+        "reverse": bool(reverse),
+    }
+    if executed is not None:
+        payload["executed"] = bool(executed)
+    response = call_rust_core("read-transaction-journal", payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_read_transaction_journal(payload)
+    return response
+
+
+def _python_rollback_from_journal(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    read_resp = _python_read_transaction_journal({**payload, "limit": 1, "include_event": True}, started=started)
+    entries = (((read_resp.get("result") or {}).get("entries")) or [])
+    if not entries:
+        return {
+            "version": PROTOCOL_VERSION,
+            "op": "build-rollback-from-journal",
+            "available": False,
+            "ok": False,
+            "result": {"mode": "rollback_from_journal", "status": "not_found", "path": payload.get("path")},
+            "errors": [{"code": "transaction_journal_entry_not_found", "severity": "error", "path": "journal_id", "message": "No transaction journal entry matched the selector."}],
+            "warnings": read_resp.get("warnings", []),
+            "meta": {"engine": "python-wrapper", "mode": "python_rollback_from_journal_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+        }
+    event = entries[0].get("raw_event") or {}
+    return _python_rollback_manifest({"rust_apply_manifest": event.get("manifest") or {}, "rust_apply_transaction": event.get("transaction") or {}}, started=started)
+
+
+def rust_build_rollback_from_journal(config: dict, *, journal_id: str = "", manifest_id: str = "") -> dict[str, Any]:
+    paths = (config or {}).get("paths", {}) if isinstance(config, dict) else {}
+    payload = {
+        "path": paths.get("transaction_journal") or "/opt/lqosync/logs/transaction_journal.jsonl",
+        "journal_id": journal_id or "",
+        "manifest_id": manifest_id or "",
+    }
+    response = call_rust_core("build-rollback-from-journal", payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_rollback_from_journal(payload)
+    return response
+
 def rust_sync_plan_authority_gate(config: dict, rust_sync_plan: dict | None, *, mode: str = "apply") -> dict[str, Any]:
     """Return the opt-in Rust authority gate decision for an apply cycle.
 
@@ -1024,6 +1170,10 @@ def rust_core_config(config: dict | None = None) -> dict:
         "execute_apply_manifest": bool(cfg.get("execute_apply_manifest", False)),
         "allow_rust_file_writes": bool(cfg.get("allow_rust_file_writes", False)),
         "allow_rust_libreqos_apply": bool(cfg.get("allow_rust_libreqos_apply", False)),
+        "append_transaction_journal": bool(cfg.get("append_transaction_journal", False)),
+        "allow_transaction_journal_writes": bool(cfg.get("allow_transaction_journal_writes", False)),
+        "include_rehearsal_journal_entries": bool(cfg.get("include_rehearsal_journal_entries", False)),
+        "allow_dry_run_journal_entries": bool(cfg.get("allow_dry_run_journal_entries", False)),
     }
 
 

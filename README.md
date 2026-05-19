@@ -314,3 +314,8 @@ Rust Core v1.2 adds `build-transaction-journal` and `build-rollback-manifest` op
 ### Rust Core v1.3 Transaction Journal Persistence
 
 The `lqosync-in-rust` branch now includes `append-transaction-journal`, an opt-in operation for persisting Rust apply transaction journal events to `/opt/lqosync/logs/transaction_journal.jsonl`. It is disabled by default and remains rehearsal-only unless explicitly enabled.
+
+
+## Rust Core v1.4 Transaction History and Rollback Plan Viewer
+
+This package adds read-only Rust operations `read-transaction-journal` and `build-rollback-from-journal`, plus WebUI API endpoints for transaction history and rollback plan preview. Rollback execution remains unsupported/disabled.

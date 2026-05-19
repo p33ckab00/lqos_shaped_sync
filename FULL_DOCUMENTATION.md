@@ -7589,3 +7589,8 @@ Rust Core v1.2 adds non-mutating transaction journal and rollback manifest previ
 ## Rust Core v1.3 Transaction Journal Persistence
 
 Rust Core v1.3 adds the `append-transaction-journal` operation and config flags for opt-in transaction journal persistence. This gives future Rust apply authority an auditable JSONL transaction trail while keeping Python authoritative and journal writes disabled by default. See `docs/RUST_CORE_V13_TRANSACTION_JOURNAL_PERSISTENCE.md`.
+
+
+## Rust Core v1.4 Transaction History and Rollback Plan Viewer
+
+This package adds read-only Rust operations `read-transaction-journal` and `build-rollback-from-journal`, plus WebUI API endpoints for transaction history and rollback plan preview. Rollback execution remains unsupported/disabled.

@@ -2539,3 +2539,68 @@ def rust_compare_collector_bundle_parity(config: dict, payload: dict[str, Any]) 
     if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
         return _python_compare_collector_bundle_parity(payload or {}, started=started)
     return response
+
+
+def _python_build_routeros_auth_plan(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    router = payload.get("router") if isinstance(payload.get("router"), dict) else {}
+    cfg = payload.get("config") if isinstance(payload.get("config"), dict) else {}
+    routers = cfg.get("routers") if isinstance(cfg.get("routers"), list) else []
+    if not router and routers:
+        requested = str(payload.get("router") or "")
+        for item in routers:
+            if isinstance(item, dict) and item.get("enabled", True) and (not requested or str(item.get("name") or "") == requested):
+                router = item
+                break
+    username_present = bool(str(payload.get("username") or router.get("username") or "").strip())
+    password_present = bool(str(payload.get("password") or router.get("password") or ""))
+    address_present = bool(str(payload.get("address") or router.get("address") or "").strip())
+    errors = []
+    if not address_present:
+        errors.append({"code": "routeros_auth_address_missing", "severity": "error", "path": "router.address", "message": "RouterOS authentication plan requires a router address."})
+    if not username_present:
+        errors.append({"code": "routeros_auth_username_missing", "severity": "error", "path": "router.username", "message": "RouterOS authentication plan requires a username."})
+    if not password_present:
+        errors.append({"code": "routeros_auth_password_missing", "severity": "error", "path": "router.password", "message": "RouterOS authentication plan requires password material, but the value is never emitted."})
+    execute = bool(payload.get("execute")) or str(payload.get("mode") or "").lower() in {"auth", "live", "execute"}
+    if execute:
+        errors.append({"code": "routeros_auth_adapter_not_implemented", "severity": "error", "path": "routeros_auth_plan", "message": "Python fallback does not execute Rust RouterOS authentication."})
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "build-routeros-auth-plan",
+        "available": False,
+        "ok": not errors,
+        "result": {
+            "mode": "auth_pilot" if execute else "auth_plan",
+            "status": "blocked" if errors else "auth_plan_ready",
+            "router": str(router.get("name") or payload.get("router") or "unknown"),
+            "address_redacted": "configured" if address_present else "missing",
+            "port": int(payload.get("port") or router.get("port") or 8728),
+            "username_present": username_present,
+            "password_present": password_present,
+            "credential_material": "redacted",
+            "password_emitted": False,
+            "login_sentence_emitted": False,
+            "connection_attempt_count": 0,
+            "authentication_attempt_count": 0,
+            "api_sentence_write_count": 0,
+            "api_reply_read_count": 0,
+            "live_auth_supported": False,
+            "full_rust_backend": False,
+            "authority_note": "Python fallback only builds a redacted auth plan. It never authenticates."
+        },
+        "errors": errors,
+        "warnings": [],
+        "meta": {"engine": "python-wrapper", "mode": "python_routeros_auth_plan_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_routeros_auth_plan(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-routeros-auth-plan", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_routeros_auth_plan(req_payload, started=started)
+    return response

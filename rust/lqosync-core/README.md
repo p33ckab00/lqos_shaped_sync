@@ -235,3 +235,8 @@ Adds `run-routeros-offline-session`, an end-to-end offline RouterOS API session 
 ## v2.9 RouterOS TCP Connectivity Pilot
 
 Adds `run-routeros-tcp-connectivity-pilot`, a gated TCP reachability pilot. Rehearsal mode performs no network connection. Explicit execution never authenticates or sends RouterOS API words.
+
+
+## v3.0 RouterOS Authentication Plan
+
+Adds `build-routeros-auth-plan` for redacted auth planning. This does not authenticate or expose credential material; it prepares the future live read-only RouterOS adapter.

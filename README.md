@@ -437,3 +437,8 @@ Adds `run-routeros-offline-session`, an end-to-end offline RouterOS API session 
 ## Rust Core v2.9 RouterOS TCP Connectivity Pilot
 
 The `lqosync-in-rust` branch now includes a gated RouterOS TCP reachability pilot through `run-routeros-tcp-connectivity-pilot`. This remains a transport bridge, not a full Rust backend. Python collectors remain authoritative by default.
+
+
+## Rust Core v3.0 RouterOS Authentication Plan
+
+Adds `build-routeros-auth-plan`, a redacted RouterOS authentication planning bridge. It verifies whether router metadata is ready for a future authentication adapter without emitting credentials, opening sockets, or replacing Python collectors.

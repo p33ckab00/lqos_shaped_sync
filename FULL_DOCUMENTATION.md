@@ -7691,3 +7691,8 @@ Adds `run-routeros-offline-session`, an end-to-end offline RouterOS API session 
 ## Rust Core v2.9 RouterOS TCP Connectivity Pilot
 
 See `docs/RUST_CORE_V29_ROUTEROS_TCP_CONNECTIVITY.md` for the gated TCP reachability pilot. The Rust core still does not authenticate to MikroTik or replace Python collectors.
+
+
+## Rust Core v3.0 RouterOS Authentication Plan
+
+`build-routeros-auth-plan` prepares the next RouterOS transport phase by validating redacted credential readiness. It performs zero authentication attempts and keeps the backend model hybrid/Python-authoritative.

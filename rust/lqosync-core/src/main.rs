@@ -24,6 +24,7 @@ use lqosync_core::routeros_api_reply::decode_routeros_api_reply_payload;
 use lqosync_core::routeros_api_frame::codec_routeros_api_frame_payload;
 use lqosync_core::routeros_offline_session::run_routeros_offline_session_payload;
 use lqosync_core::routeros_tcp_probe::run_routeros_tcp_connectivity_pilot_payload;
+use lqosync_core::routeros_auth_plan::build_routeros_auth_plan_payload;
 use lqosync_core::self_test::{advertised_operations, self_test_payload};
 use lqosync_core::shaped_devices::{parse_csv_text, render_csv_text, validate_rows};
 use lqosync_core::sync_plan::evaluate_sync_plan_payload;
@@ -250,6 +251,10 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
         }
         "run-routeros-tcp-connectivity-pilot" => {
             let (result, errors, warnings) = run_routeros_tcp_connectivity_pilot_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "build-routeros-auth-plan" => {
+            let (result, errors, warnings) = build_routeros_auth_plan_payload(&req.payload);
             Ok(CoreResponse::validation(req, result, errors, warnings, started))
         }
         "build-collector-circuit-bundle" => {

@@ -1,3 +1,7 @@
+## v2.100.0-rc1 Package Notes - Rust Core v3.0 RouterOS Authentication Plan
+
+This package adds the RouterOS auth-plan bridge with safe defaults: no password emission, no authentication attempts, no socket use, and no collector authority migration.
+
 ## v2.99.0-rc1 Package Notes - Rust Core v2.9 RouterOS TCP Connectivity Pilot
 
 This package adds the `run-routeros-tcp-connectivity-pilot` operation and `/api/rust-core/routeros-tcp-connectivity-pilot` endpoint.

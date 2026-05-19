@@ -602,5 +602,11 @@
         "file": "docs/RUST_CORE_V29_ROUTEROS_TCP_CONNECTIVITY.md",
         "anchor": "rust-core-v29-routeros-tcp-connectivity-pilot",
         "summary": "Gated TCP reachability pilot for Rust RouterOS transport preparation; no authentication or API reads yet."
+    },
+    "rust.v30_routeros_auth_plan": {
+        "title": "Rust Core v3.0 RouterOS Authentication Plan",
+        "file": "docs/RUST_CORE_V30_ROUTEROS_AUTH_PLAN.md",
+        "anchor": "rust-core-v30-routeros-authentication-plan",
+        "summary": "Redacted RouterOS authentication planning before live Rust auth or collector authority."
     }
 }

@@ -565,6 +565,8 @@
         "allow_rust_routeros_fixture_reads": true,
         "routeros_tcp_connect_pilot": false,
         "allow_rust_routeros_tcp_connect": false,
-        "routeros_tcp_connect_timeout_seconds": 3
+        "routeros_tcp_connect_timeout_seconds": 3,
+        "routeros_auth_pilot": false,
+        "routeros_auth_timeout_seconds": 5
     }
 }

@@ -191,3 +191,5 @@ Adds `compare-collector-bundle-parity`, a diagnostic operation and API endpoint 
 - [Rust Core v2.8 RouterOS Offline Session Pipeline](RUST_CORE_V28_ROUTEROS_OFFLINE_SESSION.md) — Offline end-to-end RouterOS API protocol session rehearsal using fixtures only.
 
 - [Rust Core v2.9 RouterOS TCP Connectivity Pilot](RUST_CORE_V29_ROUTEROS_TCP_CONNECTIVITY.md) — gated TCP reachability pilot before RouterOS authentication/live API reads.
+
+- [Rust Core v3.0 RouterOS Authentication Plan](RUST_CORE_V30_ROUTEROS_AUTH_PLAN.md) — redacted RouterOS auth planning before live Rust authentication or collector authority.

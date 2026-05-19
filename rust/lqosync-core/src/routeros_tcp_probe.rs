@@ -92,7 +92,7 @@ pub fn run_routeros_tcp_connectivity_pilot_payload(payload: &Value) -> (Value, V
     let mut connection_attempt_count = 0u64;
     let mut elapsed_ms: Option<f64> = None;
     let mut connected = false;
-    let mut status = "rehearsal_only".to_string();
+    let status: String;
 
     if address.trim().is_empty() {
         errors.push(Diagnostic::error(

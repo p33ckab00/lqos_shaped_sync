@@ -1,3 +1,7 @@
+## v2.100.0-rc1 - Rust Core v3.0 RouterOS Authentication Plan
+
+Adds `build-routeros-auth-plan`, a credential-redacted RouterOS authentication planning operation. It does not authenticate, does not open sockets, and keeps Python collectors authoritative while preparing the next live Rust transport step. Also cleans the v2.9 TCP probe unused-assignment warning.
+
 ## v2.99.0-rc1 - Rust Core v2.9 RouterOS TCP Connectivity Pilot
 
 - Added Rust `run-routeros-tcp-connectivity-pilot` operation.

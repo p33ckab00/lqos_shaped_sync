@@ -84,6 +84,9 @@ DEFAULT_CONFIG = {
         "allow_rust_rollback_file_writes": False,
         "rollback_authority": "preview",
         "require_authority_readiness": False,
+        "routeros_transport_authority": "plan_only",
+        "allow_rust_routeros_live_reads": False,
+        "allow_rust_routeros_credentials": False,
     },
     "collector": {
         "selective_fields": True,
@@ -539,8 +542,13 @@ def validate_config(cfg: dict):
     rust_core.setdefault("allow_rust_rollback_file_writes", False)
     rust_core.setdefault("rollback_authority", "preview")
     rust_core.setdefault("require_authority_readiness", False)
+    rust_core.setdefault("routeros_transport_authority", "plan_only")
+    rust_core.setdefault("allow_rust_routeros_live_reads", False)
+    rust_core.setdefault("allow_rust_routeros_credentials", False)
     if rust_core.get("authority_mode") not in ("shadow", "enforce_blockers"):
         errors.append(f"rust_core.authority_mode invalid: {rust_core.get('authority_mode')}")
+    if rust_core.get("routeros_transport_authority") not in ("plan_only", "live_read_pilot"):
+        errors.append(f"rust_core.routeros_transport_authority invalid: {rust_core.get('routeros_transport_authority')}")
     # Compatibility: authority_mode=enforce_blockers implies sync-plan enforcement.
     if rust_core.get("authority_mode") == "enforce_blockers":
         rust_core["enforce_sync_plan"] = True

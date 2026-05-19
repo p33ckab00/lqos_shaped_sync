@@ -1,5 +1,5 @@
 
-## v2.91.0-rc1 — Rust Core v2.1 RouterOS Read Result Contract
+## v2.92.0-rc1 — Rust Core v2.1 RouterOS Read Result Contract
 
 - Added Rust `validate-routeros-read-results` operation.
 - Added command-level trust validation for Python-executed RouterOS read results against the Rust collector plan.
@@ -1887,3 +1887,8 @@ POST /api/rust-core/routeros-collector-plan
 - Adds `scripts/repair-script-permissions.sh`.
 - Documents `bash scripts/...` fallback commands.
 - Clarifies that a v2.0+ install should advertise `build-routeros-collector-plan` in `self-test`.
+
+
+## Rust Core v2.2 RouterOS Transport Session Rehearsal
+
+Adds `build-routeros-transport-session`, a non-network RouterOS transport rehearsal that redacts credentials, reports planned sessions, blocks live Rust RouterOS transport attempts, and keeps Python live collectors authoritative.

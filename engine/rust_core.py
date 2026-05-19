@@ -1811,6 +1811,86 @@ def rust_build_routeros_collector_plan(config: dict, payload: dict[str, Any] | N
 
 
 
+def _python_build_routeros_transport_session(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    cfg = payload.get("config") if isinstance(payload.get("config"), dict) else {}
+    plan_response = _python_build_routeros_collector_plan(payload, started=started)
+    plan = plan_response.get("result") if isinstance(plan_response.get("result"), dict) else {}
+    commands = plan.get("commands") if isinstance(plan.get("commands"), list) else []
+    requested_router = str(payload.get("router") or "").strip()
+    requested_source = str(payload.get("source") or "").strip().lower()
+    rust_core = cfg.get("rust_core", {}) if isinstance(cfg.get("rust_core"), dict) else {}
+    allow_live_reads = bool(payload.get("allow_live_reads", rust_core.get("allow_rust_routeros_live_reads", False)))
+    allow_credentials = bool(payload.get("allow_credentials", rust_core.get("allow_rust_routeros_credentials", False)))
+    authority = str(rust_core.get("routeros_transport_authority") or "plan_only")
+    mode = str(payload.get("mode") or "rehearsal")
+    execute = bool(payload.get("execute", False))
+    sessions = []
+    for router in cfg.get("routers", []) or []:
+        if not isinstance(router, dict):
+            continue
+        name = str(router.get("name") or "unknown")
+        if requested_router and requested_router != name:
+            continue
+        count = len([c for c in commands if c.get("router") == name and (not requested_source or c.get("source") == requested_source)])
+        if count <= 0:
+            continue
+        sessions.append({
+            "router": name,
+            "address_present": bool(str(router.get("address") or "")),
+            "address_redacted": "configured" if router.get("address") else "missing",
+            "port": int(router.get("port") or 8728),
+            "username_present": bool(str(router.get("username") or "")),
+            "password_present": bool(str(router.get("password") or "")),
+            "credential_material": "redacted",
+            "sources": {
+                "pppoe": bool((router.get("pppoe") or {}).get("enabled", False)),
+                "dhcp": bool((router.get("dhcp") or {}).get("enabled", False)),
+                "hotspot": bool((router.get("hotspot") or {}).get("enabled", False)),
+            },
+            "command_count": count,
+            "status": "planned_not_connected",
+            "connection_attempted": False,
+        })
+    errors = []
+    warnings = list(plan_response.get("warnings") or [])
+    wants_live = execute or mode == "live" or authority == "live_read_pilot"
+    if wants_live:
+        errors.append({"code": "routeros_live_transport_not_implemented", "severity": "error", "path": "rust_core.routeros_transport_authority", "message": "Live Rust RouterOS transport is not implemented in this release. This operation only rehearses sessions and redacts credentials."})
+    if allow_live_reads and not allow_credentials:
+        warnings.append({"code": "routeros_credentials_not_allowed", "severity": "warning", "path": "rust_core.allow_rust_routeros_credentials", "message": "Rust live reads were requested but credential access is not allowed; no live transport can be attempted."})
+    result = {
+        "mode": "transport_rehearsal",
+        "status": "blocked" if errors else ("empty" if not commands else "ready_for_future_transport"),
+        "authority": "none",
+        "full_rust_backend": False,
+        "live_transport_supported": False,
+        "connection_attempt_count": 0,
+        "allow_live_reads": allow_live_reads,
+        "allow_credentials": allow_credentials,
+        "routeros_transport_authority": authority,
+        "router_count": len(sessions),
+        "credential_router_count": len([s for s in sessions if s.get("username_present") or s.get("password_present")]),
+        "command_count": len(commands),
+        "sessions": sessions,
+        "plan": plan,
+        "next_stage": "rust_routeros_transport_client_pilot",
+        "note": "This is a RouterOS transport-session rehearsal only. Rust does not connect to MikroTik or consume credentials in this release.",
+    }
+    return {"version": PROTOCOL_VERSION, "op": "build-routeros-transport-session", "ok": not errors, "available": False, "skipped": True, "result": result, "errors": errors, "warnings": warnings, "meta": {"engine": "python-fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)}}
+
+
+def rust_build_routeros_transport_session(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config or {})
+    response = call_rust_core("build-routeros-transport-session", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_routeros_transport_session(req_payload, started=started)
+    return response
+
+
 def _python_validate_routeros_read_results(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
     started = started or time.perf_counter()
     plan = payload.get("plan") if isinstance(payload.get("plan"), dict) else {}

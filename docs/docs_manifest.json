@@ -554,5 +554,11 @@
         "file": "docs/RUST_CORE_V21_ROUTEROS_READ_RESULTS.md",
         "anchor": "rust-core-v21-routeros-read-result-contract",
         "summary": "Command-level RouterOS read-result trust validation that compares Python live read results against the Rust collector plan before future Rust transport migration."
+    },
+    "rust.v22_routeros_transport_session": {
+        "title": "Rust Core v2.2 RouterOS Transport Session Rehearsal",
+        "file": "docs/RUST_CORE_V22_ROUTEROS_TRANSPORT_SESSION.md",
+        "anchor": "rust-core-v22-routeros-transport-session-rehearsal",
+        "summary": "Non-network RouterOS transport rehearsal with credential redaction and live transport blocking before Rust RouterOS API migration."
     }
 }

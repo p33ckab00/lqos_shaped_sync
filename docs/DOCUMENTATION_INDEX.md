@@ -175,3 +175,5 @@ Adds `compare-collector-bundle-parity`, a diagnostic operation and API endpoint 
 - [Rust Core v2.0.1 Script Permission Hotfix](RUST_CORE_V201_SCRIPT_PERMISSION_HOTFIX.md) — Repairs lost shell script executable bits and prevents accidentally testing an older installed Rust core.
 
 - [Rust Core v2.1 RouterOS Read Result Contract](RUST_CORE_V21_ROUTEROS_READ_RESULTS.md)
+
+- [Rust Core v2.2 RouterOS Transport Session Rehearsal](RUST_CORE_V22_ROUTEROS_TRANSPORT_SESSION.md)

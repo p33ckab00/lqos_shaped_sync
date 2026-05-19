@@ -555,6 +555,9 @@
         "rollback_authority": "preview",
         "require_authority_readiness": false,
         "collector_bundle_shadow_enabled": true,
-        "collector_bundle_authority": "shadow"
+        "collector_bundle_authority": "shadow",
+        "routeros_transport_authority": "plan_only",
+        "allow_rust_routeros_live_reads": false,
+        "allow_rust_routeros_credentials": false
     }
 }

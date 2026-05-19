@@ -9,6 +9,7 @@ use crate::protocol::Diagnostic;
 use crate::rollback_executor::execute_rollback_payload;
 use crate::routeros_plan::build_routeros_collector_plan_payload;
 use crate::routeros_results::validate_routeros_read_results_payload;
+use crate::routeros_transport::build_routeros_transport_session_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -31,6 +32,7 @@ pub const OP_EVALUATE_POLICY: &str = "evaluate-policy";
 pub const OP_NORMALIZE_CIRCUITS: &str = "normalize-circuits";
 pub const OP_BUILD_ROUTEROS_COLLECTOR_PLAN: &str = "build-routeros-collector-plan";
 pub const OP_VALIDATE_ROUTEROS_READ_RESULTS: &str = "validate-routeros-read-results";
+pub const OP_BUILD_ROUTEROS_TRANSPORT_SESSION: &str = "build-routeros-transport-session";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -67,6 +69,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_NORMALIZE_CIRCUITS,
         OP_BUILD_ROUTEROS_COLLECTOR_PLAN,
         OP_VALIDATE_ROUTEROS_READ_RESULTS,
+        OP_BUILD_ROUTEROS_TRANSPORT_SESSION,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -183,6 +186,29 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     checks.push(check("routeros_read_results_contract", routeros_results_ok, json!({"status": routeros_results.get("status"), "safe_for_cleanup": routeros_results.get("safe_for_cleanup")})));
     if !routeros_results_ok {
         errors.push(Diagnostic::error("self_test_routeros_results_failed", Some("validate-routeros-read-results".to_string()), "Self-test RouterOS read-result contract should trust complete planned command results."));
+    }
+
+    let transport_payload = json!({
+        "config": {
+            "routers": [{
+                "name":"RB5009",
+                "enabled": true,
+                "address": "10.0.0.1",
+                "username": "selftest",
+                "password": "redacted-by-test",
+                "pppoe":{"enabled":true},
+                "dhcp":{"enabled":false},
+                "hotspot":{"enabled":false}
+            }]
+        }
+    });
+    let (transport_result, transport_errors, _transport_warnings) = build_routeros_transport_session_payload(&transport_payload);
+    let transport_ok = transport_errors.is_empty()
+        && transport_result.get("connection_attempt_count").and_then(Value::as_u64).unwrap_or(1) == 0
+        && transport_result.get("status").and_then(Value::as_str) == Some("ready_for_future_transport");
+    checks.push(check("routeros_transport_session_rehearsal", transport_ok, json!({"status": transport_result.get("status"), "connection_attempt_count": transport_result.get("connection_attempt_count")})));
+    if !transport_ok {
+        errors.push(Diagnostic::error("self_test_routeros_transport_failed", Some("build-routeros-transport-session".to_string()), "Self-test RouterOS transport session rehearsal should not attempt live connections and should report ready_for_future_transport."));
     }
 
     let collector_bundle_payload = json!({

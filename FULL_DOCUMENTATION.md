@@ -7643,3 +7643,8 @@ This package includes `scripts/repair-script-permissions.sh` and documents `bash
 ## Rust Core v2.1 RouterOS Read Result Contract
 
 This package adds `validate-routeros-read-results`, a Rust trust contract that validates Python-executed RouterOS read results against the deterministic collector plan. It is diagnostic by default and does not replace Python live RouterOS collectors.
+
+
+## Rust Core v2.2 RouterOS Transport Session Rehearsal
+
+Adds `build-routeros-transport-session`, a non-network RouterOS transport rehearsal that redacts credentials, reports planned sessions, blocks live Rust RouterOS transport attempts, and keeps Python live collectors authoritative.

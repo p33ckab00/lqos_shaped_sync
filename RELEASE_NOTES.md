@@ -2013,3 +2013,11 @@ Adds `build-routeros-auth-session-contract`, a redacted authenticated-session co
 ## Rust Core v3.8 Collector Authority Dry-Run Bundle
 
 Adds `build-collector-authority-dry-run-bundle`, a non-mutating Rust-shadow bundle that combines collector authority selection, normalized Rust rows, and parity reporting. Python remains production-authoritative; Rust rows cannot drive cleanup or apply.
+
+
+## 2.109.0-rc1 — Rust Core v3.9 run_cycle Rust-Shadow Integration Report
+
+- Added `build-run-cycle-rust-shadow-report`.
+- Python `run_cycle` now records a non-mutating Rust-shadow report in diff/timeline data.
+- Rust-shadow collector data remains diagnostic only and cannot drive cleanup, generated file writes, or LibreQoS apply.
+- Added API endpoint and documentation for the new run_cycle shadow bridge.

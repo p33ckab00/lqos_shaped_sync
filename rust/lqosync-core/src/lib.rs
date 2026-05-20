@@ -46,3 +46,4 @@ pub mod collector_authority_pilot;
 pub mod collector_authority_manifest;
 pub mod collector_authority_selection;
 pub mod collector_authority_dry_run;
+pub mod collector_run_cycle_shadow;

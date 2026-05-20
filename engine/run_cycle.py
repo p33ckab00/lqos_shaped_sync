@@ -37,7 +37,7 @@ from engine.insights import compute_smart_insights
 from engine.lifecycle import update_lifecycle_state
 from engine.rust_core import (
     validate_runtime_outputs, diagnostics_to_messages, validate_collector_output,
-    collector_output_envelope, rust_diff_files, rust_evaluate_policy, rust_normalize_circuits, rust_evaluate_sync_plan, rust_build_apply_manifest, rust_execute_apply_transaction, rust_build_transaction_journal, rust_append_transaction_journal, rust_build_rollback_manifest,
+    collector_output_envelope, rust_diff_files, rust_evaluate_policy, rust_normalize_circuits, rust_evaluate_sync_plan, rust_build_apply_manifest, rust_execute_apply_transaction, rust_build_transaction_journal, rust_append_transaction_journal, rust_build_rollback_manifest, rust_build_run_cycle_rust_shadow_report,
 )
 
 
@@ -411,6 +411,39 @@ def _run_cycle_unlocked(mode="apply", config_path=None):
                 "warnings": len(rust_circuit_shadow.get("warnings") or []),
             },
         )
+        t_run_cycle_shadow = time.perf_counter()
+        rust_run_cycle_shadow = rust_build_run_cycle_rust_shadow_report(
+            config,
+            {
+                "mode": "shadow",
+                "python_rows": list(ctx.existing_data.values()),
+                "existing_rows": list(ctx.existing_data.values()),
+                "collector_trust": result.diff.get("collector_trust", []),
+                "collector_metrics": ctx.collector_metrics,
+                "collector_parity": {"parity_score": 0.0, "verdict": "not_available"},
+            },
+        )
+        result.diff["rust_run_cycle_shadow_report"] = rust_run_cycle_shadow
+        run_cycle_shadow_errors, run_cycle_shadow_warnings = diagnostics_to_messages(rust_run_cycle_shadow)
+        if run_cycle_shadow_errors:
+            result.warnings.extend([f"Rust run_cycle shadow: {msg}" for msg in run_cycle_shadow_errors])
+        if rust_run_cycle_shadow.get("available"):
+            result.warnings.extend([f"Rust run_cycle shadow: {msg}" for msg in run_cycle_shadow_warnings])
+        timeline.record(
+            "rust_run_cycle_shadow_report",
+            t_run_cycle_shadow,
+            status="ok" if rust_run_cycle_shadow.get("ok") else ("unavailable" if not rust_run_cycle_shadow.get("available") else "check"),
+            details={
+                "available": bool(rust_run_cycle_shadow.get("available")),
+                "ok": bool(rust_run_cycle_shadow.get("ok")),
+                "status": (rust_run_cycle_shadow.get("result") or {}).get("status"),
+                "python_authoritative": (rust_run_cycle_shadow.get("result") or {}).get("python_run_cycle_authoritative"),
+                "rust_row_count": (rust_run_cycle_shadow.get("result") or {}).get("rust_row_count"),
+                "errors": len(rust_run_cycle_shadow.get("errors") or []),
+                "warnings": len(rust_run_cycle_shadow.get("warnings") or []),
+            },
+        )
+
         result.file_hashes = {
             "current_csv": sha256_text(current_csv_text),
             "current_network": sha256_text(current_network_text),

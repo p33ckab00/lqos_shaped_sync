@@ -2877,6 +2877,64 @@ def rust_build_collector_authority_dry_run_bundle(config: dict, payload: dict[st
         return _python_build_collector_authority_dry_run_bundle(req_payload, started=started)
     return response
 
+def _python_build_run_cycle_rust_shadow_report(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rust_core = payload.get("rust_core") if isinstance(payload.get("rust_core"), dict) else ((payload.get("config") or {}).get("rust_core") if isinstance(payload.get("config"), dict) else {}) or {}
+    allow = bool(rust_core.get("run_cycle_rust_shadow_report_enabled"))
+    pilot = bool(rust_core.get("run_cycle_rust_shadow_report_pilot"))
+    bundle_resp = _python_build_collector_authority_dry_run_bundle(payload, started=started)
+    bundle = bundle_resp.get("result") if isinstance(bundle_resp.get("result"), dict) else {}
+    rust_ready = bundle.get("status") == "collector_authority_dry_run_bundle_review" or bundle.get("status") == "collector_authority_dry_run_bundle_ready"
+    rust_rows = int(bundle.get("normalized_count") or 0)
+    python_rows = payload.get("python_rows") or payload.get("python_authoritative_rows") or payload.get("existing_rows") or []
+    if not isinstance(python_rows, list):
+        python_rows = []
+    status = "run_cycle_rust_shadow_ready" if (allow and pilot and rust_ready and rust_rows > 0) else ("run_cycle_rust_shadow_available_not_enabled" if rust_ready else "run_cycle_rust_shadow_python_only")
+    warnings = []
+    if not (allow and pilot):
+        warnings.append({"code": "run_cycle_rust_shadow_report_not_enabled", "severity": "warning", "path": "run_cycle_rust_shadow", "message": "run_cycle Rust-shadow report gates are not fully enabled; Python run_cycle remains authoritative."})
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "build-run-cycle-rust-shadow-report",
+        "available": False,
+        "ok": True,
+        "result": {
+            "mode": "run_cycle_rust_shadow_report",
+            "status": status,
+            "collector_authority": "python_authoritative",
+            "production_authority": "python_run_cycle",
+            "shadow_authority": "rust_shadow_diagnostic" if status == "run_cycle_rust_shadow_ready" else "disabled_or_python_only",
+            "report_enabled": allow,
+            "report_pilot": pilot,
+            "rust_shadow_ready": bool(rust_ready),
+            "python_row_count": len(python_rows),
+            "rust_row_count": rust_rows,
+            "collector_authority_dry_run_bundle": bundle,
+            "full_rust_backend": False,
+            "python_run_cycle_authoritative": True,
+            "rust_can_drive_cleanup": False,
+            "rust_can_drive_apply": False,
+            "safe_for_cleanup": False,
+            "write_allowed": False,
+            "apply_allowed": False,
+            "next_stage": "rust_collector_authority_run_cycle_shadow_ui",
+        },
+        "errors": [],
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_run_cycle_rust_shadow_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_run_cycle_rust_shadow_report(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-run-cycle-rust-shadow-report", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_run_cycle_rust_shadow_report(req_payload, started=started)
+    return response
+
 
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()

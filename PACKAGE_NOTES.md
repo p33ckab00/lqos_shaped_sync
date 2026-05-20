@@ -323,3 +323,7 @@ Rust Core v3.6 adds a collector authority decision manifest. This is a planning/
 ## Rust Core v3.8 Collector Authority Dry-Run Bundle
 
 Adds `build-collector-authority-dry-run-bundle`, a non-mutating Rust-shadow bundle that combines collector authority selection, normalized Rust rows, and parity reporting. Python remains production-authoritative; Rust rows cannot drive cleanup or apply.
+
+## Rust Core v3.9 Package Notes
+
+Includes run_cycle Rust-shadow report support, config defaults, API wrapper, and documentation. No production authority transfer is enabled by default.

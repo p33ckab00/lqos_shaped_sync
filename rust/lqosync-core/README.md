@@ -278,3 +278,8 @@ Adds `build-collector-authority-selection`, which is dry-run only and keeps Pyth
 ## Rust Core v3.8 Collector Authority Dry-Run Bundle
 
 Adds `build-collector-authority-dry-run-bundle`, a non-mutating Rust-shadow bundle that combines collector authority selection, normalized Rust rows, and parity reporting. Python remains production-authoritative; Rust rows cannot drive cleanup or apply.
+
+
+## v3.9 run_cycle Rust-Shadow Report
+
+Adds `build-run-cycle-rust-shadow-report`, a non-mutating operation for Python run_cycle diagnostic integration.

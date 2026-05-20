@@ -213,3 +213,5 @@ Adds `build-routeros-auth-session-contract`, a redacted authenticated-session co
 - [Rust Core v3.6 Collector Authority Decision Manifest](RUST_CORE_V36_COLLECTOR_AUTHORITY_MANIFEST.md)
 
 - [Rust Core v3.7 Collector Authority Dry-Run Selection](RUST_CORE_V37_COLLECTOR_AUTHORITY_SELECTION.md) — maps collector authority manifest decisions into dry-run Python/Rust-shadow source selection while keeping production authority in Python.
+
+- [Rust Core v3.9 run_cycle Rust-Shadow Integration Report](RUST_CORE_V39_RUN_CYCLE_SHADOW.md) — attaches non-mutating Rust-shadow collector dry-run reports to Python run_cycle output while keeping Python authoritative.

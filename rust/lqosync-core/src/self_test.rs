@@ -26,6 +26,7 @@ use crate::collector_authority_pilot::evaluate_rust_collector_authority_pilot_pa
 use crate::collector_authority_manifest::build_collector_authority_manifest_payload;
 use crate::collector_authority_selection::build_collector_authority_selection_payload;
 use crate::collector_authority_dry_run::build_collector_authority_dry_run_bundle_payload;
+use crate::collector_run_cycle_shadow::build_run_cycle_rust_shadow_report_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -65,6 +66,7 @@ pub const OP_EVALUATE_RUST_COLLECTOR_AUTHORITY_PILOT: &str = "evaluate-rust-coll
 pub const OP_BUILD_COLLECTOR_AUTHORITY_MANIFEST: &str = "build-collector-authority-manifest";
 pub const OP_BUILD_COLLECTOR_AUTHORITY_SELECTION: &str = "build-collector-authority-selection";
 pub const OP_BUILD_COLLECTOR_AUTHORITY_DRY_RUN_BUNDLE: &str = "build-collector-authority-dry-run-bundle";
+pub const OP_BUILD_RUN_CYCLE_RUST_SHADOW_REPORT: &str = "build-run-cycle-rust-shadow-report";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -118,6 +120,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_COLLECTOR_AUTHORITY_MANIFEST,
         OP_BUILD_COLLECTOR_AUTHORITY_SELECTION,
         OP_BUILD_COLLECTOR_AUTHORITY_DRY_RUN_BUNDLE,
+        OP_BUILD_RUN_CYCLE_RUST_SHADOW_REPORT,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -612,6 +615,28 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
         errors.push(Diagnostic::error("self_test_collector_authority_dry_run_failed", Some("build-collector-authority-dry-run-bundle".to_string()), "Self-test collector authority dry-run bundle should build one Rust-shadow bundle while keeping Python cleanup/apply authority."));
     }
 
+    let mut run_cycle_shadow_payload = collector_authority_dry_run_payload.clone();
+    if let Some(obj) = run_cycle_shadow_payload.as_object_mut() {
+        if let Some(rc) = obj.get_mut("rust_core").and_then(Value::as_object_mut) {
+            rc.insert("run_cycle_rust_shadow_report_enabled".to_string(), json!(true));
+            rc.insert("run_cycle_rust_shadow_report_pilot".to_string(), json!(true));
+        }
+    }
+    let (run_cycle_shadow, run_cycle_shadow_errors, _run_cycle_shadow_warnings) = build_run_cycle_rust_shadow_report_payload(&run_cycle_shadow_payload);
+    let run_cycle_shadow_ok = run_cycle_shadow_errors.is_empty()
+        && run_cycle_shadow.get("status").and_then(Value::as_str) == Some("run_cycle_rust_shadow_ready")
+        && run_cycle_shadow.get("rust_row_count").and_then(Value::as_u64).unwrap_or(0) == 1
+        && run_cycle_shadow.get("python_run_cycle_authoritative").and_then(Value::as_bool).unwrap_or(false)
+        && run_cycle_shadow.get("rust_can_drive_cleanup").and_then(Value::as_bool).unwrap_or(true) == false;
+    checks.push(check("run_cycle_rust_shadow_report", run_cycle_shadow_ok, json!({
+        "status": run_cycle_shadow.get("status"),
+        "rust_row_count": run_cycle_shadow.get("rust_row_count"),
+        "python_run_cycle_authoritative": run_cycle_shadow.get("python_run_cycle_authoritative")
+    })));
+    if !run_cycle_shadow_ok {
+        errors.push(Diagnostic::error("self_test_run_cycle_rust_shadow_failed", Some("build-run-cycle-rust-shadow-report".to_string()), "Self-test run_cycle Rust-shadow report should expose one Rust-shadow candidate while keeping Python run_cycle authoritative."));
+    }
+
     let collector_bundle_payload = json!({
         "router": {"name":"RB5009", "pppoe":{"per_plan_node":true, "plan_node_name":"{profile}-{router}"}},
         "defaults": {"default_pppoe_rate":"10M/10M", "min_rate_percentage":0.5},
@@ -830,6 +855,7 @@ mod tests {
         assert!(ops.contains(&OP_RUN_ROUTEROS_READ_PILOT));
         assert!(ops.contains(&OP_BUILD_ROUTEROS_API_SENTENCE));
         assert!(ops.contains(&OP_BUILD_ROUTEROS_AUTH_PLAN));
+        assert!(ops.contains(&OP_BUILD_RUN_CYCLE_RUST_SHADOW_REPORT));
         assert!(ops.contains(&OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE));
         assert!(ops.contains(&OP_COMPARE_COLLECTOR_BUNDLE_PARITY));
         assert!(ops.contains(&OP_EVALUATE_AUTHORITY_READINESS));

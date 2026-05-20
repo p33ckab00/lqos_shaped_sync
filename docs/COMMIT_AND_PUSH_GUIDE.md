@@ -617,3 +617,15 @@ git commit -m "rust(core): add collector authority dry-run bundle" \
   -m "Add build-collector-authority-dry-run-bundle, a non-mutating Rust-shadow bundle that combines collector authority selection, normalized rows, and parity while keeping Python collectors authoritative."
 git push -u origin lqosync-in-rust
 ```
+
+
+### v3.9 run_cycle Rust-shadow report
+
+Suggested commit:
+
+```bash
+git add .
+git commit -m "rust(core): add run_cycle Rust-shadow report" \
+  -m "Add build-run-cycle-rust-shadow-report, Python run_cycle diagnostic integration, API wrapper, config defaults, and documentation while keeping Python collector cleanup/apply authority."
+git push -u origin lqosync-in-rust
+```

@@ -116,6 +116,11 @@ DEFAULT_CONFIG = {
         "allow_collector_authority_manifest": False,
         "collector_authority_dry_run_selection_pilot": False,
         "allow_collector_authority_dry_run_selection": False,
+        "collector_authority_dry_run_bundle_pilot": False,
+        "allow_collector_authority_dry_run_bundle": False,
+        "run_cycle_rust_shadow_report_enabled": False,
+        "run_cycle_rust_shadow_report_pilot": False,
+        "run_cycle_rust_shadow_include_rows": False,
     },
     "collector": {
         "selective_fields": True,

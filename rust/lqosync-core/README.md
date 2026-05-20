@@ -461,3 +461,8 @@ Fixes the aggregate `self-test` steady-state guard fixture by including both `we
 ## Rust Core v7.3.3 Steady-State Guard Hotfix
 
 Fixes the v7.3.2 aggregate `self-test` steady-state guard failure by adding the missing top-level `webui_ux_unchanged = true` gate beside `webui_static_asset_paths_unchanged` and `webui_static_assets_preserved`. Safety behavior is unchanged: WebUI/UX/static assets must remain preserved, no Python drift is allowed, Rust runtime authority must remain verified, and rollback must remain available.
+
+## Rust Core v7.3.4 Steady-State Guard Hotfix
+
+Fixes the aggregate full Rust backend steady-state guard self-test fixture by adding the missing top-level `python_backend_rollback_package_ready` gate. This keeps rollback safety explicit while preserving WebUI/UX/static assets and does not perform any service/file mutation.
+

@@ -906,5 +906,11 @@
     "file": "docs/RUST_CORE_V733_STEADY_STATE_GUARD_HOTFIX.md",
     "anchor": "rust-core-v733-steady-state-guard-hotfix",
     "summary": "Fixes aggregate self-test steady-state guard by adding the missing top-level webui_ux_unchanged gate alongside static asset preservation gates."
+  },
+  "rust.core_v734_steady_state_guard_hotfix": {
+    "title": "Rust Core v7.3.4 Steady-State Guard Hotfix",
+    "file": "docs/RUST_CORE_V734_STEADY_STATE_GUARD_HOTFIX.md",
+    "anchor": "rust-core-v734-steady-state-guard-hotfix",
+    "summary": "Adds missing python_backend_rollback_package_ready to the aggregate steady-state guard self-test fixture."
   }
 }

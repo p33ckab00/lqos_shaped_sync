@@ -967,3 +967,8 @@ git commit -m "rust(core): fix steady-state guard webui ux self-test gate" \
   -m "Fix v7.3.2 aggregate steady-state guard self-test by adding the missing top-level webui_ux_unchanged gate alongside WebUI static asset preservation gates."
 git push -u origin lqosync-in-rust
 ```
+
+## Rust Core v7.3.4 Steady-State Guard Hotfix
+
+Fixes the aggregate full Rust backend steady-state guard self-test fixture by adding the missing top-level `python_backend_rollback_package_ready` gate. This keeps rollback safety explicit while preserving WebUI/UX/static assets and does not perform any service/file mutation.
+

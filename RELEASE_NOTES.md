@@ -2196,3 +2196,8 @@ Adds `build-full-rust-backend-steady-state-guard`, the post-retirement steady-st
 ## Rust Core v7.3.1 Steady-State Guard Hotfix
 
 Fixes the v7.3.0 aggregate self-test failure by adding the missing `webui_static_assets_preserved=true` gate to the steady-state guard self-test payload. Runtime safety remains unchanged: WebUI/UX/static assets must remain preserved and Python drift must stay absent before steady-state verification passes.
+
+
+## Rust Core v7.3.2 Steady-State Guard Self-Test Hotfix
+
+Fixes the aggregate `self-test` steady-state guard fixture by including both `webui_static_asset_paths_unchanged=true` and `webui_static_assets_preserved=true`. This preserves the final production steady-state safety model: Rust backend authority, no Python drift, WebUI/UX/static assets unchanged, and rollback readiness.

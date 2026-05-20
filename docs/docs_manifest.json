@@ -894,5 +894,11 @@
     "file": "docs/RUST_CORE_V731_STEADY_STATE_GUARD_HOTFIX.md",
     "anchor": "rust-core-v731-steady-state-guard-hotfix",
     "summary": "Fixes the aggregate self-test steady-state guard fixture by adding the missing WebUI static assets preserved gate."
+  },
+  "rust.core_v732_steady_state_guard_hotfix": {
+    "title": "Rust Core v7.3.2 Steady-State Guard Self-Test Hotfix",
+    "file": "docs/RUST_CORE_V732_STEADY_STATE_GUARD_HOTFIX.md",
+    "anchor": "rust-core-v732-steady-state-guard-self-test-hotfix",
+    "summary": "Fixes the aggregate self-test steady-state guard fixture by including both WebUI static asset path and preservation gates."
   }
 }

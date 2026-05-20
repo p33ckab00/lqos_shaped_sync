@@ -815,6 +815,17 @@
     "full_rust_backend_cutover_execution_require_rollback_path": true,
     "full_rust_backend_cutover_execution_require_operator_ack": true,
     "full_rust_backend_cutover_execution_require_no_side_effects": true,
-    "full_rust_backend_cutover_execution_max_shadow_age_seconds": 900
+    "full_rust_backend_cutover_execution_max_shadow_age_seconds": 900,
+    "python_backend_retirement_plan_pilot": false,
+    "allow_python_backend_retirement_plan": false,
+    "python_backend_retirement_mode": "plan_only",
+    "python_backend_retirement_require_cutover_execution_contract": true,
+    "python_backend_retirement_require_python_fallback": true,
+    "python_backend_retirement_require_manual_confirmation": true,
+    "python_backend_retirement_require_webui_unchanged": true,
+    "python_backend_retirement_require_rollback_path": true,
+    "python_backend_retirement_require_operator_ack": true,
+    "python_backend_retirement_require_no_side_effects": true,
+    "python_backend_retirement_max_shadow_age_seconds": 900
   }
 }

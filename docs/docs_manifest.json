@@ -310,7 +310,7 @@
     },
     {
       "path": "docs/RUST_CORE_V441_PILOT_RESULT_RECURSION_HOTFIX.md",
-      "title": "Rust Core v4.4.1 \u2014 Pilot Result Recursion Hotfix",
+      "title": "Rust Core v4.4.1 — Pilot Result Recursion Hotfix",
       "tags": [
         "rust",
         "collector-authority",
@@ -430,7 +430,7 @@
     "title": "Custom Policy Mode Persistence Hotfix",
     "file": "docs/content/custom_policy_mode_persistence.md",
     "anchor": "custom-policy-mode-persistence-hotfix",
-    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center \u2192 Policies."
+    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center → Policies."
   },
   "policy_overview_custom_wiring_hotfix": {
     "title": "Policy Overview Custom Wiring Hotfix",
@@ -841,5 +841,11 @@
     "file": "docs/RUST_CORE_V62_FULL_RUST_BACKEND_CUTOVER_EXECUTION.md",
     "anchor": "rust-core-v62-full-rust-backend-cutover-execution-contract",
     "summary": "Adds the non-mutating full Rust backend cutover execution contract after v6.1 cutover planning while preserving WebUI/UX and Python fallback."
+  },
+  "rust.core_v63_python_backend_retirement_plan": {
+    "title": "Rust Core v6.3 Python Backend Retirement Plan",
+    "file": "docs/RUST_CORE_V63_PYTHON_BACKEND_RETIREMENT_PLAN.md",
+    "anchor": "rust-core-v63-python-backend-retirement-plan",
+    "summary": "Adds a non-mutating Python backend retirement planning gate after the full Rust backend cutover execution contract while keeping WebUI/UX unchanged and Python fallback mandatory."
   }
 }

@@ -5180,6 +5180,108 @@ def rust_build_full_rust_backend_cutover_execution_contract(config: dict, payloa
     return response
 
 
+
+
+def _python_build_python_backend_retirement_plan(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rc = dict(((payload.get("config") or {}).get("rust_core") or payload.get("rust_core") or {}) if isinstance(payload, dict) else {})
+    allow = bool(rc.get("allow_python_backend_retirement_plan"))
+    pilot = bool(rc.get("python_backend_retirement_plan_pilot"))
+    mode = str(rc.get("python_backend_retirement_mode") or "plan_only")
+    require_execution = rc.get("python_backend_retirement_require_cutover_execution_contract", True) is not False
+    require_fallback = rc.get("python_backend_retirement_require_python_fallback", True) is not False
+    require_confirmation = rc.get("python_backend_retirement_require_manual_confirmation", True) is not False
+    require_webui = rc.get("python_backend_retirement_require_webui_unchanged", True) is not False
+    require_rollback = rc.get("python_backend_retirement_require_rollback_path", True) is not False
+    require_ack = rc.get("python_backend_retirement_require_operator_ack", True) is not False
+    require_no_side_effects = rc.get("python_backend_retirement_require_no_side_effects", True) is not False
+    max_shadow_age = int(rc.get("python_backend_retirement_max_shadow_age_seconds") or 900)
+    shadow_age = int(payload.get("shadow_age_seconds") or 0)
+    confirmation_ok = (not require_confirmation) or payload.get("confirmation") == "CONFIRM_PYTHON_BACKEND_RETIREMENT_PLAN"
+    execution = payload.get("full_rust_backend_cutover_execution_contract") or payload.get("full_backend_cutover_execution_contract") or {}
+    if isinstance(execution, dict) and isinstance(execution.get("result"), dict):
+        execution = execution.get("result") or {}
+    execution_ready = isinstance(execution, dict) and execution.get("status") == "full_rust_backend_cutover_execution_contract_ready" and execution.get("full_rust_backend_cutover_execution_contract_ready") is True and execution.get("python_backend_removed") is False and execution.get("api_traffic_switched_to_rust") is False
+    webui_unchanged = bool(payload.get("webui_ux_unchanged", True)) and bool(payload.get("webui_static_asset_paths_unchanged", True))
+    rollback_path = str(payload.get("rollback_path") or "restore_python_backend_and_flask_routes")
+    rollback_ready = (not require_rollback) or bool(rollback_path.strip())
+    operator_ack = bool(payload.get("operator_python_retirement_ack") or payload.get("operator_acknowledged"))
+    side_effects = any([
+        payload.get("python_backend_removed"), payload.get("flask_routes_disabled"), payload.get("api_traffic_switched_to_rust"),
+        payload.get("rust_service_runtime_authoritative"), payload.get("full_rust_backend_production_enabled"), payload.get("remove_python"), payload.get("disable_flask"), payload.get("execute_removal"),
+        isinstance(execution, dict) and execution.get("python_backend_removed"), isinstance(execution, dict) and execution.get("api_traffic_switched_to_rust"),
+    ])
+    gates_ready = bool(allow and pilot and mode == "plan_only")
+    errors: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if bool(payload.get("execute")) or str(payload.get("mode") or "").lower() in {"execute", "remove-python", "disable-flask", "replace-flask", "switch-api", "authoritative", "production", "cutover-now", "enable"}:
+        errors.append({"code": "python_backend_retirement_execute_not_implemented", "severity": "error", "path": "python_backend_retirement_plan", "message": "Python fallback cannot remove Python or switch API traffic."})
+    if require_execution and not execution_ready:
+        warnings.append({"code": "python_backend_retirement_cutover_execution_not_ready", "severity": "warning", "path": "full_rust_backend_cutover_execution_contract", "message": "Full Rust backend cutover execution contract has not passed."})
+    if require_confirmation and not confirmation_ok:
+        warnings.append({"code": "python_backend_retirement_confirmation_required", "severity": "warning", "path": "confirmation", "message": "Python backend retirement plan confirmation is required."})
+    if require_webui and not webui_unchanged:
+        warnings.append({"code": "python_backend_retirement_webui_changed", "severity": "warning", "path": "webui_ux_unchanged", "message": "WebUI/UX must remain unchanged."})
+    if require_rollback and not rollback_ready:
+        warnings.append({"code": "python_backend_retirement_rollback_path_required", "severity": "warning", "path": "rollback_path", "message": "Rollback path is required."})
+    if require_ack and not operator_ack:
+        warnings.append({"code": "python_backend_retirement_operator_ack_required", "severity": "warning", "path": "operator_python_retirement_ack", "message": "Operator acknowledgment is required."})
+    if not require_fallback:
+        errors.append({"code": "python_backend_retirement_requires_python_fallback", "severity": "error", "path": "rust_core.python_backend_retirement_require_python_fallback", "message": "v6.3 still requires Python backend fallback."})
+    if require_no_side_effects and side_effects:
+        errors.append({"code": "python_backend_retirement_side_effect_detected", "severity": "error", "path": "python_backend_retirement_plan", "message": "Python retirement planning detected mutation side effects."})
+    if shadow_age > max_shadow_age:
+        warnings.append({"code": "python_backend_retirement_shadow_stale", "severity": "warning", "path": "shadow_age_seconds", "message": "Rust-shadow data is stale."})
+    if not gates_ready:
+        warnings.append({"code": "python_backend_retirement_gates_not_enabled", "severity": "warning", "path": "rust_core", "message": "Python backend retirement plan gates are not fully enabled."})
+    ready = not errors and gates_ready and confirmation_ok and (execution_ready or not require_execution) and webui_unchanged and rollback_ready and operator_ack and require_fallback and not side_effects and shadow_age <= max_shadow_age
+    review = not errors and execution_ready and webui_unchanged and rollback_ready and not side_effects
+    status = "blocked" if errors else ("python_backend_retirement_plan_ready" if ready else ("python_backend_retirement_plan_review" if review else "python_backend_retirement_plan_shadow_only"))
+    return {
+        "version": "1",
+        "op": "build-python-backend-retirement-plan",
+        "ok": not errors,
+        "result": {
+            "mode": "python_backend_retirement_plan",
+            "status": status,
+            "python_backend_retirement_plan_ready": ready,
+            "full_rust_backend_candidate": ready,
+            "python_backend_retirement_candidate": ready,
+            "webui_ux_unchanged": webui_unchanged,
+            "rollback_path": rollback_path,
+            "rollback_ready": rollback_ready,
+            "operator_python_retirement_ack": operator_ack,
+            "cutover_execution_contract_status": execution.get("status") if isinstance(execution, dict) else None,
+            "cutover_execution_contract_ready": execution_ready,
+            "python_backend_fallback_required": True,
+            "full_rust_backend": False,
+            "full_rust_backend_production_enabled": False,
+            "python_backend_removed": False,
+            "python_backend_removable": False,
+            "python_removal_allowed": False,
+            "flask_routes_disabled": False,
+            "api_traffic_switched_to_rust": False,
+            "rust_service_runtime_authoritative": False,
+            "generated_files_written": False,
+            "libreqos_apply_executed": False,
+            "next_stage": "python_backend_retirement_execution_preflight",
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_backend_retirement_plan_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_python_backend_retirement_plan(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-python-backend-retirement-plan", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_python_backend_retirement_plan(req_payload, started=started)
+    return response
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

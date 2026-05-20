@@ -278,3 +278,5 @@ Adds `evaluate-collector-authority-pilot-result`, a fail-safe evaluator for futu
 - [Rust Core v6.1 Full Rust Backend Cutover Plan](RUST_CORE_V61_FULL_RUST_BACKEND_CUTOVER_PLAN.md) — non-mutating cutover planning gate after v6.0 production-readiness.
 
 - [Rust Core v6.2 Full Rust Backend Cutover Execution Contract](RUST_CORE_V62_FULL_RUST_BACKEND_CUTOVER_EXECUTION.md)
+
+- [Rust Core v6.3 Python Backend Retirement Plan](RUST_CORE_V63_PYTHON_BACKEND_RETIREMENT_PLAN.md) — non-mutating Python backend retirement planning gate after v6.2 cutover execution contract.

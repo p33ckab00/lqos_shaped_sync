@@ -344,6 +344,17 @@ DEFAULT_CONFIG = {
         "full_rust_backend_cutover_execution_require_operator_ack": True,
         "full_rust_backend_cutover_execution_require_no_side_effects": True,
         "full_rust_backend_cutover_execution_max_shadow_age_seconds": 900,
+        "python_backend_retirement_plan_pilot": False,
+        "allow_python_backend_retirement_plan": False,
+        "python_backend_retirement_mode": "plan_only",
+        "python_backend_retirement_require_cutover_execution_contract": True,
+        "python_backend_retirement_require_python_fallback": True,
+        "python_backend_retirement_require_manual_confirmation": True,
+        "python_backend_retirement_require_webui_unchanged": True,
+        "python_backend_retirement_require_rollback_path": True,
+        "python_backend_retirement_require_operator_ack": True,
+        "python_backend_retirement_require_no_side_effects": True,
+        "python_backend_retirement_max_shadow_age_seconds": 900,
     },
     "collector": {
         "selective_fields": True,
@@ -1000,6 +1011,17 @@ def validate_config(cfg: dict):
     rust_core.setdefault("full_rust_backend_cutover_execution_require_operator_ack", True)
     rust_core.setdefault("full_rust_backend_cutover_execution_require_no_side_effects", True)
     rust_core.setdefault("full_rust_backend_cutover_execution_max_shadow_age_seconds", 900)
+    rust_core.setdefault("python_backend_retirement_plan_pilot", False)
+    rust_core.setdefault("allow_python_backend_retirement_plan", False)
+    rust_core.setdefault("python_backend_retirement_mode", "plan_only")
+    rust_core.setdefault("python_backend_retirement_require_cutover_execution_contract", True)
+    rust_core.setdefault("python_backend_retirement_require_python_fallback", True)
+    rust_core.setdefault("python_backend_retirement_require_manual_confirmation", True)
+    rust_core.setdefault("python_backend_retirement_require_webui_unchanged", True)
+    rust_core.setdefault("python_backend_retirement_require_rollback_path", True)
+    rust_core.setdefault("python_backend_retirement_require_operator_ack", True)
+    rust_core.setdefault("python_backend_retirement_require_no_side_effects", True)
+    rust_core.setdefault("python_backend_retirement_max_shadow_age_seconds", 900)
     if rust_core.get("authority_mode") not in ("shadow", "enforce_blockers"):
         errors.append(f"rust_core.authority_mode invalid: {rust_core.get('authority_mode')}")
     if rust_core.get("routeros_read_pilot_adapter") not in ("fixture", "disabled"):

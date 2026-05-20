@@ -84,6 +84,7 @@ from engine.rust_core import (
     rust_build_full_rust_backend_production_readiness_contract,
     rust_build_full_rust_backend_cutover_plan,
     rust_build_full_rust_backend_cutover_execution_contract,
+    rust_build_python_backend_retirement_plan,
     rust_validate_routeros_read_results,
     rust_build_collector_circuit_bundle,
     rust_compare_collector_bundle_parity,
@@ -3016,6 +3017,29 @@ def api_rust_core_full_rust_backend_cutover_execution_contract():
             "full_rust_backend_production_readiness_confirmation": request.args.get("full_rust_backend_production_readiness_confirmation") or "CONFIRM_FULL_RUST_BACKEND_PRODUCTION_READINESS_CONTRACT",
         }
     return jsonify(rust_build_full_rust_backend_cutover_execution_contract(cfg, payload))
+
+
+@app.route("/api/rust-core/python-backend-retirement-plan", methods=["GET", "POST"])
+@login_required
+def api_rust_core_python_backend_retirement_plan():
+    cfg = load_config(CONFIG_PATH)
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or {}
+    else:
+        payload = {
+            "mode": request.args.get("mode") or "plan",
+            "execute": str(request.args.get("execute") or "").lower() in {"1", "true", "yes", "on"},
+            "confirmation": request.args.get("confirmation") or "",
+            "shadow_age_seconds": int(request.args.get("shadow_age_seconds") or 0),
+            "webui_ux_unchanged": str(request.args.get("webui_ux_unchanged") or "").lower() in {"1", "true", "yes", "on"},
+            "webui_static_asset_paths_unchanged": str(request.args.get("webui_static_asset_paths_unchanged") or "").lower() in {"1", "true", "yes", "on"},
+            "operator_python_retirement_ack": str(request.args.get("operator_python_retirement_ack") or "").lower() in {"1", "true", "yes", "on"},
+            "operator_ack": request.args.get("operator_ack") or "",
+            "rollback_path": request.args.get("rollback_path") or "restore_python_backend_and_flask_routes",
+            "full_rust_backend_cutover_execution_confirmation": request.args.get("full_rust_backend_cutover_execution_confirmation") or "CONFIRM_FULL_RUST_BACKEND_CUTOVER_EXECUTION_CONTRACT",
+            "full_rust_backend_cutover_plan_confirmation": request.args.get("full_rust_backend_cutover_plan_confirmation") or "CONFIRM_FULL_RUST_BACKEND_CUTOVER_PLAN",
+        }
+    return jsonify(rust_build_python_backend_retirement_plan(cfg, payload))
 
 @app.route("/api/rust-core/routeros-read-results", methods=["POST"])
 @login_required

@@ -63,3 +63,4 @@ pub mod rust_backend_scheduler_handoff;
 pub mod rust_run_cycle_orchestrator_handoff;
 pub mod rust_config_state_authority_handoff;
 pub mod rust_live_collector_authority_handoff;
+pub mod rust_circuit_builder_authority_handoff;

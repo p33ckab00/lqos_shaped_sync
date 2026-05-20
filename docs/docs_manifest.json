@@ -310,7 +310,7 @@
     },
     {
       "path": "docs/RUST_CORE_V441_PILOT_RESULT_RECURSION_HOTFIX.md",
-      "title": "Rust Core v4.4.1 — Pilot Result Recursion Hotfix",
+      "title": "Rust Core v4.4.1 \u2014 Pilot Result Recursion Hotfix",
       "tags": [
         "rust",
         "collector-authority",
@@ -430,7 +430,7 @@
     "title": "Custom Policy Mode Persistence Hotfix",
     "file": "docs/content/custom_policy_mode_persistence.md",
     "anchor": "custom-policy-mode-persistence-hotfix",
-    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center → Policies."
+    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center \u2192 Policies."
   },
   "policy_overview_custom_wiring_hotfix": {
     "title": "Policy Overview Custom Wiring Hotfix",
@@ -799,5 +799,11 @@
     "file": "docs/RUST_CORE_V55_RUST_LIVE_COLLECTOR_AUTHORITY_HANDOFF.md",
     "anchor": "rust-core-v55-rust-live-collector-authority-handoff-contract",
     "summary": "Adds the live collector authority handoff contract after config/state authority handoff while keeping Python live collectors authoritative and WebUI/UX unchanged."
+  },
+  "rust.core_v56_circuit_builder_authority_handoff": {
+    "title": "Rust Core v5.6 Rust Circuit Builder Authority Handoff Contract",
+    "file": "docs/RUST_CORE_V56_RUST_CIRCUIT_BUILDER_AUTHORITY_HANDOFF.md",
+    "anchor": "rust-core-v56-rust-circuit-builder-authority-handoff-contract",
+    "summary": "Adds a non-mutating Rust circuit builder authority handoff contract after live collector authority handoff while keeping Python fallback and WebUI/UX unchanged."
   }
 }

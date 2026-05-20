@@ -77,6 +77,7 @@ from engine.rust_core import (
     rust_build_rust_run_cycle_orchestrator_handoff_contract,
     rust_build_rust_config_state_authority_handoff_contract,
     rust_build_rust_live_collector_authority_handoff_contract,
+    rust_build_rust_circuit_builder_authority_handoff_contract,
     rust_validate_routeros_read_results,
     rust_build_collector_circuit_bundle,
     rust_compare_collector_bundle_parity,
@@ -2833,6 +2834,29 @@ def api_rust_core_live_collector_authority_handoff_contract():
             "collector_parity_score": float(request.args.get("collector_parity_score") or 0),
         }
     return jsonify(rust_build_rust_live_collector_authority_handoff_contract(cfg, payload))
+
+
+@app.route("/api/rust-core/rust-circuit-builder-authority-handoff-contract", methods=["GET", "POST"])
+@login_required
+def api_rust_core_rust_circuit_builder_authority_handoff_contract():
+    cfg = load_config(CONFIG_PATH)
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or {}
+    else:
+        payload = {
+            "mode": request.args.get("mode") or "contract",
+            "execute": str(request.args.get("execute") or "").lower() in {"1", "true", "yes", "on"},
+            "confirmation": request.args.get("confirmation") or "",
+            "shadow_age_seconds": int(request.args.get("shadow_age_seconds") or 0),
+            "circuit_builder_shadow_ready": str(request.args.get("circuit_builder_shadow_ready") or "").lower() in {"1", "true", "yes", "on"},
+            "circuit_builder_shadow_count": int(request.args.get("circuit_builder_shadow_count") or 0),
+            "shaped_devices_render_parity_ready": str(request.args.get("shaped_devices_render_parity_ready") or "").lower() in {"1", "true", "yes", "on"},
+            "shaped_devices_render_parity_score": float(request.args.get("shaped_devices_render_parity_score") or 0),
+            "parent_node_integrity_ready": str(request.args.get("parent_node_integrity_ready") or "").lower() in {"1", "true", "yes", "on"},
+            "parent_node_error_count": int(request.args.get("parent_node_error_count") or 0),
+            "rust_live_collector_authority_handoff_confirmation": request.args.get("rust_live_collector_authority_handoff_confirmation") or "CONFIRM_RUST_LIVE_COLLECTOR_AUTHORITY_HANDOFF_CONTRACT",
+        }
+    return jsonify(rust_build_rust_circuit_builder_authority_handoff_contract(cfg, payload))
 
 @app.route("/api/rust-core/routeros-read-results", methods=["POST"])
 @login_required

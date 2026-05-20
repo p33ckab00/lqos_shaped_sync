@@ -736,6 +736,17 @@
     "rust_live_collector_authority_handoff_require_routeros_adapter_shadow": true,
     "rust_live_collector_authority_handoff_require_collector_parity": true,
     "rust_live_collector_authority_handoff_require_no_side_effects": true,
-    "rust_live_collector_authority_handoff_max_shadow_age_seconds": 900
+    "rust_live_collector_authority_handoff_max_shadow_age_seconds": 900,
+    "rust_circuit_builder_authority_handoff_contract_pilot": false,
+    "allow_rust_circuit_builder_authority_handoff_contract": false,
+    "rust_circuit_builder_authority_handoff_mode": "contract_only",
+    "rust_circuit_builder_authority_handoff_require_live_collector_authority": true,
+    "rust_circuit_builder_authority_handoff_require_python_fallback": true,
+    "rust_circuit_builder_authority_handoff_require_manual_confirmation": true,
+    "rust_circuit_builder_authority_handoff_require_circuit_shadow": true,
+    "rust_circuit_builder_authority_handoff_require_shaped_devices_parity": true,
+    "rust_circuit_builder_authority_handoff_require_parent_integrity": true,
+    "rust_circuit_builder_authority_handoff_require_no_side_effects": true,
+    "rust_circuit_builder_authority_handoff_max_shadow_age_seconds": 900
   }
 }

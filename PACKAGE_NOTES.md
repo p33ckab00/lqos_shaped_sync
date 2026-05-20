@@ -1,3 +1,7 @@
+## v2.105.1-rc1 Package Notes - Collector Authority Pilot Redaction Test Hotfix
+
+This package fixes a Rust unit-test false positive in the v3.5 collector authority pilot gate. The test now verifies that the exact password value and raw password key are not emitted, while allowing legitimate non-secret labels used by nested readiness contracts. Production behavior is unchanged.
+
 ## Rust Core v3.3 package note
 
 This package adds the authenticated read fixture pipeline. It remains a bridge toward live Rust reads; Python collectors remain authoritative.

@@ -1,3 +1,16 @@
+## v2.105.1-rc1 - Rust Core v3.5.1 Collector Authority Pilot Redaction Test Hotfix
+
+- Fixes a false-positive Rust test failure in `collector_authority_pilot.rs`.
+- The failed test checked for the broad word `secret`, but nested RouterOS/auth contract metadata can legitimately contain non-secret labels such as `session_secret_emitted=false` or RouterOS resource names.
+- The test now checks the exact password value and raw `password` key instead of blocking legitimate metadata labels.
+- Runtime behavior is unchanged: collector authority remains pilot-gated only, Python collectors remain authoritative, and no live RouterOS reads are enabled.
+
+## v2.105.0-rc1 - Rust Core v3.5 Collector Authority Pilot Gate
+
+- Added `evaluate-rust-collector-authority-pilot`.
+- Evaluates source-level readiness for future Rust collector authority using live-read adapter contract readiness, collector parity, explicit source allow-list, and authority flags.
+- Does not switch authority away from Python collectors.
+
 ## v2.104.0-rc1 / Rust Core v3.4 Live Read Adapter Contract
 
 - Added `run-routeros-live-read-adapter-pilot`.

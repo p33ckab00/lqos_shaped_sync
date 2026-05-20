@@ -197,8 +197,9 @@ mod tests {
 
     #[test]
     fn defaults_to_shadow_only() {
+        let leaked_password = "super-secret-password-value";
         let payload = json!({
-            "router": {"name":"R1", "address":"10.0.0.1", "username":"admin", "password":"secret"},
+            "router": {"name":"R1", "address":"10.0.0.1", "username":"admin", "password": leaked_password},
             "source": "pppoe",
             "path": "/ppp/active",
             "collector_parity": {"parity_score": 100.0, "verdict":"parity_pass"}
@@ -209,7 +210,8 @@ mod tests {
         assert_eq!(result.get("collector_authority").and_then(Value::as_str), Some("python_authoritative"));
         assert_eq!(result.get("connection_attempt_count").and_then(Value::as_u64), Some(0));
         let text = serde_json::to_string(&result).unwrap();
-        assert!(!text.contains("secret"));
+        assert!(!text.contains(leaked_password));
+        assert!(!text.contains("\"password\":"));
     }
 
     #[test]

@@ -86,3 +86,7 @@ full_rust_backend=false
 ## Next stage
 
 The next major bridge is the Rust collector live-read pilot, where Rust can start executing a narrowly scoped read path under explicit operator gates while Python remains fallback/authority.
+
+## v3.5.1 redaction-test hotfix
+
+`v3.5.1` fixes a false-positive unit test that checked for the broad word `secret` in the collector authority result. Nested auth/session contract metadata can legitimately contain non-secret labels, so the test now checks only the exact password value and raw `password` key. Runtime behavior is unchanged.

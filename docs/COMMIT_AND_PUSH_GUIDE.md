@@ -717,3 +717,13 @@ git commit -m "rust(core): add collector authority promotion commit plan" \
   -m "Add build-collector-authority-promotion-commit-plan, a non-mutating commit-plan bridge after promotion execution rehearsal that requires explicit gates, manual confirmation, fresh Rust-shadow data, and Python fallback while keeping production collector authority in Python."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Rust Core v4.9 commit suggestion
+
+```bash
+git add .
+git commit -m "rust(core): add collector authority production freeze gate" \
+  -m "Add build-collector-authority-production-freeze-gate, the final non-mutating pre-production freeze gate before a future Rust collector authority switch contract, requiring cutover readiness, manual confirmation, maintenance window, operator acknowledgment, rollback path, and Python fallback."
+git push -u origin lqosync-in-rust
+```

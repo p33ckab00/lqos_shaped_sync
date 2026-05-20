@@ -36,6 +36,7 @@ use crate::collector_authority_promotion::build_collector_authority_promotion_re
 use crate::collector_authority_promotion_execution::build_collector_authority_promotion_execution_rehearsal_payload;
 use crate::collector_authority_promotion_commit::build_collector_authority_promotion_commit_plan_payload;
 use crate::collector_authority_promotion_cutover::build_collector_authority_promotion_cutover_ledger_payload;
+use crate::collector_authority_production_freeze::build_collector_authority_production_freeze_gate_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -85,6 +86,7 @@ pub const OP_BUILD_COLLECTOR_AUTHORITY_PROMOTION_READINESS: &str = "build-collec
 pub const OP_BUILD_COLLECTOR_AUTHORITY_PROMOTION_EXECUTION_REHEARSAL: &str = "build-collector-authority-promotion-execution-rehearsal";
 pub const OP_BUILD_COLLECTOR_AUTHORITY_PROMOTION_COMMIT_PLAN: &str = "build-collector-authority-promotion-commit-plan";
 pub const OP_BUILD_COLLECTOR_AUTHORITY_PROMOTION_CUTOVER_LEDGER: &str = "build-collector-authority-promotion-cutover-ledger";
+pub const OP_BUILD_COLLECTOR_AUTHORITY_PRODUCTION_FREEZE_GATE: &str = "build-collector-authority-production-freeze-gate";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -148,6 +150,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_COLLECTOR_AUTHORITY_PROMOTION_EXECUTION_REHEARSAL,
         OP_BUILD_COLLECTOR_AUTHORITY_PROMOTION_COMMIT_PLAN,
         OP_BUILD_COLLECTOR_AUTHORITY_PROMOTION_CUTOVER_LEDGER,
+        OP_BUILD_COLLECTOR_AUTHORITY_PRODUCTION_FREEZE_GATE,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -925,6 +928,42 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     })));
     if !promotion_cutover_ok {
         errors.push(Diagnostic::error("self_test_collector_authority_promotion_cutover_failed", Some("build-collector-authority-promotion-cutover-ledger".to_string()), "Self-test collector authority promotion cutover ledger should report ready only as a non-mutating ledger result."));
+    }
+
+    let mut production_freeze_payload = promotion_cutover_payload.clone();
+    if let Some(obj) = production_freeze_payload.as_object_mut() {
+        obj.insert("confirmation".to_string(), json!("CONFIRM_COLLECTOR_AUTHORITY_PRODUCTION_FREEZE_GATE"));
+        obj.insert("collector_authority_promotion_cutover_ledger".to_string(), json!(promotion_cutover.clone()));
+        obj.insert("maintenance_window".to_string(), json!("2026-05-20T23:00:00+08:00/PT30M"));
+        obj.insert("operator_acknowledged".to_string(), json!(true));
+        obj.insert("rollback_path".to_string(), json!("python_fallback_revert"));
+        if let Some(rc) = obj.get_mut("rust_core").and_then(Value::as_object_mut) {
+            rc.insert("collector_authority_production_freeze_gate_pilot".to_string(), json!(true));
+            rc.insert("allow_collector_authority_production_freeze_gate".to_string(), json!(true));
+            rc.insert("collector_authority_production_freeze_mode".to_string(), json!("freeze_only"));
+            rc.insert("collector_authority_production_freeze_require_cutover_ledger".to_string(), json!(true));
+            rc.insert("collector_authority_production_freeze_require_python_fallback".to_string(), json!(true));
+            rc.insert("collector_authority_production_freeze_require_manual_confirmation".to_string(), json!(true));
+            rc.insert("collector_authority_production_freeze_require_no_cleanup_apply".to_string(), json!(true));
+            rc.insert("collector_authority_production_freeze_require_rollback_path".to_string(), json!(true));
+            rc.insert("collector_authority_production_freeze_require_maintenance_window".to_string(), json!(true));
+            rc.insert("collector_authority_production_freeze_require_operator_ack".to_string(), json!(true));
+            rc.insert("collector_authority_production_freeze_max_shadow_age_seconds".to_string(), json!(900));
+        }
+    }
+    let (production_freeze, production_freeze_errors, _production_freeze_warnings) = build_collector_authority_production_freeze_gate_payload(&production_freeze_payload);
+    let production_freeze_ok = production_freeze_errors.is_empty()
+        && production_freeze.get("status").and_then(Value::as_str) == Some("collector_authority_production_freeze_gate_ready")
+        && production_freeze.get("production_collector_authority_switched").and_then(Value::as_bool) == Some(false)
+        && production_freeze.get("collector_authority_production_switch_executed").and_then(Value::as_bool) == Some(false)
+        && production_freeze.get("python_backend_removable").and_then(Value::as_bool) == Some(false);
+    checks.push(check("collector_authority_production_freeze_gate", production_freeze_ok, json!({
+        "status": production_freeze.get("status"),
+        "collector_authority": production_freeze.get("collector_authority"),
+        "production_freeze_ready": production_freeze.get("production_freeze_ready")
+    })));
+    if !production_freeze_ok {
+        errors.push(Diagnostic::error("self_test_collector_authority_production_freeze_failed", Some("build-collector-authority-production-freeze-gate".to_string()), "Self-test production freeze gate should report ready only as a non-mutating pre-production gate."));
     }
 
     let collector_bundle_payload = json!({

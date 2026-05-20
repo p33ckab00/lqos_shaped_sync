@@ -384,3 +384,8 @@ LQoSync `2.117.0-rc1` / `lqosync-core 4.7.0` adds `build-collector-authority-pro
 ## Rust Core v4.8 Collector Authority Promotion Cutover Ledger
 
 Adds `build-collector-authority-promotion-cutover-ledger`, a non-mutating cutover ledger after the v4.7 promotion commit plan. It requires explicit gates, manual confirmation, a rollback path, and Python fallback. It does not switch collector authority, drive cleanup/apply, or write generated LibreQoS files.
+
+
+## Rust Core v4.9 Collector Authority Production Freeze Gate
+
+Adds `build-collector-authority-production-freeze-gate`, the final non-mutating pre-production freeze gate before a future v5 Rust collector-authority production switch contract. It requires cutover-ledger readiness, manual confirmation, a maintenance window, operator acknowledgment, rollback path, fresh Rust-shadow data, and Python fallback. It does not remove Python, switch production collector authority, drive cleanup/apply, or write generated LibreQoS files.

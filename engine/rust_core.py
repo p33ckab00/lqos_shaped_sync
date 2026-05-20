@@ -3743,6 +3743,112 @@ def rust_build_collector_authority_promotion_cutover_ledger(config: dict, payloa
     return response
 
 
+
+
+def _python_build_collector_authority_production_freeze_gate(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rc = dict(((payload.get("config") or {}).get("rust_core") or payload.get("rust_core") or {}) if isinstance(payload, dict) else {})
+    allow = bool(rc.get("allow_collector_authority_production_freeze_gate"))
+    pilot = bool(rc.get("collector_authority_production_freeze_gate_pilot"))
+    mode = str(rc.get("collector_authority_production_freeze_mode") or "freeze_only")
+    require_cutover = bool(rc.get("collector_authority_production_freeze_require_cutover_ledger", True))
+    require_fallback = bool(rc.get("collector_authority_production_freeze_require_python_fallback", True))
+    require_confirmation = bool(rc.get("collector_authority_production_freeze_require_manual_confirmation", True))
+    require_no_side_effects = bool(rc.get("collector_authority_production_freeze_require_no_cleanup_apply", True))
+    require_rollback_path = bool(rc.get("collector_authority_production_freeze_require_rollback_path", True))
+    require_maintenance_window = bool(rc.get("collector_authority_production_freeze_require_maintenance_window", True))
+    require_operator_ack = bool(rc.get("collector_authority_production_freeze_require_operator_ack", True))
+    max_shadow_age = int(rc.get("collector_authority_production_freeze_max_shadow_age_seconds") or 900)
+    shadow_age = int(payload.get("shadow_age_seconds") or 0)
+    confirmation_ok = (not require_confirmation) or str(payload.get("confirmation") or "") == "CONFIRM_COLLECTOR_AUTHORITY_PRODUCTION_FREEZE_GATE"
+    cutover = payload.get("collector_authority_promotion_cutover_ledger") or payload.get("promotion_cutover_ledger") or payload.get("collector_authority_cutover_ledger") or {}
+    if isinstance(cutover, dict) and isinstance(cutover.get("result"), dict):
+        cutover = cutover.get("result")
+    cutover_ready = isinstance(cutover, dict) and cutover.get("status") == "collector_authority_promotion_cutover_ledger_ready" and bool(cutover.get("cutover_ledger_ready")) and cutover.get("production_collector_authority_switched") is False
+    side_effect_free = not any([
+        payload.get("cleanup_attempted"), payload.get("apply_attempted"), payload.get("write_attempted"), payload.get("production_collector_authority_switched"),
+        isinstance(cutover, dict) and cutover.get("cleanup_attempted"), isinstance(cutover, dict) and cutover.get("apply_attempted"), isinstance(cutover, dict) and cutover.get("write_attempted"), isinstance(cutover, dict) and cutover.get("production_collector_authority_switched"),
+    ])
+    rollback_path = str(payload.get("rollback_path") or (cutover.get("rollback_path") if isinstance(cutover, dict) else "") or "python_fallback_revert")
+    rollback_ready = (not require_rollback_path) or bool(rollback_path.strip())
+    maintenance_window = str(payload.get("maintenance_window") or "")
+    maintenance_ready = (not require_maintenance_window) or bool(maintenance_window.strip())
+    operator_ack = bool(payload.get("operator_acknowledged"))
+    operator_ready = (not require_operator_ack) or operator_ack
+    gates_ready = bool(allow and pilot and mode == "freeze_only")
+    errors: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if bool(payload.get("execute")) or str(payload.get("mode") or "").lower() in {"execute", "commit", "switch", "promote", "authority", "apply", "production", "cutover"}:
+        errors.append({"code": "collector_authority_production_freeze_execute_not_implemented", "severity": "error", "path": "collector_authority_production_freeze_gate", "message": "Python fallback cannot execute collector authority production switch."})
+    if require_cutover and not cutover_ready:
+        warnings.append({"code": "collector_authority_production_freeze_cutover_not_ready", "severity": "warning", "path": "collector_authority_promotion_cutover_ledger", "message": "Cutover ledger has not passed."})
+    if require_confirmation and not confirmation_ok:
+        warnings.append({"code": "collector_authority_production_freeze_confirmation_required", "severity": "warning", "path": "confirmation", "message": "Production freeze confirmation is required."})
+    if not require_fallback:
+        errors.append({"code": "collector_authority_production_freeze_requires_python_fallback", "severity": "error", "path": "rust_core.collector_authority_production_freeze_require_python_fallback", "message": "Production freeze still requires Python collector fallback in this release."})
+    if require_no_side_effects and not side_effect_free:
+        errors.append({"code": "collector_authority_production_freeze_side_effect_detected", "severity": "error", "path": "collector_authority_production_freeze_gate", "message": "Cleanup/apply/write/authority side effects are forbidden."})
+    if shadow_age > max_shadow_age:
+        warnings.append({"code": "collector_authority_production_freeze_shadow_stale", "severity": "warning", "path": "shadow_age_seconds", "message": "Rust-shadow data is stale."})
+    if not rollback_ready:
+        warnings.append({"code": "collector_authority_production_freeze_rollback_path_required", "severity": "warning", "path": "rollback_path", "message": "Rollback path is required."})
+    if not maintenance_ready:
+        warnings.append({"code": "collector_authority_production_freeze_maintenance_window_required", "severity": "warning", "path": "maintenance_window", "message": "Maintenance window is required."})
+    if not operator_ready:
+        warnings.append({"code": "collector_authority_production_freeze_operator_ack_required", "severity": "warning", "path": "operator_acknowledged", "message": "Operator acknowledgment is required."})
+    if not gates_ready:
+        warnings.append({"code": "collector_authority_production_freeze_gates_not_enabled", "severity": "warning", "path": "rust_core", "message": "Production freeze gates are not fully enabled."})
+    ready = not errors and gates_ready and confirmation_ok and (cutover_ready or not require_cutover) and shadow_age <= max_shadow_age and side_effect_free and require_fallback and rollback_ready and maintenance_ready and operator_ready
+    review = not errors and cutover_ready and side_effect_free and rollback_ready
+    status = "blocked" if errors else ("collector_authority_production_freeze_gate_ready" if ready else ("collector_authority_production_freeze_gate_review" if review else "collector_authority_production_freeze_gate_shadow_only"))
+    return {
+        "version": "1",
+        "op": "build-collector-authority-production-freeze-gate",
+        "ok": not errors,
+        "result": {
+            "mode": "collector_authority_production_freeze_gate",
+            "status": status,
+            "collector_authority": "python_authoritative",
+            "production_freeze_ready": ready,
+            "production_freeze_gate_only": True,
+            "full_rust_backend": False,
+            "production_collector_authority_switched": False,
+            "collector_authority_production_switch_supported": False,
+            "collector_authority_production_switch_executed": False,
+            "python_backend_removable": False,
+            "python_collector_fallback_required": True,
+            "cutover_ledger_status": cutover.get("status") if isinstance(cutover, dict) else None,
+            "cutover_ledger_ready": cutover_ready,
+            "manual_confirmation_accepted": confirmation_ok,
+            "gates_ready": gates_ready,
+            "rollback_ready": rollback_ready,
+            "maintenance_window_ready": maintenance_ready,
+            "operator_ack_ready": operator_ready,
+            "rust_can_drive_cleanup": False,
+            "rust_can_drive_apply": False,
+            "rust_can_write_generated_files": False,
+            "safe_for_cleanup": False,
+            "write_allowed": False,
+            "apply_allowed": False,
+            "next_stage": "v5_collector_authority_production_switch_contract",
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_collector_authority_production_freeze_gate_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_collector_authority_production_freeze_gate(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-collector-authority-production-freeze-gate", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_collector_authority_production_freeze_gate(req_payload, started=started)
+    return response
+
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

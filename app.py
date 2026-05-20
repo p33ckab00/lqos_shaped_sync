@@ -70,6 +70,7 @@ from engine.rust_core import (
     rust_build_collector_authority_promotion_execution_rehearsal,
     rust_build_collector_authority_promotion_commit_plan,
     rust_build_collector_authority_promotion_cutover_ledger,
+    rust_build_collector_authority_production_freeze_gate,
     rust_validate_routeros_read_results,
     rust_build_collector_circuit_bundle,
     rust_compare_collector_bundle_parity,
@@ -2618,6 +2619,41 @@ def api_rust_core_collector_authority_promotion_cutover_ledger():
             },
         }
     return jsonify(rust_build_collector_authority_promotion_cutover_ledger(cfg, payload))
+
+
+@app.route("/api/rust-core/collector-authority-production-freeze-gate", methods=["GET", "POST"])
+@login_required
+def api_rust_core_collector_authority_production_freeze_gate():
+    cfg = load_config(CONFIG_PATH)
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or {}
+    else:
+        raw_sources = request.args.get("sources") or request.args.get("source") or "pppoe"
+        payload = {
+            "router": request.args.get("router") or "",
+            "sources": [s.strip() for s in str(raw_sources).split(",") if s.strip()],
+            "mode": request.args.get("mode") or "freeze",
+            "execute": str(request.args.get("execute") or "").lower() in {"1", "true", "yes", "on"},
+            "confirmation": request.args.get("confirmation") or "",
+            "collector_authority_promotion_cutover_confirmation": request.args.get("collector_authority_promotion_cutover_confirmation") or "CONFIRM_COLLECTOR_AUTHORITY_PROMOTION_CUTOVER_LEDGER",
+            "collector_authority_promotion_commit_confirmation": request.args.get("collector_authority_promotion_commit_confirmation") or "CONFIRM_COLLECTOR_AUTHORITY_PROMOTION_COMMIT_PLAN",
+            "collector_authority_promotion_execution_confirmation": request.args.get("collector_authority_promotion_execution_confirmation") or "CONFIRM_COLLECTOR_AUTHORITY_PROMOTION_EXECUTION_REHEARSAL",
+            "collector_authority_promotion_readiness_confirmation": request.args.get("collector_authority_promotion_readiness_confirmation") or "CONFIRM_COLLECTOR_AUTHORITY_PROMOTION_READINESS",
+            "successful_shadow_cycles": int(request.args.get("successful_shadow_cycles") or 0),
+            "shadow_age_seconds": int(request.args.get("shadow_age_seconds") or 0),
+            "rollback_path": request.args.get("rollback_path") or "python_fallback_revert",
+            "maintenance_window": request.args.get("maintenance_window") or "",
+            "operator_acknowledged": str(request.args.get("operator_acknowledged") or "").lower() in {"1", "true", "yes", "on"},
+            "collector_parity": {"parity_score": float(request.args.get("parity_score") or 0), "verdict": request.args.get("parity_verdict") or "not_available"},
+            "pilot_result": {
+                "status": request.args.get("pilot_status") or "pilot_result_not_supplied",
+                "error_count": int(request.args.get("pilot_error_count") or 0),
+                "cleanup_attempted": str(request.args.get("cleanup_attempted") or "").lower() in {"1", "true", "yes", "on"},
+                "apply_attempted": str(request.args.get("apply_attempted") or "").lower() in {"1", "true", "yes", "on"},
+                "write_attempted": str(request.args.get("write_attempted") or "").lower() in {"1", "true", "yes", "on"},
+            },
+        }
+    return jsonify(rust_build_collector_authority_production_freeze_gate(cfg, payload))
 
 @app.route("/api/rust-core/routeros-read-results", methods=["POST"])
 @login_required

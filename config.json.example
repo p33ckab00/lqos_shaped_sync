@@ -660,6 +660,17 @@
     "collector_authority_promotion_cutover_require_manual_confirmation": true,
     "collector_authority_promotion_cutover_require_no_cleanup_apply": true,
     "collector_authority_promotion_cutover_require_rollback_path": true,
-    "collector_authority_promotion_cutover_max_shadow_age_seconds": 900
+    "collector_authority_promotion_cutover_max_shadow_age_seconds": 900,
+    "collector_authority_production_freeze_gate_pilot": false,
+    "allow_collector_authority_production_freeze_gate": false,
+    "collector_authority_production_freeze_mode": "freeze_only",
+    "collector_authority_production_freeze_require_cutover_ledger": true,
+    "collector_authority_production_freeze_require_python_fallback": true,
+    "collector_authority_production_freeze_require_manual_confirmation": true,
+    "collector_authority_production_freeze_require_no_cleanup_apply": true,
+    "collector_authority_production_freeze_require_rollback_path": true,
+    "collector_authority_production_freeze_require_maintenance_window": true,
+    "collector_authority_production_freeze_require_operator_ack": true,
+    "collector_authority_production_freeze_max_shadow_age_seconds": 900
   }
 }

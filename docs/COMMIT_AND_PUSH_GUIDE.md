@@ -827,3 +827,13 @@ git commit -m "rust(core): add Rust backend service runtime handoff contract" \
   -m "Add build-rust-backend-service-runtime-handoff-contract, the service/API runtime handoff bridge after apply/journal/rollback authority while keeping Python backend fallback and WebUI/UX unchanged."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Rust Core v6.0 full Rust backend production readiness
+
+```bash
+git add .
+git commit -m "rust(core): add full Rust backend production readiness contract" \
+  -m "Add build-full-rust-backend-production-readiness-contract, the full backend readiness gate after service/runtime handoff while preserving WebUI/UX and requiring Python fallback until an explicit cutover/removal package."
+git push -u origin lqosync-in-rust
+```

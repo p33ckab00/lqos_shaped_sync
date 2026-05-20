@@ -391,3 +391,8 @@ Adds `build-rust-apply-journal-rollback-authority-handoff-contract`, the next fu
 ## Rust Core v5.9 Rust Backend Service Runtime Handoff Contract
 
 Adds `build-rust-backend-service-runtime-handoff-contract`, the service/API runtime handoff bridge after apply/journal/rollback authority. It validates API route parity, static WebUI asset compatibility, Rust API shadow response parity, and Rust service supervision readiness while keeping Python backend fallback and WebUI/UX unchanged.
+
+
+## Rust Core v6.0 Full Rust Backend Production Readiness Contract
+
+Adds `build-full-rust-backend-production-readiness-contract`, the first full Rust backend production-readiness gate after service/runtime handoff. It can mark the system as a future cutover candidate, but it does not remove Python, disable Flask routes, switch live API traffic, or enable Rust production service authority. WebUI/UX remains unchanged and Python fallback remains mandatory.

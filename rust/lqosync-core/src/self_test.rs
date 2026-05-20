@@ -47,6 +47,7 @@ use crate::rust_circuit_builder_authority_handoff::build_rust_circuit_builder_au
 use crate::rust_sync_engine_authority_handoff::build_rust_sync_engine_authority_handoff_contract_payload;
 use crate::rust_apply_journal_rollback_authority_handoff::build_rust_apply_journal_rollback_authority_handoff_contract_payload;
 use crate::rust_backend_service_runtime_handoff::build_rust_backend_service_runtime_handoff_contract_payload;
+use crate::rust_full_backend_production_readiness::build_full_rust_backend_production_readiness_contract_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -107,6 +108,7 @@ pub const OP_BUILD_RUST_CIRCUIT_BUILDER_AUTHORITY_HANDOFF_CONTRACT: &str = "buil
 pub const OP_BUILD_RUST_SYNC_ENGINE_AUTHORITY_HANDOFF_CONTRACT: &str = "build-rust-sync-engine-authority-handoff-contract";
 pub const OP_BUILD_RUST_APPLY_JOURNAL_ROLLBACK_AUTHORITY_HANDOFF_CONTRACT: &str = "build-rust-apply-journal-rollback-authority-handoff-contract";
 pub const OP_BUILD_RUST_BACKEND_SERVICE_RUNTIME_HANDOFF_CONTRACT: &str = "build-rust-backend-service-runtime-handoff-contract";
+pub const OP_BUILD_FULL_RUST_BACKEND_PRODUCTION_READINESS_CONTRACT: &str = "build-full-rust-backend-production-readiness-contract";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -181,6 +183,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_RUST_SYNC_ENGINE_AUTHORITY_HANDOFF_CONTRACT,
         OP_BUILD_RUST_APPLY_JOURNAL_ROLLBACK_AUTHORITY_HANDOFF_CONTRACT,
         OP_BUILD_RUST_BACKEND_SERVICE_RUNTIME_HANDOFF_CONTRACT,
+        OP_BUILD_FULL_RUST_BACKEND_PRODUCTION_READINESS_CONTRACT,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -1398,6 +1401,41 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     })));
     if !service_runtime_handoff_ok {
         errors.push(Diagnostic::error("self_test_rust_backend_service_runtime_handoff_failed", Some("build-rust-backend-service-runtime-handoff-contract".to_string()), "Self-test Rust backend service/runtime handoff contract should report ready without switching API/service runtime authority."));
+    }
+
+    let mut full_backend_readiness_payload = service_runtime_handoff_payload.clone();
+    if let Some(obj) = full_backend_readiness_payload.as_object_mut() {
+        obj.insert("confirmation".to_string(), json!("CONFIRM_FULL_RUST_BACKEND_PRODUCTION_READINESS_CONTRACT"));
+        obj.insert("rust_backend_service_runtime_handoff_contract".to_string(), json!(service_runtime_handoff.clone()));
+        obj.insert("webui_ux_unchanged".to_string(), json!(true));
+        obj.insert("webui_static_asset_paths_unchanged".to_string(), json!(true));
+        obj.insert("operator_final_review_ack".to_string(), json!(true));
+        if let Some(rc) = obj.get_mut("rust_core").and_then(Value::as_object_mut) {
+            rc.insert("full_rust_backend_production_readiness_contract_pilot".to_string(), json!(true));
+            rc.insert("allow_full_rust_backend_production_readiness_contract".to_string(), json!(true));
+            rc.insert("full_rust_backend_production_readiness_mode".to_string(), json!("contract_only"));
+            rc.insert("full_rust_backend_production_readiness_require_service_runtime".to_string(), json!(true));
+            rc.insert("full_rust_backend_production_readiness_require_python_fallback".to_string(), json!(true));
+            rc.insert("full_rust_backend_production_readiness_require_manual_confirmation".to_string(), json!(true));
+            rc.insert("full_rust_backend_production_readiness_require_webui_unchanged".to_string(), json!(true));
+            rc.insert("full_rust_backend_production_readiness_require_operator_final_review".to_string(), json!(true));
+            rc.insert("full_rust_backend_production_readiness_require_no_side_effects".to_string(), json!(true));
+            rc.insert("full_rust_backend_production_readiness_max_shadow_age_seconds".to_string(), json!(900));
+        }
+    }
+    let (full_backend_readiness, full_backend_readiness_errors, _full_backend_readiness_warnings) = build_full_rust_backend_production_readiness_contract_payload(&full_backend_readiness_payload);
+    let full_backend_readiness_ok = full_backend_readiness_errors.is_empty()
+        && full_backend_readiness.get("status").and_then(Value::as_str) == Some("full_rust_backend_production_readiness_contract_ready")
+        && full_backend_readiness.get("full_rust_backend_production_readiness_ready").and_then(Value::as_bool) == Some(true)
+        && full_backend_readiness.get("full_rust_backend_production_enabled").and_then(Value::as_bool) == Some(false)
+        && full_backend_readiness.get("python_backend_removed").and_then(Value::as_bool) == Some(false);
+    checks.push(check("full_rust_backend_production_readiness_contract", full_backend_readiness_ok, json!({
+        "status": full_backend_readiness.get("status"),
+        "full_rust_backend_production_readiness_ready": full_backend_readiness.get("full_rust_backend_production_readiness_ready"),
+        "python_backend_removed": full_backend_readiness.get("python_backend_removed")
+    })));
+    if !full_backend_readiness_ok {
+        errors.push(Diagnostic::error("self_test_full_rust_backend_production_readiness_failed", Some("build-full-rust-backend-production-readiness-contract".to_string()), "Self-test full Rust backend production-readiness contract should report ready without removing Python or switching service/API runtime authority."));
     }
 
     let collector_bundle_payload = json!({

@@ -823,5 +823,11 @@
     "file": "docs/RUST_CORE_V59_RUST_BACKEND_SERVICE_RUNTIME_HANDOFF.md",
     "anchor": "rust-core-v59-rust-backend-service-runtime-handoff-contract",
     "summary": "Adds a non-mutating Rust backend service/API runtime handoff contract after apply/journal/rollback authority while preserving WebUI/UX and Python fallback."
+  },
+  "rust.core_v60_full_rust_backend_production_readiness": {
+    "title": "Rust Core v6.0 Full Rust Backend Production Readiness Contract",
+    "file": "docs/RUST_CORE_V60_FULL_RUST_BACKEND_PRODUCTION_READINESS.md",
+    "anchor": "rust-core-v60-full-rust-backend-production-readiness-contract",
+    "summary": "Adds the first full Rust backend production-readiness contract after service/runtime handoff, while keeping Python fallback and WebUI/UX unchanged."
   }
 }

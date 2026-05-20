@@ -783,6 +783,16 @@
     "rust_backend_service_runtime_handoff_require_service_supervision": true,
     "rust_backend_service_runtime_handoff_require_api_shadow": true,
     "rust_backend_service_runtime_handoff_require_no_side_effects": true,
-    "rust_backend_service_runtime_handoff_max_shadow_age_seconds": 900
+    "rust_backend_service_runtime_handoff_max_shadow_age_seconds": 900,
+    "full_rust_backend_production_readiness_contract_pilot": false,
+    "allow_full_rust_backend_production_readiness_contract": false,
+    "full_rust_backend_production_readiness_mode": "contract_only",
+    "full_rust_backend_production_readiness_require_service_runtime": true,
+    "full_rust_backend_production_readiness_require_python_fallback": true,
+    "full_rust_backend_production_readiness_require_manual_confirmation": true,
+    "full_rust_backend_production_readiness_require_webui_unchanged": true,
+    "full_rust_backend_production_readiness_require_operator_final_review": true,
+    "full_rust_backend_production_readiness_require_no_side_effects": true,
+    "full_rust_backend_production_readiness_max_shadow_age_seconds": 900
   }
 }

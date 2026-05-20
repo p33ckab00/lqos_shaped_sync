@@ -54,6 +54,7 @@ use lqosync_core::rust_circuit_builder_authority_handoff::build_rust_circuit_bui
 use lqosync_core::rust_sync_engine_authority_handoff::build_rust_sync_engine_authority_handoff_contract_payload;
 use lqosync_core::rust_apply_journal_rollback_authority_handoff::build_rust_apply_journal_rollback_authority_handoff_contract_payload;
 use lqosync_core::rust_backend_service_runtime_handoff::build_rust_backend_service_runtime_handoff_contract_payload;
+use lqosync_core::rust_full_backend_production_readiness::build_full_rust_backend_production_readiness_contract_payload;
 use lqosync_core::self_test::{advertised_operations, self_test_payload};
 use lqosync_core::shaped_devices::{parse_csv_text, render_csv_text, validate_rows};
 use lqosync_core::sync_plan::evaluate_sync_plan_payload;
@@ -400,6 +401,10 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
         }
         "build-rust-backend-service-runtime-handoff-contract" => {
             let (result, errors, warnings) = build_rust_backend_service_runtime_handoff_contract_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "build-full-rust-backend-production-readiness-contract" => {
+            let (result, errors, warnings) = build_full_rust_backend_production_readiness_contract_payload(&req.payload);
             Ok(CoreResponse::validation(req, result, errors, warnings, started))
         }
         "build-collector-circuit-bundle" => {

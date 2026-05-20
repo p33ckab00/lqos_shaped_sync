@@ -25,6 +25,7 @@ use crate::routeros_live_read_adapter::run_routeros_live_read_adapter_pilot_payl
 use crate::collector_authority_pilot::evaluate_rust_collector_authority_pilot_payload;
 use crate::collector_authority_manifest::build_collector_authority_manifest_payload;
 use crate::collector_authority_selection::build_collector_authority_selection_payload;
+use crate::collector_authority_dry_run::build_collector_authority_dry_run_bundle_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -63,6 +64,7 @@ pub const OP_RUN_ROUTEROS_LIVE_READ_ADAPTER_PILOT: &str = "run-routeros-live-rea
 pub const OP_EVALUATE_RUST_COLLECTOR_AUTHORITY_PILOT: &str = "evaluate-rust-collector-authority-pilot";
 pub const OP_BUILD_COLLECTOR_AUTHORITY_MANIFEST: &str = "build-collector-authority-manifest";
 pub const OP_BUILD_COLLECTOR_AUTHORITY_SELECTION: &str = "build-collector-authority-selection";
+pub const OP_BUILD_COLLECTOR_AUTHORITY_DRY_RUN_BUNDLE: &str = "build-collector-authority-dry-run-bundle";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -115,6 +117,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_EVALUATE_RUST_COLLECTOR_AUTHORITY_PILOT,
         OP_BUILD_COLLECTOR_AUTHORITY_MANIFEST,
         OP_BUILD_COLLECTOR_AUTHORITY_SELECTION,
+        OP_BUILD_COLLECTOR_AUTHORITY_DRY_RUN_BUNDLE,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -567,6 +570,46 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     })));
     if !collector_authority_selection_ok {
         errors.push(Diagnostic::error("self_test_collector_authority_selection_failed", Some("build-collector-authority-selection".to_string()), "Self-test collector authority dry-run selection should select Rust only as a shadow candidate while keeping Python production authority."));
+    }
+
+    let collector_authority_dry_run_payload = json!({
+        "router": {"name":"RB5009", "address":"10.0.0.1", "port":8728, "username":"selftest", "password":"redacted-by-test", "pppoe":{"per_plan_node":true, "plan_node_name":"{profile}-{router}"}},
+        "sources": ["pppoe"],
+        "defaults": {"default_pppoe_rate":"10M/10M", "min_rate_percentage":0.5},
+        "collector_parity": {"parity_score": 100.0, "verdict":"parity_pass"},
+        "python_rows": [{"Circuit ID":"selftest", "Circuit Name":"selftest", "Device ID":"selftest", "Device Name":"selftest", "Parent Node":"15M-RB5009", "MAC":"AA:BB:CC:DD:EE:FF", "IPv4":"10.0.0.2", "IPv6":"", "Download Min Mbps":"7.5", "Upload Min Mbps":"7.5", "Download Max Mbps":"15", "Upload Max Mbps":"15", "Comment":"PPP"}],
+        "pppoe": {
+            "active": [{"name":"selftest", "address":"10.0.0.2", "caller-id":"AA:BB:CC:DD:EE:FF"}],
+            "secrets": [{"name":"selftest", "profile":"15M", "comment":"PLAN|15M/15M", "disabled":"false", "inactive":"false"}],
+            "profiles": [{"name":"15M", "rate-limit":"15M/15M"}]
+        },
+        "rust_core": {
+            "allow_rust_collector_authority": true,
+            "rust_collector_authority_pilot": true,
+            "allow_rust_routeros_live_read_adapter": true,
+            "routeros_live_read_adapter_pilot": true,
+            "rust_collector_authority_sources": ["pppoe"],
+            "collector_authority_mode": "rust_collector_authority_pilot",
+            "collector_authority_manifest_pilot": true,
+            "allow_collector_authority_manifest": true,
+            "collector_authority_dry_run_selection_pilot": true,
+            "allow_collector_authority_dry_run_selection": true,
+            "collector_authority_dry_run_bundle_pilot": true,
+            "allow_collector_authority_dry_run_bundle": true
+        }
+    });
+    let (collector_authority_dry_run, collector_authority_dry_run_errors, _collector_authority_dry_run_warnings) = build_collector_authority_dry_run_bundle_payload(&collector_authority_dry_run_payload);
+    let collector_authority_dry_run_ok = collector_authority_dry_run_errors.is_empty()
+        && collector_authority_dry_run.get("status").and_then(Value::as_str) == Some("collector_authority_dry_run_bundle_ready")
+        && collector_authority_dry_run.get("normalized_count").and_then(Value::as_u64).unwrap_or(0) == 1
+        && collector_authority_dry_run.get("collector_output_can_drive_cleanup").and_then(Value::as_bool).unwrap_or(true) == false;
+    checks.push(check("collector_authority_dry_run_bundle", collector_authority_dry_run_ok, json!({
+        "status": collector_authority_dry_run.get("status"),
+        "normalized_count": collector_authority_dry_run.get("normalized_count"),
+        "collector_authority": collector_authority_dry_run.get("collector_authority")
+    })));
+    if !collector_authority_dry_run_ok {
+        errors.push(Diagnostic::error("self_test_collector_authority_dry_run_failed", Some("build-collector-authority-dry-run-bundle".to_string()), "Self-test collector authority dry-run bundle should build one Rust-shadow bundle while keeping Python cleanup/apply authority."));
     }
 
     let collector_bundle_payload = json!({

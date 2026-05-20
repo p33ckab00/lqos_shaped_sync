@@ -273,3 +273,8 @@ Adds `build-collector-authority-manifest` for non-mutating collector authority d
 ## v3.7 Collector authority dry-run selection
 
 Adds `build-collector-authority-selection`, which is dry-run only and keeps Python collectors authoritative.
+
+
+## Rust Core v3.8 Collector Authority Dry-Run Bundle
+
+Adds `build-collector-authority-dry-run-bundle`, a non-mutating Rust-shadow bundle that combines collector authority selection, normalized Rust rows, and parity reporting. Python remains production-authoritative; Rust rows cannot drive cleanup or apply.

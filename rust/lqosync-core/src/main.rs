@@ -32,6 +32,7 @@ use lqosync_core::routeros_live_read_adapter::run_routeros_live_read_adapter_pil
 use lqosync_core::collector_authority_pilot::evaluate_rust_collector_authority_pilot_payload;
 use lqosync_core::collector_authority_manifest::build_collector_authority_manifest_payload;
 use lqosync_core::collector_authority_selection::build_collector_authority_selection_payload;
+use lqosync_core::collector_authority_dry_run::build_collector_authority_dry_run_bundle_payload;
 use lqosync_core::self_test::{advertised_operations, self_test_payload};
 use lqosync_core::shaped_devices::{parse_csv_text, render_csv_text, validate_rows};
 use lqosync_core::sync_plan::evaluate_sync_plan_payload;
@@ -290,6 +291,10 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
         }
         "build-collector-authority-selection" => {
             let (result, errors, warnings) = build_collector_authority_selection_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "build-collector-authority-dry-run-bundle" => {
+            let (result, errors, warnings) = build_collector_authority_dry_run_bundle_payload(&req.payload);
             Ok(CoreResponse::validation(req, result, errors, warnings, started))
         }
         "build-collector-circuit-bundle" => {

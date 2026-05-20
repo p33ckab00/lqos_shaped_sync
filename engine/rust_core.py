@@ -2812,6 +2812,72 @@ def rust_build_collector_authority_selection(config: dict, payload: dict[str, An
     return response
 
 
+def _python_build_collector_authority_dry_run_bundle(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    """Fallback for v3.8 collector authority dry-run bundle.
+
+    This fallback is non-mutating and never allows Rust shadow output to drive
+    cleanup, writes, or apply. It exists only to keep the API shape stable when
+    the Rust core is unavailable.
+    """
+    started = started or time.perf_counter()
+    selection_resp = _python_build_collector_authority_selection(payload, started=started)
+    selection = selection_resp.get("result") or {}
+    rust_core = (payload.get("rust_core") or (payload.get("config") or {}).get("rust_core") or {}) if isinstance(payload, dict) else {}
+    allow = bool(rust_core.get("allow_collector_authority_dry_run_bundle"))
+    pilot = bool(rust_core.get("collector_authority_dry_run_bundle_pilot"))
+    rust_shadow_requested = bool(selection.get("rust_shadow_count")) and allow and pilot
+    errors = []
+    if payload.get("execute") or str(payload.get("mode") or "").lower() in {"execute", "promote", "switch", "authority", "apply"}:
+        errors.append({"code": "collector_authority_dry_run_execute_not_implemented", "severity": "error", "path": "collector_authority_dry_run", "message": "Python fallback cannot execute or switch collector authority."})
+    status = "blocked" if errors else ("collector_authority_dry_run_bundle_review" if rust_shadow_requested else "collector_authority_dry_run_bundle_python_only")
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "build-collector-authority-dry-run-bundle",
+        "available": False,
+        "ok": not errors,
+        "result": {
+            "mode": "collector_authority_dry_run_bundle",
+            "status": status,
+            "dry_run_bundle_id": f"cad-python-{1 if rust_shadow_requested else 0}",
+            "collector_authority": "python_authoritative",
+            "production_authority": "python_collector",
+            "dry_run_authority": "rust_shadow_candidate" if rust_shadow_requested else "python_collector",
+            "selection": selection,
+            "rust_shadow_requested": rust_shadow_requested,
+            "rust_bundle": {"normalized_count": 0, "normalized_rows": []},
+            "parity": {"verdict": "not_available", "parity_score": 0.0},
+            "normalized_count": 0,
+            "full_rust_backend": False,
+            "collector_authority_switch_supported": False,
+            "collector_output_can_drive_cleanup": False,
+            "collector_output_can_drive_apply": False,
+            "python_collector_fallback_required": True,
+            "safe_for_cleanup": False,
+            "write_allowed": False,
+            "apply_allowed": False,
+            "connection_attempt_count": 0,
+            "authentication_attempt_count": 0,
+            "api_sentence_write_count": 0,
+            "api_reply_read_count": 0,
+            "next_stage": "rust_collector_authority_shadow_run_cycle_integration",
+        },
+        "errors": errors,
+        "warnings": selection_resp.get("warnings") or [],
+        "meta": {"engine": "python-wrapper", "mode": "python_collector_authority_dry_run_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_collector_authority_dry_run_bundle(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-collector-authority-dry-run-bundle", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_collector_authority_dry_run_bundle(req_payload, started=started)
+    return response
+
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

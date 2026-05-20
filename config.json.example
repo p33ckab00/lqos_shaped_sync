@@ -587,6 +587,8 @@
         "collector_authority_manifest_pilot": false,
         "allow_collector_authority_manifest": false,
         "collector_authority_dry_run_selection_pilot": false,
-        "allow_collector_authority_dry_run_selection": false
+        "allow_collector_authority_dry_run_selection": false,
+        "collector_authority_dry_run_bundle_pilot": false,
+        "allow_collector_authority_dry_run_bundle": false
     }
 }

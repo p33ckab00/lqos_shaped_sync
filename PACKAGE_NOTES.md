@@ -318,3 +318,8 @@ This package adds a non-mutating collector authority pilot gate. It reports whet
 
 Rust Core v3.6 adds a collector authority decision manifest. This is a planning/visibility layer only; it does not switch authority or perform live RouterOS reads.
 
+
+
+## Rust Core v3.8 Collector Authority Dry-Run Bundle
+
+Adds `build-collector-authority-dry-run-bundle`, a non-mutating Rust-shadow bundle that combines collector authority selection, normalized Rust rows, and parity reporting. Python remains production-authoritative; Rust rows cannot drive cleanup or apply.

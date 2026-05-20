@@ -45,3 +45,4 @@ pub mod routeros_live_read_adapter;
 pub mod collector_authority_pilot;
 pub mod collector_authority_manifest;
 pub mod collector_authority_selection;
+pub mod collector_authority_dry_run;

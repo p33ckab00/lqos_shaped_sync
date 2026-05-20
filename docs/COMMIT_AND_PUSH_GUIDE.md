@@ -607,3 +607,13 @@ git commit -m "rust(core): add collector authority dry-run selection" \
   -m "Add build-collector-authority-selection, a non-mutating selector that maps collector authority manifest decisions into dry-run Python/Rust-shadow source choices while keeping production collector authority in Python."
 git push -u origin lqosync-in-rust
 ```
+
+
+## v3.8 Collector Authority Dry-Run Bundle
+
+```bash
+git add .
+git commit -m "rust(core): add collector authority dry-run bundle" \
+  -m "Add build-collector-authority-dry-run-bundle, a non-mutating Rust-shadow bundle that combines collector authority selection, normalized rows, and parity while keeping Python collectors authoritative."
+git push -u origin lqosync-in-rust
+```

@@ -656,4 +656,11 @@
     "anchor": "rust-core-v37-collector-authority-dry-run-selection",
     "summary": "Dry-run source selector that maps collector authority manifest decisions to Python or Rust-shadow collector candidates while keeping Python authoritative."
   }
+,
+  "rust.core_v38_collector_dry_run_bundle": {
+    "title": "Rust Core v3.8 Collector Authority Dry-Run Bundle",
+    "file": "docs/RUST_CORE_V38_COLLECTOR_DRY_RUN_BUNDLE.md",
+    "anchor": "rust-core-v38-collector-authority-dry-run-bundle",
+    "summary": "Non-mutating Rust-shadow collector dry-run bundle that combines source selection, normalized rows, and parity while keeping Python authoritative."
+  }
 }

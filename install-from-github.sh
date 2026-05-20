@@ -11,6 +11,7 @@ INSTALL_DIR="${LQOSYNC_INSTALL_DIR:-/opt/LQoSync}"
 SERVICE_NAME="${LQOSYNC_SERVICE_NAME:-lqosync}"
 OLD_SERVICE_NAME="${LQOSYNC_OLD_SERVICE_NAME:-lqos_shaped_sync}"
 INIT_POLICY="${LQOSYNC_INIT_POLICY:-preserve_existing}"
+SERVICE_START_POLICY="${LQOSYNC_SERVICE_START_POLICY:-restart}"
 LIBREQOS_SRC="${LIBREQOS_SRC:-/opt/libreqos/src}"
 TS="$(date +%Y%m%d_%H%M%S)"
 BACKUP_ROOT="${LQOSYNC_BACKUP_ROOT:-/root/lqosync_git_install_backups}"
@@ -38,7 +39,6 @@ existing_install_detected() {
   [ -e "$INSTALL_DIR" ] || \
   systemctl list-unit-files 2>/dev/null | grep -q "^${SERVICE_NAME}.service" || \
   [ -f "/etc/systemd/system/${SERVICE_NAME}.service" ] || \
-  [ -f "/etc/sudoers.d/lqosync" ] || \
   [ -f "/etc/sudoers.d/lqosync" ]
 }
 
@@ -63,7 +63,6 @@ backup_operator_files() {
 
   # Service/sudoers backup.
   cp -a "/etc/systemd/system/${SERVICE_NAME}.service" "$BACKUP_DIR/${SERVICE_NAME}.service" 2>/dev/null || true
-  cp -a "/etc/sudoers.d/lqosync" "$BACKUP_DIR/sudoers.lqosync" 2>/dev/null || true
   cp -a "/etc/sudoers.d/lqosync" "$BACKUP_DIR/sudoers.lqosync" 2>/dev/null || true
 }
 
@@ -200,7 +199,7 @@ prompt_action() {
 run_install_preserve() {
   log "Running production-safe installer from Git source..."
   cd "$INSTALL_DIR"
-  LQOSYNC_INIT_POLICY="$INIT_POLICY" LQOSYNC_INSTALL_MODE=baremetal bash install.sh
+  LQOSYNC_INIT_POLICY="$INIT_POLICY" LQOSYNC_SERVICE_START_POLICY="$SERVICE_START_POLICY" LQOSYNC_INSTALL_DIR="$INSTALL_DIR" LIBREQOS_SRC="$LIBREQOS_SRC" LQOSYNC_INSTALL_MODE=baremetal bash install.sh
 }
 
 run_code_only() {
@@ -242,6 +241,7 @@ log "Repository: $REPO_URL"
 log "Branch:     $BRANCH"
 log "Target:     $INSTALL_DIR"
 log "Init policy:$INIT_POLICY"
+log "Service start policy:$SERVICE_START_POLICY"
 log "Existing action request: $EXISTING_INSTALL_ACTION"
 log "Safety: existing config.json, ShapedDevices.csv, network.json, users, env, state, logs, and backups are backed up before install/update actions."
 

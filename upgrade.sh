@@ -10,6 +10,7 @@ BRANCH="${LQOSYNC_BRANCH:-lqosync-in-rust}"
 SERVICE_NAME="${LQOSYNC_SERVICE_NAME:-lqosync}"
 OLD_SERVICE_NAME="${LQOSYNC_OLD_SERVICE_NAME:-lqos_shaped_sync}"
 POLICY="${UPDATE_POLICY:-preserve_and_migrate}"
+SERVICE_START_POLICY="${LQOSYNC_SERVICE_START_POLICY:-restart}"
 BACKUP_ROOT="${LQOSYNC_BACKUP_ROOT:-/opt/LQoSync/backups/upgrades}"
 TS="$(date +%Y%m%d_%H%M%S)"
 BACKUP_DIR="$BACKUP_ROOT/$TS"
@@ -44,6 +45,7 @@ trap 'rm -f "$LOCK_FILE"' EXIT
 date -Is > "$LOCK_FILE"
 
 log "Policy:     $POLICY"
+log "Service start policy: $SERVICE_START_POLICY"
 log "Repository: $REPO_URL"
 log "Branch:     $BRANCH"
 log "Install:    $INSTALL_DIR"
@@ -132,13 +134,13 @@ case "$POLICY" in
   preserve_and_migrate|refresh_with_backup)
     log "Production-safe policy selected. Preserving live config/users/generated files and applying safe migration."
     cd "$INSTALL_DIR"
-    LQOSYNC_INIT_POLICY=preserve_existing LQOSYNC_INSTALL_MODE=baremetal bash install.sh
+    LQOSYNC_INIT_POLICY=preserve_existing LQOSYNC_SERVICE_START_POLICY="$SERVICE_START_POLICY" LQOSYNC_INSTALL_DIR="$INSTALL_DIR" LIBREQOS_SRC="$LIBREQOS_SRC" LQOSYNC_INSTALL_MODE=baremetal bash install.sh
     ;;
 
   factory_reset)
     log "Factory reset selected. Existing files were backed up; templates may replace managed files."
     cd "$INSTALL_DIR"
-    LQOSYNC_INIT_POLICY=overwrite_with_backup LQOSYNC_INSTALL_MODE=baremetal bash install.sh
+    LQOSYNC_INIT_POLICY=overwrite_with_backup LQOSYNC_SERVICE_START_POLICY="$SERVICE_START_POLICY" LQOSYNC_INSTALL_DIR="$INSTALL_DIR" LIBREQOS_SRC="$LIBREQOS_SRC" LQOSYNC_INSTALL_MODE=baremetal bash install.sh
     ;;
 esac
 

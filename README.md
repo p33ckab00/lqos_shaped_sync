@@ -106,6 +106,16 @@ curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/i
 sudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh
 ```
 
+Production-safe live-host wrapper, when installing from a ZIP/local package and you do **not** want the service started automatically:
+
+```bash
+sudo bash install-production-safe.sh
+# review config + dry-run first, then:
+sudo systemctl start lqosync
+```
+
+The wrapper preserves live LibreQoS files and backs up `config.json`, `ShapedDevices.csv`, and `network.json` before installer actions. Rust core install remains opt-in with `INSTALL_RUST_CORE=true`.
+
 If the GitHub repository has not yet been renamed, temporarily use:
 
 ```bash

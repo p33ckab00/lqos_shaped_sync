@@ -2250,3 +2250,11 @@ Also aligns codebase/runtime path defaults and operator-facing repair/update com
 - Added `scripts/verify-branch-cleanup-installation-alignment.sh`.
 - Updated install docs to include Rust branch install, verification, and archive-only cleanup flow.
 - Hardened cleanup executor protected paths to include `/opt/lqosync-website`.
+
+## 2.145.5-rc1 - v7.5.5 Production-Safe Install Wrapper
+
+- Added `install-production-safe.sh`, a conservative live-system wrapper that backs up live LibreQoS files, preserves existing config/generated files, runs non-mutating package prechecks, and enables but does not start/restart `lqosync` by default.
+- Added `LQOSYNC_SERVICE_START_POLICY=restart|enable_only|leave_stopped` support to `install.sh`, `install-from-github.sh`, and `upgrade.sh`. The default remains `restart` for backward compatibility.
+- Added optional path override support in `install.sh` for `LQOSYNC_INSTALL_DIR`, `LIBREQOS_SRC`, `CONFIG_PATH`, `SHAPED_DEVICES_PATH`, and `NETWORK_JSON_PATH` while preserving canonical defaults.
+- Kept Rust core install opt-in through `INSTALL_RUST_CORE=true` and `INSTALL_RUST_CORE_DAEMON=true`; no cargo build is forced on live production hosts.
+- Added `docs/PRODUCTION_SAFE_INSTALL.md` and `docs/RUST_CORE_V755_PRODUCTION_SAFE_INSTALL_WRAPPER.md`.

@@ -114,7 +114,7 @@
         "collector-authority",
         "hotfix"
       ],
-      "title": "Rust Core v4.4.1 \u2014 Pilot Result Recursion Hotfix"
+      "title": "Rust Core v4.4.1 — Pilot Result Recursion Hotfix"
     }
   ],
   "docs.search_ui_polish": {
@@ -191,6 +191,20 @@
       "path": "docs/content/checkbox_state_wiring_hotfix.md",
       "summary": "v2.70.6 fixes Config Center checkbox checked-state binding and visual checked marks for boolean policy fields.",
       "title": "Checkbox State Wiring Hotfix"
+    },
+    {
+      "id": "production-safe-install-wrapper",
+      "title": "Production-Safe Install Wrapper",
+      "category": "Installation",
+      "path": "docs/PRODUCTION_SAFE_INSTALL.md",
+      "summary": "Live-host installer wrapper with backups, preserve-existing policy, no automatic service start, and optional Rust core install."
+    },
+    {
+      "id": "rust-core-v755-production-safe-install-wrapper",
+      "title": "Rust Core v7.5.5 Production-Safe Install Wrapper",
+      "category": "Rust Core",
+      "path": "docs/RUST_CORE_V755_PRODUCTION_SAFE_INSTALL_WRAPPER.md",
+      "summary": "Documents v7.5.5 additive installer controls and production-safe wrapper behavior."
     }
   ],
   "health.source_performance_trends": {
@@ -268,7 +282,7 @@
   "policy.custom_policy_mode_persistence": {
     "anchor": "custom-policy-mode-persistence-hotfix",
     "file": "docs/content/custom_policy_mode_persistence.md",
-    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center \u2192 Policies.",
+    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center → Policies.",
     "title": "Custom Policy Mode Persistence Hotfix"
   },
   "policy.hierarchy_ui": {
@@ -966,5 +980,17 @@
     "file": "docs/content/ui_wiring_audit_role_visibility.md",
     "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation.",
     "title": "UI Wiring Audit + Role Visibility Hotfix"
+  },
+  "install.production_safe_wrapper": {
+    "title": "Production-Safe Install Wrapper",
+    "file": "docs/PRODUCTION_SAFE_INSTALL.md",
+    "anchor": "production-safe-install-wrapper",
+    "summary": "Live-host install wrapper that preserves LibreQoS files, creates backups, and avoids automatic service start by default."
+  },
+  "rust.core_v755_production_safe_install_wrapper": {
+    "title": "Rust Core v7.5.5 Production-Safe Install Wrapper",
+    "file": "docs/RUST_CORE_V755_PRODUCTION_SAFE_INSTALL_WRAPPER.md",
+    "anchor": "v755-production-safe-install-wrapper",
+    "summary": "Release note guide for production-safe install controls, service start policy, and opt-in Rust core installation."
   }
 }

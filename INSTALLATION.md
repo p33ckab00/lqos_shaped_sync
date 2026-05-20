@@ -86,6 +86,14 @@ sudo bash install.sh
 sudo systemctl status lqosync
 ```
 
+For a live production LibreQoS host where you want backups and no automatic service start/restart, use the production-safe wrapper instead:
+
+```bash
+sudo bash install-production-safe.sh
+# review config and run a dry-run first
+sudo systemctl start lqosync
+```
+
 Open:
 
 ```text

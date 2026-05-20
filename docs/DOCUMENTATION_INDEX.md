@@ -321,3 +321,8 @@ Adds `evaluate-collector-authority-pilot-result`, a fail-safe evaluator for futu
 
 - [Branch Install and Cleanup Guide](BRANCH_INSTALL_AND_CLEANUP_GUIDE.md)
 - [Rust Core v7.5.4 Branch Install Cleanup Alignment](RUST_CORE_V754_BRANCH_INSTALL_CLEANUP_ALIGNMENT.md)
+
+## v7.5.5 Production-Safe Install Wrapper
+
+- [Production-Safe Install Wrapper](PRODUCTION_SAFE_INSTALL.md)
+- [Rust Core v7.5.5 Production-Safe Install Wrapper](RUST_CORE_V755_PRODUCTION_SAFE_INSTALL_WRAPPER.md)

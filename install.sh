@@ -1,15 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INSTALL_DIR="/opt/LQoSync"
-LIBREQOS_SRC_DIR="/opt/libreqos/src"
-CONFIG_PATH="$LIBREQOS_SRC_DIR/config.json"
-SHAPED_DEVICES_PATH="$LIBREQOS_SRC_DIR/ShapedDevices.csv"
-NETWORK_JSON_PATH="$LIBREQOS_SRC_DIR/network.json"
-SERVICE_NAME="lqosync"
-OLD_SERVICE_NAME="lqos_shaped_sync"
-USER_NAME="lqosync"
+INSTALL_DIR="${LQOSYNC_INSTALL_DIR:-/opt/LQoSync}"
+LIBREQOS_SRC_DIR="${LIBREQOS_SRC_DIR:-${LIBREQOS_SRC:-/opt/libreqos/src}}"
+CONFIG_PATH="${CONFIG_PATH:-$LIBREQOS_SRC_DIR/config.json}"
+SHAPED_DEVICES_PATH="${SHAPED_DEVICES_PATH:-$LIBREQOS_SRC_DIR/ShapedDevices.csv}"
+NETWORK_JSON_PATH="${NETWORK_JSON_PATH:-$LIBREQOS_SRC_DIR/network.json}"
+SERVICE_NAME="${LQOSYNC_SERVICE_NAME:-lqosync}"
+OLD_SERVICE_NAME="${LQOSYNC_OLD_SERVICE_NAME:-lqos_shaped_sync}"
+USER_NAME="${LQOSYNC_USER:-lqosync}"
 PORT="${PORT:-9202}"
+# Controls what install.sh does after writing the systemd unit.
+# Default preserves historical behavior. Production wrappers can set
+# LQOSYNC_SERVICE_START_POLICY=enable_only to avoid starting scheduler-capable
+# runtime until the operator has reviewed config and run a dry-run.
+# Allowed: restart | enable_only | leave_stopped
+SERVICE_START_POLICY="${LQOSYNC_SERVICE_START_POLICY:-restart}"
 
 # Smart default: fresh LibreQoS installs get missing files created automatically.
 # If managed files already exist, interactive installs ask what to do; non-interactive
@@ -27,6 +33,15 @@ case "$INIT_POLICY" in
   *)
     echo "[LQoSync] Invalid LQOSYNC_INIT_POLICY=$INIT_POLICY"
     echo "Allowed: smart_confirm | overwrite_with_backup | preserve_existing | create_missing_only"
+    exit 1
+    ;;
+esac
+
+case "$SERVICE_START_POLICY" in
+  restart|enable_only|leave_stopped) ;;
+  *)
+    echo "[LQoSync] Invalid LQOSYNC_SERVICE_START_POLICY=$SERVICE_START_POLICY"
+    echo "Allowed: restart | enable_only | leave_stopped"
     exit 1
     ;;
 esac
@@ -262,7 +277,7 @@ fi
 # Upgrade-time config migration. This is important when preserve_existing is used:
 # the installer must keep the operator's live config, but still add new safe
 # defaults such as libreqos.working_dir and retry_if_last_apply_failed.
-if sudo -u "$USER_NAME" env CONFIG_PATH="$CONFIG_PATH" PYTHONPATH="$INSTALL_DIR" LQOSYNC_INSTALL_MODE=baremetal LQOSYNC_FORCE_DIRECT=true LQOSYNC_RUN_MODE=direct HOST_CONTROL_MODE=direct LQOSYNC_LIBREQOS_WORKING_DIR="$LIBREQOS_SRC_DIR" "$INSTALL_DIR/venv/bin/python" "$INSTALL_DIR/scripts/migrate_config.py"; then
+if sudo -u "$USER_NAME" env CONFIG_PATH="$CONFIG_PATH" PYTHONPATH="$INSTALL_DIR" LQOSYNC_HOME="$INSTALL_DIR" LQOSYNC_LIBREQOS_SRC="$LIBREQOS_SRC_DIR" LQOSYNC_INSTALL_MODE=baremetal LQOSYNC_FORCE_DIRECT=true LQOSYNC_RUN_MODE=direct HOST_CONTROL_MODE=direct LQOSYNC_LIBREQOS_WORKING_DIR="$LIBREQOS_SRC_DIR" "$INSTALL_DIR/venv/bin/python" "$INSTALL_DIR/scripts/migrate_config.py"; then
   echo "[LQoSync] Existing config.json normalized with current defaults."
 else
   echo "[LQoSync] WARNING: config migration failed. Check permissions and JSON validity."
@@ -314,8 +329,24 @@ if systemctl is-active --quiet updatecsv.service; then
 fi
 
 systemctl daemon-reload
-systemctl enable "$SERVICE_NAME"
-systemctl restart "$SERVICE_NAME"
+case "$SERVICE_START_POLICY" in
+  restart)
+    systemctl enable "$SERVICE_NAME"
+    systemctl restart "$SERVICE_NAME"
+    echo "[LQoSync] Service policy: enabled and restarted"
+    ;;
+  enable_only)
+    systemctl enable "$SERVICE_NAME"
+    echo "[LQoSync] Service policy: enabled but not started/restarted"
+    echo "[LQoSync] Start manually after review: sudo systemctl start $SERVICE_NAME"
+    ;;
+  leave_stopped)
+    systemctl disable "$SERVICE_NAME" 2>/dev/null || true
+    systemctl stop "$SERVICE_NAME" 2>/dev/null || true
+    echo "[LQoSync] Service policy: left stopped and disabled"
+    echo "[LQoSync] Enable later: sudo systemctl enable --now $SERVICE_NAME"
+    ;;
+esac
 
 echo "[LQoSync] Installed: http://$(hostname -I | awk '{print $1}'):$PORT"
 echo "[LQoSync] Default login: admin / adminpass"

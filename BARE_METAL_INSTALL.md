@@ -151,6 +151,14 @@ Default install:
 sudo bash install.sh
 ```
 
+Live production safety option:
+
+```bash
+sudo bash install-production-safe.sh
+# service is enabled but not started by default
+sudo systemctl start lqosync
+```
+
 or using wrapper:
 
 ```bash

@@ -81,7 +81,7 @@ protect_resolved_path() {
   local rp
   rp=$(readlink -f "$p" 2>/dev/null || true)
   case "$rp" in
-    /opt/LQoSync|/opt/LQoSync/*|/opt/libreqos|/opt/libreqos/*|/usr/local/bin/lqosync-core|/etc/systemd/system/lqosync-core.service|/run/lqosync-core.sock)
+    /opt/LQoSync|/opt/LQoSync/*|/opt/lqosync-website|/opt/lqosync-website/*|/opt/libreqos|/opt/libreqos/*|/usr/local/bin/lqosync-core|/etc/systemd/system/lqosync-core.service|/run/lqosync-core.sock)
       echo "ERROR: refusing protected path: $p -> $rp" >&2
       return 1
       ;;

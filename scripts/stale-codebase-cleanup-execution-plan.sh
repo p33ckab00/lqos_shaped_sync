@@ -23,6 +23,7 @@ candidate_paths=(
 inspect_paths=(
   "/opt/lqosync-website"
   "/opt/LQoSync-archive"
+  "/opt/LQoSync.backup"
 )
 
 critical_paths=(
@@ -112,6 +113,9 @@ for p in "${inspect_paths[@]}"; do
   echo "inspect|$p|$([ -e "$p" ] && echo exists || echo missing)"
 done
 
+echo
+echo "== Canonical install/cleanup guide =="
+echo "docs/BRANCH_INSTALL_AND_CLEANUP_GUIDE.md"
 echo
 echo "== Execution command, after review =="
 echo "export CONFIRM_STALE_CODEBASE_CLEANUP_EXECUTION=CONFIRM_STALE_CODEBASE_CLEANUP_EXECUTION"

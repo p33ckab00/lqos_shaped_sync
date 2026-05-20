@@ -216,3 +216,36 @@ printf '{"version":"1","op":"self-test","payload":{}}' | lqosync-core
 
 Do not install a newly built Rust binary if `scripts/build-rust-core.sh` fails. The build helper removes stale release binaries before testing, so a failed test cannot accidentally install an old binary.
 
+---
+
+## v7.5.4 branch install + cleanup alignment
+
+The canonical Rust production branch is `lqosync-in-rust`, and the canonical production path is `/opt/LQoSync`. After the Rust daemon self-test passes, stale duplicate working trees such as `/home/pi/lqosync_docker`, `/home/pi/lqosync`, and `/opt/lqosync` may be archived with the guarded cleanup scripts. Do not delete or archive `/opt/LQoSync`, `/opt/libreqos`, `/usr/local/bin/lqosync-core`, or `lqosync-core.service`.
+
+Operator flow:
+
+```bash
+cd /opt/LQoSync
+git checkout lqosync-in-rust
+git pull --ff-only origin lqosync-in-rust
+bash scripts/repair-script-permissions.sh
+bash scripts/verify-installation-docs-alignment.sh
+bash scripts/verify-branch-cleanup-installation-alignment.sh
+bash scripts/build-rust-core.sh
+sudo bash scripts/install-rust-core.sh
+sudo bash scripts/install-rust-core-daemon.sh
+printf '{"version":"1","op":"self-test","payload":{}}' | lqosync-core
+```
+
+Cleanup flow after verification:
+
+```bash
+bash scripts/stale-codebase-inventory.sh
+bash scripts/stale-codebase-cleanup-dry-run.sh
+bash scripts/stale-codebase-cleanup-execution-plan.sh
+export CONFIRM_STALE_CODEBASE_CLEANUP_EXECUTION=CONFIRM_STALE_CODEBASE_CLEANUP_EXECUTION
+export LQOSYNC_CANONICAL_VERIFIED=1
+export LQOSYNC_CORE_SELF_TEST_OK=1
+sudo -E bash scripts/stale-codebase-cleanup-execute-guard.sh --execute
+bash scripts/stale-codebase-post-cleanup-verify.sh
+```

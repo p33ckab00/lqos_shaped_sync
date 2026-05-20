@@ -1,958 +1,970 @@
 {
-  "rust.core_migration": {
-    "title": "LQoSync-in-Rust Core Migration Plan",
-    "file": "docs/RUST_CORE_MIGRATION.md",
-    "anchor": "lqosync-in-rust-core-migration-plan",
-    "summary": "Phased plan for adding a Rust safety core while preserving Python Flask WebUI, pure JSON/files, and autosave behavior."
-  },
-  "rust.core_protocol": {
-    "title": "Rust Core Protocol",
-    "file": "docs/RUST_CORE_PROTOCOL.md",
-    "anchor": "rust-core-protocol",
-    "summary": "Transport-neutral JSON request/response envelope for subprocess CLI and future Unix socket daemon."
-  },
-  "rust.collector_output_contract": {
-    "title": "Collector Output Contract",
-    "file": "docs/COLLECTOR_OUTPUT_CONTRACT.md",
-    "anchor": "collector-output-contract",
-    "summary": "Typed source trust contract to prevent silent partial or suspicious zero RouterOS results from triggering unsafe cleanup."
-  },
-  "rust.autosave_atomic_state": {
-    "title": "Autosave and Atomic State Model",
-    "file": "docs/AUTOSAVE_AND_ATOMIC_STATE.md",
-    "anchor": "autosave-and-atomic-state-model",
-    "summary": "No-save-button autosave flow, dangerous-change confirmation, atomic file/state writes, and rollback guidance."
-  },
-  "rust.commit_push_guide": {
-    "title": "Commit and Push Guide for lqosync-in-rust",
-    "file": "docs/COMMIT_AND_PUSH_GUIDE.md",
-    "anchor": "commit-and-push-guide-for-lqosync-in-rust",
-    "summary": "Branch workflow, review checklist, commit message, pull request, and push instructions for the Rust migration branch."
-  },
-  "policy.settings_integration": {
-    "title": "Policy Settings Integration",
-    "file": "docs/content/policy_settings_integration.md",
-    "anchor": "policy-settings-integration"
-  },
-  "setup_repair.center": {
-    "title": "Setup & Repair Center",
-    "file": "docs/content/setup_repair_center.md",
-    "anchor": "setup--repair-center"
-  },
-  "policy.smart_policy_center": {
-    "title": "Smart Policy Center",
-    "file": "docs/SMART_POLICY_CENTER.md",
-    "anchor": "smart-policy-center"
-  },
-  "setup_repair.smart_setup_repair": {
-    "title": "Smart Setup / Repair",
-    "file": "docs/SMART_SETUP_REPAIR.md",
-    "anchor": "smart-setup--repair"
-  },
-  "policy_aware_cleanup_intelligence": {
-    "title": "Policy-Aware Cleanup Intelligence",
-    "file": "docs/content/policy_aware_cleanup_intelligence.md",
-    "anchor": "policy-aware-cleanup-intelligence",
-    "summary": "v2.50 source-aware stale lifecycle, optional grace, risk-aware auto apply, and decision trace."
-  },
-  "config.schema_policy_simulation": {
-    "title": "Config Schema + Policy Simulation Engine",
-    "file": "docs/content/config_schema_policy_simulation.md",
-    "anchor": "config-schema--policy-simulation-engine",
-    "summary": "v2.51 config_schema_version, config health, unsaved config preview, policy simulation, and impact verdicts."
-  },
-  "reports.smart_operator_audit": {
-    "title": "Smart Reports + Operator Audit",
-    "file": "docs/content/smart_reports_operator_audit.md",
-    "anchor": "smart-reports--operator-audit",
-    "summary": "v2.52 operator report page with 24h summary, policy decision report, cleanup report, client changes, config audit, and exports."
-  },
-  "lifecycle.client_timeline": {
-    "title": "Client Lifecycle Timeline",
-    "file": "docs/content/client_lifecycle_timeline.md",
-    "anchor": "client-lifecycle-timeline",
-    "summary": "v2.53 client lifecycle timeline, active/stale/queued/removed/returned states, cleanup queue, confirmations, and exports."
-  },
-  "setup_wizard.first_run": {
-    "title": "First Run Setup Wizard",
-    "file": "docs/content/setup_wizard_first_run.md",
-    "anchor": "first-run-setup-wizard",
-    "summary": "v2.54 guided first-run onboarding for paths, routers, sources, layout, policy preset, Dry Run, and scheduler readiness."
-  },
-  "smart_reports_route_hotfix": {
-    "title": "Smart Reports route hotfix",
-    "file": "docs/content/smart_reports_route_hotfix.md",
-    "anchor": "v2541-smart-reports-route-hotfix"
-  },
-  "policy_center_settings_guidelines": {
-    "title": "Policy Center Settings Guidelines",
-    "file": "docs/content/policy_center_settings_guidelines.md",
-    "anchor": "policy-center-settings-guidelines",
-    "description": "Atomic operator explanations for every editable Policy Center setting."
-  },
-  "network_layout.drag_drop": {
-    "title": "Network Layout Drag-and-Drop",
-    "file": "docs/content/network_layout_drag_drop.md",
-    "anchor": "network-layout-drag-and-drop",
-    "description": "v2.54.3 wired desktop drag-and-drop for moving topology nodes with safe validation and preview-before-save behavior."
-  },
   "ai_assisted_development": {
-    "title": "AI-Assisted Development Disclosure and Acknowledgement",
+    "anchor": "ai-assisted-development-disclosure-and-acknowledgement",
     "file": "AI_ASSISTED_DEVELOPMENT.md",
-    "anchor": "ai-assisted-development-disclosure-and-acknowledgement"
-  },
-  "privacy_icon_polish": {
-    "title": "Privacy Icon Polish",
-    "file": "docs/content/privacy_icon_polish.md",
-    "anchor": "v2545-privacy-icon-polish"
-  },
-  "package_quality.environment_doctor": {
-    "title": "Package Quality + Environment Doctor",
-    "file": "docs/content/package_quality_environment_doctor.md",
-    "anchor": "v255-package-quality--environment-doctor",
-    "summary": "v2.55 release integrity checks, environment doctor, route/template validation, and Smart Defaults Repair."
-  },
-  "policy_ux.conflict_identity": {
-    "title": "Policy UX + Conflict Intelligence",
-    "file": "docs/content/policy_ux_conflict_identity.md",
-    "anchor": "v256-policy-ux--conflict-intelligence",
-    "summary": "v2.56 Policy Conflict Resolver, richer preset comparison, and client identity handling guidance."
-  },
-  "health.source_performance_trends": {
-    "title": "Source Health + Performance Trends",
-    "file": "docs/content/source_health_performance_trends.md",
-    "anchor": "v257-source-health--performance-trends",
-    "summary": "v2.57 source health dashboard, RouterOS API timing trends, LibreQoS apply health, and internal notification candidates."
-  },
-  "source_health_performance_trends": {
-    "title": "Source Health & Performance Trends",
-    "file": "docs/content/source_health_performance_trends.md",
-    "description": "Dashboard-consolidated source health, RouterOS API timing, LibreQoS apply health, and internal notification candidates."
-  },
-  "notifications.telegram": {
-    "title": "Telegram Notifications",
-    "file": "docs/content/telegram_notifications.md",
-    "anchor": "v258-telegram-notifications",
-    "summary": "v2.58 optional Telegram delivery for internal health, policy, apply, and source notification candidates."
-  },
-  "docs.search_ui_polish": {
-    "title": "Documentation Search + UI/Mobile Polish",
-    "file": "docs/content/documentation_search_ui_polish.md",
-    "anchor": "v259-documentation-search--uimobile-polish",
-    "summary": "v2.59 local documentation search, docs view pages, read-only docs API, and reusable UI/mobile consistency helpers."
-  },
-  "setup_wizard.better_fresh_install": {
-    "title": "Better Fresh Install Experience",
-    "file": "docs/content/better_fresh_install_experience.md",
-    "anchor": "better-fresh-install-experience",
-    "summary": "v2.60 first-run gate, scheduler readiness protection, setup wizard redirect, and fresh install workflow."
-  },
-  "lifecycle.view_filter_hotfix": {
-    "title": "Client Lifecycle View and Filter Hotfix",
-    "file": "docs/content/client_lifecycle_timeline.md",
-    "anchor": "v2601-client-lifecycle-view-and-filter-hotfix",
-    "summary": "v2.60.1 fixes Lifecycle View button wiring, adds instant table/card filtering, and adds timeline pagination/row limits."
+    "title": "AI-Assisted Development Disclosure and Acknowledgement"
   },
   "backup_pagination_actions": {
-    "title": "Backup Pagination and Actions",
+    "anchor": "backup-pagination-and-actions",
     "file": "docs/content/backup_pagination_actions.md",
-    "anchor": "backup-pagination-and-actions"
+    "title": "Backup Pagination and Actions"
+  },
+  "backup_restore_center_polish": {
+    "anchor": "v266-backup--restore-center-polish",
+    "file": "docs/content/backup_restore_center_polish.md",
+    "summary": "v2.66 backup preview, integrity check, live diff, zip download, and retention preview for Operations Center backups.",
+    "title": "Backup / Restore Center Polish"
   },
   "compact_information_architecture": {
-    "title": "Compact Information Architecture",
-    "file": "docs/content/compact_information_architecture.md",
     "anchor": "compact-information-architecture-and-documentation-consolidation",
-    "summary": "v2.61 Operations Center consolidation, compact sidebar, Dashboard/Reports separation, and documentation source-of-truth cleanup."
+    "file": "docs/content/compact_information_architecture.md",
+    "summary": "v2.61 Operations Center consolidation, compact sidebar, Dashboard/Reports separation, and documentation source-of-truth cleanup.",
+    "title": "Compact Information Architecture"
+  },
+  "config.checkbox_state_wiring_hotfix": {
+    "anchor": "checkbox-state-wiring-hotfix",
+    "file": "docs/content/checkbox_state_wiring_hotfix.md",
+    "summary": "v2.70.6 fixes Config Center checkbox checked-state binding and visual checked marks for boolean policy fields.",
+    "title": "Checkbox State Wiring Hotfix"
   },
   "config.policy_notification_unification": {
-    "title": "Config + Policy + Notification Unification",
-    "file": "docs/content/config_policy_notification_unification.md",
     "anchor": "config--policy--notification-unification",
-    "summary": "v2.62 consolidates Policy Center and Telegram notification delivery settings into Config Center while keeping compatibility redirects."
+    "file": "docs/content/config_policy_notification_unification.md",
+    "summary": "v2.62 consolidates Policy Center and Telegram notification delivery settings into Config Center while keeping compatibility redirects.",
+    "title": "Config + Policy + Notification Unification"
   },
-  "documentation.consolidation": {
-    "title": "Documentation Consolidation and Source of Truth",
-    "file": "docs/content/documentation_consolidation.md",
-    "anchor": "documentation-consolidation-and-source-of-truth",
-    "summary": "v2.63 consolidates GitHub and WebUI documentation into docs/content, docs_manifest, README, and FULL_DOCUMENTATION as one coherent source-of-truth system."
+  "config.schema_policy_simulation": {
+    "anchor": "config-schema--policy-simulation-engine",
+    "file": "docs/content/config_schema_policy_simulation.md",
+    "summary": "v2.51 config_schema_version, config health, unsaved config preview, policy simulation, and impact verdicts.",
+    "title": "Config Schema + Policy Simulation Engine"
   },
-  "documentation.index": {
-    "title": "LQoSync Documentation Index",
-    "file": "docs/DOCUMENTATION_INDEX.md",
-    "anchor": "lqosync-documentation-index",
-    "summary": "GitHub-friendly documentation table of contents that points to the consolidated LQoSync manual topics."
-  },
-  "entries": [
-    {
-      "id": "ui_consistency_redundancy_polish",
-      "title": "UI Consistency and Redundancy Polish",
-      "path": "docs/content/ui_consistency_redundancy_polish.md",
-      "category": "Operations",
-      "summary": "Explains the v2.64 compact operator model, UI consistency helpers, dashboard shortcuts, and Operations Center pagination polish."
-    },
-    {
-      "id": "production-hardening-regression-suite",
-      "title": "Production Hardening + Regression Suite",
-      "path": "docs/content/production_hardening_regression_suite.md",
-      "category": "operations",
-      "summary": "Offline release/regression checks for routes, templates, config migration, policy behavior, Operations Center, and documentation integrity."
-    },
-    {
-      "id": "backup_restore_center_polish",
-      "title": "Backup / Restore Center Polish",
-      "path": "docs/content/backup_restore_center_polish.md",
-      "category": "Operations",
-      "summary": "Backup preview, integrity check, live diff, zip download, and retention preview for Operations Center."
-    },
-    {
-      "id": "production_readiness_score",
-      "title": "Production Readiness Score",
-      "path": "docs/content/production_readiness_score.md",
-      "category": "Operations",
-      "summary": "v2.68 Dashboard production readiness score, go-live checks, blockers, recommendations, and read-only readiness API."
-    },
-    {
-      "id": "stable_rc_stale_template_cleanup",
-      "title": "Stable RC Stale Template Cleanup Hotfix",
-      "path": "docs/content/stable_rc_stale_template_cleanup.md",
-      "category": "Release",
-      "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html."
-    },
-    {
-      "id": "ui_wiring_audit_role_visibility",
-      "title": "UI Wiring Audit + Role Visibility Hotfix",
-      "path": "docs/content/ui_wiring_audit_role_visibility.md",
-      "category": "Stable Release",
-      "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation."
-    },
-    {
-      "id": "settings_ui_state_wiring_hotfix",
-      "title": "Settings UI State Wiring Hotfix",
-      "path": "docs/content/settings_ui_state_wiring_hotfix.md",
-      "category": "UI Wiring",
-      "summary": "v2.70.5-rc1 fixes Config Center preset active-state mismatch and adds deeper Config Center state wiring audit coverage."
-    },
-    {
-      "id": "checkbox_state_wiring_hotfix",
-      "title": "Checkbox State Wiring Hotfix",
-      "path": "docs/content/checkbox_state_wiring_hotfix.md",
-      "category": "Config Center",
-      "summary": "v2.70.6 fixes Config Center checkbox checked-state binding and visual checked marks for boolean policy fields."
-    }
-  ],
   "docs": [
     {
+      "category": "Operations",
       "id": "ui_consistency_redundancy_polish",
-      "title": "UI Consistency and Redundancy Polish",
       "path": "docs/content/ui_consistency_redundancy_polish.md",
-      "category": "Operations",
-      "summary": "Explains the v2.64 compact operator model, UI consistency helpers, dashboard shortcuts, and Operations Center pagination polish."
+      "summary": "Explains the v2.64 compact operator model, UI consistency helpers, dashboard shortcuts, and Operations Center pagination polish.",
+      "title": "UI Consistency and Redundancy Polish"
     },
     {
+      "category": "Operations",
       "id": "backup_restore_center_polish",
-      "title": "Backup / Restore Center Polish",
       "path": "docs/content/backup_restore_center_polish.md",
-      "category": "Operations",
-      "summary": "Backup preview, integrity check, live diff, zip download, and retention preview for Operations Center."
+      "summary": "Backup preview, integrity check, live diff, zip download, and retention preview for Operations Center.",
+      "title": "Backup / Restore Center Polish"
     },
     {
+      "category": "Operations",
       "id": "production_readiness_score",
-      "title": "Production Readiness Score",
       "path": "docs/content/production_readiness_score.md",
-      "category": "Operations",
-      "summary": "v2.68 Dashboard production readiness score, go-live checks, blockers, recommendations, and read-only readiness API."
+      "summary": "v2.68 Dashboard production readiness score, go-live checks, blockers, recommendations, and read-only readiness API.",
+      "title": "Production Readiness Score"
     },
     {
-      "id": "stable_rc_stale_template_cleanup",
-      "title": "Stable RC Stale Template Cleanup Hotfix",
-      "path": "docs/content/stable_rc_stale_template_cleanup.md",
       "category": "Release",
-      "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html."
+      "id": "stable_rc_stale_template_cleanup",
+      "path": "docs/content/stable_rc_stale_template_cleanup.md",
+      "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html.",
+      "title": "Stable RC Stale Template Cleanup Hotfix"
     },
     {
-      "id": "ui_wiring_audit_role_visibility",
-      "title": "UI Wiring Audit + Role Visibility Hotfix",
-      "path": "docs/content/ui_wiring_audit_role_visibility.md",
       "category": "Stable Release",
-      "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation."
+      "id": "ui_wiring_audit_role_visibility",
+      "path": "docs/content/ui_wiring_audit_role_visibility.md",
+      "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation.",
+      "title": "UI Wiring Audit + Role Visibility Hotfix"
     },
     {
-      "id": "settings_ui_state_wiring_hotfix",
-      "title": "Settings UI State Wiring Hotfix",
-      "path": "docs/content/settings_ui_state_wiring_hotfix.md",
       "category": "UI Wiring",
-      "summary": "v2.70.5-rc1 fixes Config Center preset active-state mismatch and adds deeper Config Center state wiring audit coverage."
+      "id": "settings_ui_state_wiring_hotfix",
+      "path": "docs/content/settings_ui_state_wiring_hotfix.md",
+      "summary": "v2.70.5-rc1 fixes Config Center preset active-state mismatch and adds deeper Config Center state wiring audit coverage.",
+      "title": "Settings UI State Wiring Hotfix"
     },
     {
-      "id": "checkbox_state_wiring_hotfix",
-      "title": "Checkbox State Wiring Hotfix",
-      "path": "docs/content/checkbox_state_wiring_hotfix.md",
       "category": "Config Center",
-      "summary": "v2.70.6 fixes Config Center checkbox checked-state binding and visual checked marks for boolean policy fields."
+      "id": "checkbox_state_wiring_hotfix",
+      "path": "docs/content/checkbox_state_wiring_hotfix.md",
+      "summary": "v2.70.6 fixes Config Center checkbox checked-state binding and visual checked marks for boolean policy fields.",
+      "title": "Checkbox State Wiring Hotfix"
     },
     {
-      "title": "Rust Core v3.6 Collector Authority Decision Manifest",
-      "path": "docs/RUST_CORE_V36_COLLECTOR_AUTHORITY_MANIFEST.md",
       "category": "Rust Core",
+      "path": "docs/RUST_CORE_V36_COLLECTOR_AUTHORITY_MANIFEST.md",
       "tags": [
         "rust",
         "collector",
         "authority",
         "manifest"
-      ]
+      ],
+      "title": "Rust Core v3.6 Collector Authority Decision Manifest"
     },
     {
-      "id": "rust.core_v42_collector_authority_switch",
-      "title": "Rust Core v4.2 Collector Authority Switch Rehearsal",
-      "path": "docs/RUST_CORE_V42_COLLECTOR_AUTHORITY_SWITCH.md",
       "category": "Rust Core",
-      "summary": "Adds a non-mutating collector authority switch rehearsal after the v4.1 runtime contract while keeping Python collectors authoritative."
+      "id": "rust.core_v42_collector_authority_switch",
+      "path": "docs/RUST_CORE_V42_COLLECTOR_AUTHORITY_SWITCH.md",
+      "summary": "Adds a non-mutating collector authority switch rehearsal after the v4.1 runtime contract while keeping Python collectors authoritative.",
+      "title": "Rust Core v4.2 Collector Authority Switch Rehearsal"
     },
     {
       "path": "docs/RUST_CORE_V441_PILOT_RESULT_RECURSION_HOTFIX.md",
-      "title": "Rust Core v4.4.1 — Pilot Result Recursion Hotfix",
       "tags": [
         "rust",
         "collector-authority",
         "hotfix"
-      ]
+      ],
+      "title": "Rust Core v4.4.1 \u2014 Pilot Result Recursion Hotfix"
     }
   ],
-  "backup_restore_center_polish": {
-    "title": "Backup / Restore Center Polish",
-    "file": "docs/content/backup_restore_center_polish.md",
-    "anchor": "v266-backup--restore-center-polish",
-    "summary": "v2.66 backup preview, integrity check, live diff, zip download, and retention preview for Operations Center backups."
+  "docs.search_ui_polish": {
+    "anchor": "v259-documentation-search--uimobile-polish",
+    "file": "docs/content/documentation_search_ui_polish.md",
+    "summary": "v2.59 local documentation search, docs view pages, read-only docs API, and reusable UI/mobile consistency helpers.",
+    "title": "Documentation Search + UI/Mobile Polish"
   },
-  "security.access_control_role_hardening": {
-    "title": "Access Control + Role Hardening",
-    "file": "docs/content/access_control_role_hardening.md",
-    "anchor": "access-control--role-hardening",
-    "summary": "v2.67 owner/admin/operator/viewer role hierarchy, owner-only controls, and upgrade-safe role migration."
+  "documentation.consolidation": {
+    "anchor": "documentation-consolidation-and-source-of-truth",
+    "file": "docs/content/documentation_consolidation.md",
+    "summary": "v2.63 consolidates GitHub and WebUI documentation into docs/content, docs_manifest, README, and FULL_DOCUMENTATION as one coherent source-of-truth system.",
+    "title": "Documentation Consolidation and Source of Truth"
   },
-  "production_readiness_score": {
-    "title": "Production Readiness Score",
-    "file": "docs/content/production_readiness_score.md",
-    "anchor": "production-readiness-score",
-    "summary": "v2.68 Dashboard production readiness score, go-live checks, blockers, recommendations, and read-only readiness API."
+  "documentation.index": {
+    "anchor": "lqosync-documentation-index",
+    "file": "docs/DOCUMENTATION_INDEX.md",
+    "summary": "GitHub-friendly documentation table of contents that points to the consolidated LQoSync manual topics.",
+    "title": "LQoSync Documentation Index"
   },
-  "router.overview_multi_router_ux": {
-    "title": "Router Overview + Multi-Router UX Polish",
-    "file": "docs/content/router_overview_multi_router_ux.md",
-    "anchor": "router-overview--multi-router-ux-polish",
-    "summary": "v2.69 read-only router overview, per-router source visibility, row ownership hints, and multi-router operator workflow polish."
-  },
-  "router.insight_dedup_policy_path_audit": {
-    "title": "Router Insight De-duplication + Policy/Path Audit",
-    "file": "docs/content/router_insight_dedup_policy_path_audit.md",
-    "anchor": "router-insight-de-duplication--policypath-audit",
-    "summary": "v2.69.1 moves Router Insight into Config Center, keeps /routers as a redirect alias, removes duplicate router page UI, and adds policy/path audit checks."
-  },
-  "stable.stable_release_candidate": {
-    "title": "Stable Release Candidate",
-    "file": "docs/content/stable_release_candidate.md",
-    "anchor": "stable-release-candidate",
-    "summary": "v2.70 feature freeze, validation chain, and stable candidate rules."
-  },
-  "stable.route_compatibility_map": {
-    "title": "Route Compatibility Map",
-    "file": "docs/ROUTE_COMPATIBILITY.md",
-    "anchor": "route-compatibility-map",
-    "summary": "Compatibility aliases for compact canonical UI routes."
-  },
-  "stable.stable_release_checklist": {
-    "title": "Stable Release Checklist",
-    "file": "docs/STABLE_RELEASE_CHECKLIST.md",
-    "anchor": "stable-release-checklist",
-    "summary": "Preflight, operator review, and release discipline checklist."
-  },
-  "stable.upgrade_guide": {
-    "title": "Upgrade Guide",
-    "file": "docs/UPGRADE_GUIDE.md",
-    "anchor": "upgrade-guide",
-    "summary": "Safe GitHub update, diverged Git handling, and post-upgrade checks."
-  },
-  "stable.policy_path_reference": {
-    "title": "Policy / Path Reference",
-    "file": "docs/POLICY_PATH_REFERENCE.md",
-    "anchor": "policy--path-reference",
-    "summary": "Policy/path audit purpose and important policy groups."
-  },
-  "stable_rc_stale_template_cleanup": {
-    "title": "Stable RC Stale Template Cleanup Hotfix",
-    "file": "docs/content/stable_rc_stale_template_cleanup.md",
-    "anchor": "stable-rc-stale-template-cleanup-hotfix",
-    "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html."
-  },
-  "policy.hierarchy_ui": {
-    "title": "Config Policy Hierarchy UI",
-    "file": "docs/content/policy_hierarchy_ui.md",
-    "anchor": "config-policy-hierarchy-ui",
-    "summary": "v2.70.2-rc1 compact Config Center policy hierarchy, required/recommended/optional setting classes, and auto-apply vs optional auto-backup behavior."
-  },
-  "policy.preset_wiring_hotfix": {
-    "title": "Policy Preset Wiring Hotfix",
-    "file": "docs/content/policy_preset_wiring_hotfix.md",
-    "anchor": "policy-preset-wiring-hotfix",
-    "summary": "v2.70.3-rc1 fixes Config Center policy preset apply controls and managed policies.mode display."
-  },
-  "ui_wiring_audit_role_visibility": {
-    "title": "UI Wiring Audit + Role Visibility Hotfix",
-    "file": "docs/content/ui_wiring_audit_role_visibility.md",
-    "anchor": "ui-wiring-audit--role-visibility-hotfix",
-    "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation."
-  },
-  "settings_ui_state_wiring_hotfix": {
-    "title": "Settings UI State Wiring Hotfix",
-    "file": "docs/content/settings_ui_state_wiring_hotfix.md",
-    "anchor": "settings-ui-state-wiring-hotfix",
-    "summary": "v2.70.5-rc1 fixes Config Center preset active-state mismatch and adds deeper Config Center state wiring audit coverage."
-  },
-  "config.checkbox_state_wiring_hotfix": {
-    "title": "Checkbox State Wiring Hotfix",
-    "file": "docs/content/checkbox_state_wiring_hotfix.md",
-    "anchor": "checkbox-state-wiring-hotfix",
-    "summary": "v2.70.6 fixes Config Center checkbox checked-state binding and visual checked marks for boolean policy fields."
-  },
-  "operations.apply_failure_visibility": {
-    "title": "LibreQoS Apply Failure Visibility",
-    "file": "docs/content/apply_failure_visibility.md",
-    "anchor": "libreqos-apply-failure-visibility",
-    "summary": "v2.70.7-rc1 apply failure diagnostics page, notification targets, Operations detail/resolve buttons, and stderr/stdout resolution workflow."
-  },
-  "policy.preset_alignment_save_semantics": {
-    "title": "Policy Preset Alignment + Save Semantics",
-    "file": "docs/content/policy_preset_alignment_save_semantics.md",
-    "anchor": "policy-preset-alignment--save-semantics",
-    "summary": "v2.70.8 aligns Conservative/Balanced/Aggressive presets and adds server-side custom mode reconciliation."
-  },
-  "policy.custom_policy_mode_persistence": {
-    "title": "Custom Policy Mode Persistence Hotfix",
-    "file": "docs/content/custom_policy_mode_persistence.md",
-    "anchor": "custom-policy-mode-persistence-hotfix",
-    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center → Policies."
-  },
-  "policy_overview_custom_wiring_hotfix": {
-    "title": "Policy Overview Custom Wiring Hotfix",
-    "file": "docs/content/policy_overview_custom_wiring_hotfix.md",
-    "anchor": "policy-overview-custom-wiring-hotfix",
-    "summary": "v2.70.10 fixes Custom policy mode for Operation Mode, Auto Apply, Optional Auto Backup, and Backup Retention changes inside Config Center Policies."
+  "entries": [
+    {
+      "category": "Operations",
+      "id": "ui_consistency_redundancy_polish",
+      "path": "docs/content/ui_consistency_redundancy_polish.md",
+      "summary": "Explains the v2.64 compact operator model, UI consistency helpers, dashboard shortcuts, and Operations Center pagination polish.",
+      "title": "UI Consistency and Redundancy Polish"
+    },
+    {
+      "category": "operations",
+      "id": "production-hardening-regression-suite",
+      "path": "docs/content/production_hardening_regression_suite.md",
+      "summary": "Offline release/regression checks for routes, templates, config migration, policy behavior, Operations Center, and documentation integrity.",
+      "title": "Production Hardening + Regression Suite"
+    },
+    {
+      "category": "Operations",
+      "id": "backup_restore_center_polish",
+      "path": "docs/content/backup_restore_center_polish.md",
+      "summary": "Backup preview, integrity check, live diff, zip download, and retention preview for Operations Center.",
+      "title": "Backup / Restore Center Polish"
+    },
+    {
+      "category": "Operations",
+      "id": "production_readiness_score",
+      "path": "docs/content/production_readiness_score.md",
+      "summary": "v2.68 Dashboard production readiness score, go-live checks, blockers, recommendations, and read-only readiness API.",
+      "title": "Production Readiness Score"
+    },
+    {
+      "category": "Release",
+      "id": "stable_rc_stale_template_cleanup",
+      "path": "docs/content/stable_rc_stale_template_cleanup.md",
+      "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html.",
+      "title": "Stable RC Stale Template Cleanup Hotfix"
+    },
+    {
+      "category": "Stable Release",
+      "id": "ui_wiring_audit_role_visibility",
+      "path": "docs/content/ui_wiring_audit_role_visibility.md",
+      "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation.",
+      "title": "UI Wiring Audit + Role Visibility Hotfix"
+    },
+    {
+      "category": "UI Wiring",
+      "id": "settings_ui_state_wiring_hotfix",
+      "path": "docs/content/settings_ui_state_wiring_hotfix.md",
+      "summary": "v2.70.5-rc1 fixes Config Center preset active-state mismatch and adds deeper Config Center state wiring audit coverage.",
+      "title": "Settings UI State Wiring Hotfix"
+    },
+    {
+      "category": "Config Center",
+      "id": "checkbox_state_wiring_hotfix",
+      "path": "docs/content/checkbox_state_wiring_hotfix.md",
+      "summary": "v2.70.6 fixes Config Center checkbox checked-state binding and visual checked marks for boolean policy fields.",
+      "title": "Checkbox State Wiring Hotfix"
+    }
+  ],
+  "health.source_performance_trends": {
+    "anchor": "v257-source-health--performance-trends",
+    "file": "docs/content/source_health_performance_trends.md",
+    "summary": "v2.57 source health dashboard, RouterOS API timing trends, LibreQoS apply health, and internal notification candidates.",
+    "title": "Source Health + Performance Trends"
   },
   "install.update_safety": {
-    "title": "Install and Update Safety",
-    "file": "docs/content/install_update_safety.md",
     "anchor": "install-and-update-safety",
-    "summary": "Backup-first fresh install behavior and preserve-existing update rules for operator-owned LibreQoS files."
-  },
-  "operator.overview": {
-    "title": "Operator Overview",
-    "file": "docs/content/operator_overview.md",
-    "anchor": "operator-overview",
-    "summary": "Atomic explanation of how LQoSync collects, builds, validates, writes, applies, and reports."
-  },
-  "rust.core_scaffold": {
-    "title": "Rust Core Scaffold Implementation",
-    "file": "docs/RUST_CORE_MIGRATION.md",
-    "anchor": "current-package-implementation-status",
-    "summary": "Current optional lqosync-core scaffold files, operations, build commands, and Python fallback behavior."
-  },
-  "rust.v02_trust_diff": {
-    "title": "Rust Core v0.2 Trust and Diff Update",
-    "file": "docs/RUST_CORE_V02_TRUST_DIFF.md",
-    "anchor": "rust-core-v02-trust-and-diff-update",
-    "summary": "Collector output trust guard, suspicious zero protection, and Rust diff operations for the lqosync-in-rust branch."
-  },
-  "rust.v03_atomic_state": {
-    "title": "Rust Core v0.3 Atomic State and File Engine",
-    "file": "docs/RUST_CORE_V03_ATOMIC_STATE.md",
-    "anchor": "rust-core-v03-atomic-state-and-file-engine",
-    "summary": "Atomic runtime_state, policy_state, collector_cache, audit JSONL, generated file write protocol, and v2.73.1 CSV terminator build hotfix for the lqosync-in-rust branch."
-  },
-  "rust.v04_daemon": {
-    "title": "Rust Core v0.4 Daemon Mode",
-    "file": "docs/RUST_CORE_V04_DAEMON.md",
-    "anchor": "rust-core-v04-daemon-mode",
-    "summary": "Optional Unix socket daemon for the Rust core with subprocess and Python fallback safety."
-  },
-  "rust.v05_policy_shadow": {
-    "title": "Rust Core v0.5 Policy Shadow Engine",
-    "file": "docs/RUST_CORE_V05_POLICY_SHADOW.md",
-    "anchor": "rust-core-v05-policy-shadow-engine",
-    "summary": "Shadow Rust policy decision engine, risk scoring, Python/Rust parity checks, and Dry Run visibility for the lqosync-in-rust branch."
-  },
-  "rust.v06_circuit_shadow": {
-    "title": "Rust Core v0.6 Circuit Shadow Normalizer",
-    "file": "docs/RUST_CORE_V06_CIRCUIT_SHADOW.md",
-    "anchor": "rust-core-v06-circuit-shadow-normalizer",
-    "summary": "Shadow Rust circuit normalization, typed circuit row diagnostics, and Dry Run visibility for the lqosync-in-rust branch."
-  },
-  "rust.v07_sync_plan": {
-    "title": "Rust Core v0.7 Sync Plan Shadow Engine",
-    "file": "docs/RUST_CORE_V07_SYNC_PLAN.md",
-    "anchor": "rust-core-v07-sync-plan-shadow-engine",
-    "summary": "End-to-end shadow sync planner that composes collector trust, diff, validation, circuit shadow, policy shadow, and preflight diagnostics."
-  },
-  "rust.v08_authority_gates": {
-    "title": "Rust Core v0.8 Authority Gates",
-    "file": "docs/RUST_CORE_V08_AUTHORITY_GATES.md",
-    "anchor": "rust-core-v08-authority-gates",
-    "summary": "Opt-in Rust sync-plan authority gate that can block unsafe non-dry-run writes while preserving Python default behavior."
-  },
-  "rust.v09_apply_manifest": {
-    "title": "Rust Core v0.9 Apply Manifest Preview",
-    "file": "docs/RUST_CORE_V09_APPLY_MANIFEST.md",
-    "anchor": "rust-core-v09-apply-manifest--transaction-preview",
-    "summary": "Non-destructive Rust transaction manifest for backup, generated file writes, pending-apply state, and LibreQoS apply intent."
-  },
-  "rust.v10_apply_transaction": {
-    "title": "Rust Core v1.0 Apply Transaction Executor",
-    "file": "docs/RUST_CORE_V10_APPLY_TRANSACTION.md",
-    "anchor": "rust-core-v10-apply-transaction-executor",
-    "summary": "Opt-in Rust apply transaction rehearsal/executor for safe file writes, with Python remaining authoritative by default."
-  },
-  "rust.v11_self_test": {
-    "title": "Rust Core v1.1 Runtime Self-Test and Capability Audit",
-    "file": "docs/RUST_CORE_V11_SELF_TEST.md",
-    "anchor": "rust-core-v11-runtime-self-test-and-capability-audit",
-    "summary": "Runtime self-test, capability audit, transaction routing, and v1.1.1 build/daemon restart hotfix for the lqosync-in-rust branch."
-  },
-  "rust.v12_transaction_journal": {
-    "title": "Rust Core v1.2 Transaction Journal and Rollback Manifest",
-    "file": "docs/RUST_CORE_V12_TRANSACTION_JOURNAL.md",
-    "anchor": "rust-core-v12-transaction-journal-and-rollback-manifest",
-    "summary": "Non-mutating transaction journal and rollback manifest previews for Rust apply transaction accountability."
-  },
-  "rust.v13_transaction_journal_persistence": {
-    "title": "Rust Core v1.3 Transaction Journal Persistence",
-    "file": "docs/RUST_CORE_V13_TRANSACTION_JOURNAL_PERSISTENCE.md",
-    "anchor": "rust-core-v13-transaction-journal-persistence",
-    "summary": "Opt-in append-transaction-journal operation for durable Rust apply transaction accountability."
-  },
-  "rust.v14_transaction_history": {
-    "title": "Rust Core v1.4 Transaction History and Rollback Plan Viewer",
-    "file": "docs/RUST_CORE_V14_TRANSACTION_HISTORY.md",
-    "anchor": "rust-core-v14-transaction-history-and-rollback-plan-viewer",
-    "summary": "Read-only Rust transaction journal history APIs and rollback-plan-from-journal preview for Operations visibility."
-  },
-  "rust.v15_rollback_executor": {
-    "title": "Rust Core v1.5 Rollback Execution Rehearsal",
-    "file": "docs/RUST_CORE_V15_ROLLBACK_EXECUTOR.md",
-    "anchor": "rust-core-v15-rollback-execution-rehearsal",
-    "summary": "Gated execute-rollback operation, rollback rehearsal, confirmation requirements, and opt-in file restore authority."
-  },
-  "rust.v16_authority_readiness": {
-    "title": "Rust Core v1.6 Authority Readiness Report",
-    "file": "docs/RUST_CORE_V16_AUTHORITY_READINESS.md",
-    "anchor": "rust-core-v16-authority-readiness-report",
-    "summary": "Read-only Rust authority readiness scoring before enabling sync-plan enforcement, file-write authority, journal persistence, or rollback authority."
-  },
-  "rust.v17_full_backend_readiness": {
-    "title": "Rust Core v1.7 Full Backend Readiness + Authority Pilot Plan",
-    "file": "docs/RUST_CORE_V17_FULL_BACKEND_READINESS.md",
-    "anchor": "rust-core-v17-full-backend-readiness--authority-pilot-plan",
-    "summary": "Read-only full Rust backend readiness report and staged authority pilot plan for safely moving beyond hybrid mode."
-  },
-  "rust.v18_collector_bundle": {
-    "title": "Rust Core v1.8 Collector Bundle Shadow Builder",
-    "file": "docs/RUST_CORE_V18_COLLECTOR_BUNDLE.md",
-    "anchor": "rust-core-v18-collector-bundle-shadow-builder",
-    "summary": "Shadow Rust collector-bundle builder that converts raw PPPoE/DHCP/Hotspot snapshots into ShapedDevices-compatible circuit rows without replacing Python collectors."
-  },
-  "rust.v19_collector_parity": {
-    "title": "Rust Core v1.9 Collector Bundle Parity Report",
-    "file": "docs/RUST_CORE_V19_COLLECTOR_PARITY.md",
-    "anchor": "rust-core-v19-collector-bundle-parity-report",
-    "summary": "Diagnostic parity comparison between Python-authoritative generated rows and Rust-shadow collector bundle rows."
-  },
-  "rust.v20_routeros_collector_plan": {
-    "title": "Rust Core v2.0 RouterOS Collector Plan",
-    "file": "docs/RUST_CORE_V20_ROUTEROS_COLLECTOR_PLAN.md",
-    "anchor": "rust-core-v20-routeros-collector-plan",
-    "summary": "Read-only RouterOS collector command planning for PPPoE, DHCP, and Hotspot before live Rust RouterOS transport migration."
-  },
-  "rust.v201_script_permission_hotfix": {
-    "title": "Rust Core v2.0.1 Script Permission Hotfix",
-    "file": "docs/RUST_CORE_V201_SCRIPT_PERMISSION_HOTFIX.md",
-    "anchor": "rust-core-v201-script-permission-hotfix",
-    "summary": "Fixes manual ZIP/checkouts where script executable bits are lost and documents bash/chmod repair commands before v2.0 installation."
-  },
-  "rust.v21_routeros_read_results": {
-    "title": "Rust Core v2.1 RouterOS Read Result Contract",
-    "file": "docs/RUST_CORE_V21_ROUTEROS_READ_RESULTS.md",
-    "anchor": "rust-core-v21-routeros-read-result-contract",
-    "summary": "Command-level RouterOS read-result trust validation that compares Python live read results against the Rust collector plan before future Rust transport migration."
-  },
-  "rust.v22_routeros_transport_session": {
-    "title": "Rust Core v2.2 RouterOS Transport Session Rehearsal",
-    "file": "docs/RUST_CORE_V22_ROUTEROS_TRANSPORT_SESSION.md",
-    "anchor": "rust-core-v22-routeros-transport-session-rehearsal",
-    "summary": "Non-network RouterOS transport rehearsal with credential redaction and live transport blocking before Rust RouterOS API migration."
-  },
-  "rust.v23_routeros_live_read_pilot": {
-    "title": "Rust Core v2.3 RouterOS Live Read Pilot Gate",
-    "file": "docs/RUST_CORE_V23_ROUTEROS_LIVE_READ_PILOT.md",
-    "anchor": "rust-core-v23-routeros-live-read-pilot-gate",
-    "summary": "Gated non-network live-read pilot contract for a future read-only Rust RouterOS transport adapter."
-  },
-  "rust.v24_routeros_read_pilot_fixture": {
-    "title": "Rust Core v2.4 RouterOS Read Pilot Fixture Adapter",
-    "file": "docs/RUST_CORE_V24_ROUTEROS_READ_PILOT_FIXTURE.md",
-    "anchor": "rust-core-v24-routeros-read-pilot-fixture-adapter",
-    "summary": "Offline run-routeros-read-pilot fixture adapter for validating RouterOS read-pilot execution shape without live MikroTik sockets."
-  },
-  "rust.v25_routeros_api_codec": {
-    "title": "Rust Core v2.5 RouterOS API Sentence Codec",
-    "file": "docs/RUST_CORE_V25_ROUTEROS_API_CODEC.md",
-    "anchor": "rust-core-v25-routeros-api-sentence-codec",
-    "summary": "Offline RouterOS API sentence codec with redacted sensitive proplist field reporting and v2.5.1 redaction hotfix."
-  },
-  "rust.v26_routeros_api_reply_codec": {
-    "title": "Rust Core v2.6 RouterOS API Reply Codec",
-    "file": "docs/RUST_CORE_V26_ROUTEROS_API_REPLY_CODEC.md",
-    "anchor": "rust-core-v26-routeros-api-reply-codec--offline-parser",
-    "summary": "Offline RouterOS API reply word decoder for sanitized rows/traps before live Rust socket transport."
-  },
-  "rust.v27_routeros_api_frame_codec": {
-    "title": "Rust Core v2.7 RouterOS API Frame Codec",
-    "file": "docs/RUST_CORE_V27_ROUTEROS_API_FRAME_CODEC.md",
-    "anchor": "rust-core-v27-routeros-api-frame-codec",
-    "summary": "Offline RouterOS API binary frame encoder/decoder for future live Rust socket transport, with sensitive attribute redaction and no network access."
-  },
-  "rust.v28_routeros_offline_session": {
-    "title": "Rust Core v2.8 RouterOS Offline Session Pipeline",
-    "file": "docs/RUST_CORE_V28_ROUTEROS_OFFLINE_SESSION.md",
-    "anchor": "rust-core-v28-routeros-offline-session-pipeline",
-    "summary": "End-to-end offline RouterOS API sentence, frame, and reply pipeline using fixtures only before any live Rust socket transport."
-  },
-  "rust.v29_routeros_tcp_connectivity": {
-    "title": "Rust Core v2.9 RouterOS TCP Connectivity Pilot",
-    "file": "docs/RUST_CORE_V29_ROUTEROS_TCP_CONNECTIVITY.md",
-    "anchor": "rust-core-v29-routeros-tcp-connectivity-pilot",
-    "summary": "Gated TCP reachability pilot for Rust RouterOS transport preparation; no authentication or API reads yet."
-  },
-  "rust.v30_routeros_auth_plan": {
-    "title": "Rust Core v3.0 RouterOS Authentication Plan",
-    "file": "docs/RUST_CORE_V30_ROUTEROS_AUTH_PLAN.md",
-    "anchor": "rust-core-v30-routeros-authentication-plan",
-    "summary": "Redacted RouterOS authentication planning before live Rust auth or collector authority."
-  },
-  "rust.v31_auth_handshake_fixture": {
-    "title": "Rust Core v3.1 RouterOS Auth Handshake Fixture",
-    "file": "docs/RUST_CORE_V31_AUTH_HANDSHAKE_FIXTURE.md",
-    "anchor": "rust-core-v31-routeros-auth-handshake-fixture",
-    "summary": "Offline RouterOS authentication handshake fixture that decodes login replies without opening sockets or emitting credentials."
-  },
-  "rust.v32_auth_session_contract": {
-    "title": "Rust Core v3.2 RouterOS Auth Session Contract",
-    "file": "docs/RUST_CORE_V32_AUTH_SESSION_CONTRACT.md",
-    "anchor": "rust-core-v32-routeros-auth-session-contract",
-    "summary": "Redacted authenticated-session contract built from RouterOS auth fixture replies before live Rust authenticated reads."
-  },
-  "rust.v33_authenticated_read_fixture": {
-    "title": "Rust Core v3.3 Authenticated Read Fixture Pipeline",
-    "file": "docs/RUST_CORE_V33_AUTHENTICATED_READ_FIXTURE.md",
-    "anchor": "rust-core-v33-authenticated-read-fixture-pipeline",
-    "summary": "Fixture-only authenticated RouterOS read pipeline that composes auth session, offline session, and read-result trust before live Rust reads."
-  },
-  "rust.v34_live_read_adapter": {
-    "title": "Rust Core v3.4 Live Read Adapter Contract",
-    "file": "docs/RUST_CORE_V34_LIVE_READ_ADAPTER.md",
-    "anchor": "rust-core-v34-live-read-adapter-contract",
-    "summary": "Guarded live RouterOS read adapter contract that composes TCP/auth/API sentence readiness without opening sockets or replacing Python collectors."
-  },
-  "rust.v35_collector_authority_pilot": {
-    "title": "Rust Core v3.5 Collector Authority Pilot Gate",
-    "file": "docs/RUST_CORE_V35_COLLECTOR_AUTHORITY_PILOT.md",
-    "anchor": "rust-core-v35-collector-authority-pilot-gate",
-    "summary": "Non-mutating Rust collector authority pilot gate that composes live-read adapter readiness, source allow-lists, and collector parity before any Python collector authority migration."
-  },
-  "rust.core_v37_collector_authority_selection": {
-    "title": "Rust Core v3.7 Collector Authority Dry-Run Selection",
-    "file": "docs/RUST_CORE_V37_COLLECTOR_AUTHORITY_SELECTION.md",
-    "anchor": "rust-core-v37-collector-authority-dry-run-selection",
-    "summary": "Dry-run source selector that maps collector authority manifest decisions to Python or Rust-shadow collector candidates while keeping Python authoritative."
-  },
-  "rust.core_v38_collector_dry_run_bundle": {
-    "title": "Rust Core v3.8 Collector Authority Dry-Run Bundle",
-    "file": "docs/RUST_CORE_V38_COLLECTOR_DRY_RUN_BUNDLE.md",
-    "anchor": "rust-core-v38-collector-authority-dry-run-bundle",
-    "summary": "Non-mutating Rust-shadow collector dry-run bundle that combines source selection, normalized rows, and parity while keeping Python authoritative."
-  },
-  "rust.core_v39_run_cycle_shadow": {
-    "title": "Rust Core v3.9 run_cycle Rust-Shadow Integration Report",
-    "file": "docs/RUST_CORE_V39_RUN_CYCLE_SHADOW.md",
-    "anchor": "rust-core-v39--run_cycle-rust-shadow-integration-report",
-    "summary": "Non-mutating run_cycle Rust-shadow report that attaches Rust candidate collector output beside Python-authoritative cycle results."
-  },
-  "rust.core_v40_collector_authority_activation": {
-    "title": "Rust Core v4.0 Collector Authority Activation Plan",
-    "file": "docs/RUST_CORE_V40_COLLECTOR_AUTHORITY_ACTIVATION.md",
-    "anchor": "rust-core-v40-collector-authority-activation-plan",
-    "summary": "Non-mutating activation plan for future Rust collector authority pilot, based on run_cycle Rust-shadow results and successful shadow-cycle gates."
-  },
-  "rust.core_v41_collector_authority_runtime": {
-    "title": "Rust Core v4.1 Collector Authority Runtime Contract",
-    "file": "docs/RUST_CORE_V41_COLLECTOR_AUTHORITY_RUNTIME.md",
-    "anchor": "rust-core-v41-collector-authority-runtime-contract",
-    "summary": "Adds a non-mutating runtime contract bridge after the collector authority activation plan while keeping Python collectors authoritative."
-  },
-  "rust.core_v42_collector_authority_switch": {
-    "id": "rust.core_v42_collector_authority_switch",
-    "title": "Rust Core v4.2 Collector Authority Switch Rehearsal",
-    "path": "docs/RUST_CORE_V42_COLLECTOR_AUTHORITY_SWITCH.md",
-    "category": "Rust Core",
-    "summary": "Adds a non-mutating collector authority switch rehearsal after the v4.1 runtime contract while keeping Python collectors authoritative."
-  },
-  "rust.core_v43_collector_authority_pilot_execution": {
-    "id": "rust.core_v43_collector_authority_pilot_execution",
-    "title": "Rust Core v4.3 Collector Authority Pilot Execution Contract",
-    "path": "docs/RUST_CORE_V43_COLLECTOR_AUTHORITY_PILOT_EXECUTION.md",
-    "category": "Rust Core",
-    "summary": "Adds a non-mutating collector authority pilot execution contract after the v4.2 switch rehearsal while keeping Python collectors authoritative."
-  },
-  "rust.core_v431_pilot_execution_recursion_hotfix": {
-    "title": "Rust Core v4.3.1 Collector Authority Pilot Execution Recursion Hotfix",
-    "file": "docs/RUST_CORE_V431_PILOT_EXECUTION_RECURSION_HOTFIX.md",
-    "anchor": "rust-core-v431-collector-authority-pilot-execution-recursion-hotfix",
-    "summary": "Fixes the serde_json json! macro recursion compile error by building the pilot execution response incrementally while preserving fail-safe behavior."
-  },
-  "rust.core_v432_pilot_execution_confirmation_hotfix": {
-    "title": "Rust Core v4.3.2 Collector Authority Pilot Execution Confirmation Hotfix",
-    "path": "docs/RUST_CORE_V432_PILOT_EXECUTION_CONFIRMATION_HOTFIX.md",
-    "category": "rust-core",
-    "summary": "Fixes collector authority pilot execution readiness by separating switch rehearsal and pilot execution confirmation tokens while preserving non-mutating fail-safe behavior."
-  },
-  "rust.core_v44_collector_authority_pilot_result": {
-    "title": "Rust Core v4.4 Collector Authority Pilot Result Evaluator",
-    "path": "docs/RUST_CORE_V44_COLLECTOR_AUTHORITY_PILOT_RESULT.md",
-    "category": "rust-core",
-    "summary": "Adds a non-mutating evaluator for future Rust collector authority pilot results, checking contract readiness, parity, side effects, and freshness while keeping Python authoritative."
-  },
-  "rust.core_v45_collector_authority_promotion_readiness": {
-    "title": "Rust Core v4.5 Collector Authority Promotion Readiness",
-    "path": "docs/RUST_CORE_V45_COLLECTOR_AUTHORITY_PROMOTION_READINESS.md",
-    "category": "rust-core",
-    "summary": "Adds a non-mutating promotion readiness report after pilot result evaluation, requiring explicit gates, manual confirmation, fresh Rust-shadow data, and Python fallback while keeping Python collectors authoritative."
-  },
-  "rust.core_v46_collector_authority_promotion_execution": {
-    "title": "Rust Core v4.6 Collector Authority Promotion Execution Rehearsal",
-    "path": "docs/RUST_CORE_V46_COLLECTOR_AUTHORITY_PROMOTION_EXECUTION.md",
-    "category": "rust-core",
-    "summary": "Adds a non-mutating promotion execution rehearsal after v4.5 readiness, requiring explicit gates, manual confirmation, fresh Rust-shadow data, and Python fallback while keeping Python collectors authoritative."
-  },
-  "rust.core_v47_promotion_commit": {
-    "title": "Rust Core v4.7 Collector Authority Promotion Commit Plan",
-    "file": "docs/RUST_CORE_V47_COLLECTOR_AUTHORITY_PROMOTION_COMMIT.md",
-    "anchor": "rust-core-v47-collector-authority-promotion-commit-plan",
-    "summary": "Non-mutating commit-plan bridge after promotion execution rehearsal while keeping Python collectors authoritative."
-  },
-  "rust.core_v48_promotion_cutover": {
-    "title": "Rust Core v4.8 Collector Authority Promotion Cutover Ledger",
-    "file": "docs/RUST_CORE_V48_COLLECTOR_AUTHORITY_PROMOTION_CUTOVER.md",
-    "anchor": "rust-core-v48-collector-authority-promotion-cutover-ledger",
-    "summary": "Non-mutating cutover ledger after the promotion commit plan, requiring explicit gates, manual confirmation, rollback path, and Python fallback while keeping Python collectors authoritative."
-  },
-  "rust.core_v481_cutover_ledger_hotfix": {
-    "title": "Rust Core v4.8.1 Cutover Ledger Hotfix",
-    "file": "docs/RUST_CORE_V481_CUTOVER_LEDGER_HOTFIX.md",
-    "anchor": "rust-core-v481-cutover-ledger-hotfix",
-    "summary": "Fixes the v4.8 cutover ledger readiness unit fixture while preserving non-mutating Python-authoritative behavior."
-  },
-  "rust.core_v49_production_freeze": {
-    "title": "Rust Core v4.9 Collector Authority Production Freeze Gate",
-    "file": "docs/RUST_CORE_V49_COLLECTOR_AUTHORITY_PRODUCTION_FREEZE.md",
-    "anchor": "rust-core-v49-collector-authority-production-freeze-gate",
-    "summary": "Final non-mutating pre-production freeze gate before a future v5 Rust collector-authority production switch contract."
-  },
-  "rust.core_v50_production_switch_contract": {
-    "title": "Rust Core v5.0 Collector Authority Production Switch Contract",
-    "file": "docs/RUST_CORE_V50_COLLECTOR_AUTHORITY_PRODUCTION_SWITCH.md",
-    "anchor": "rust-core-v50-collector-authority-production-switch-contract",
-    "summary": "Adds the first non-mutating production collector-authority switch contract after the v4.9 freeze gate while keeping Python backend and fallback required."
-  },
-  "rust.core_v51_rust_backend_api_handoff": {
-    "title": "Rust Core v5.1 Rust Backend API Handoff Plan",
-    "file": "docs/RUST_CORE_V51_RUST_BACKEND_API_HANDOFF.md",
-    "anchor": "rust-core-v51-rust-backend-api-handoff-plan",
-    "summary": "Starts the full Rust backend track with a non-mutating API handoff plan while preserving existing WebUI/UX and keeping Python backend fallback required."
-  },
-  "rust.core_v52_scheduler_handoff": {
-    "title": "Rust Core v5.2 Rust Backend Scheduler / Run Cycle Handoff Plan",
-    "file": "docs/RUST_CORE_V52_RUST_BACKEND_SCHEDULER_HANDOFF.md",
-    "anchor": "rust-core-v52-rust-backend-scheduler-run-cycle-handoff-plan",
-    "summary": "Adds the non-mutating Rust scheduler/run_cycle handoff planning bridge after API handoff while keeping Python scheduler/run_cycle authoritative."
-  },
-  "rust.core_v53_run_cycle_orchestrator_handoff": {
-    "title": "Rust Core v5.3 Rust Run Cycle Orchestrator Handoff Contract",
-    "file": "docs/RUST_CORE_V53_RUST_RUN_CYCLE_ORCHESTRATOR_HANDOFF.md",
-    "anchor": "rust-core-v53-rust-run-cycle-orchestrator-handoff-contract",
-    "summary": "Adds a non-mutating Rust run_cycle orchestrator handoff contract after scheduler handoff planning while keeping Python run_cycle authoritative and preserving WebUI/UX."
-  },
-  "rust.core_v54_config_state_authority_handoff": {
-    "title": "Rust Core v5.4 Rust Config/State Authority Handoff Contract",
-    "file": "docs/RUST_CORE_V54_RUST_CONFIG_STATE_AUTHORITY_HANDOFF.md",
-    "anchor": "rust-core-v54-rust-config-state-authority-handoff-contract",
-    "summary": "Adds a non-mutating Rust config/state authority handoff contract after run_cycle orchestrator handoff while keeping Python config/state authoritative and WebUI/UX unchanged."
-  },
-  "rust.core_v55_rust_live_collector_authority_handoff": {
-    "title": "Rust Core v5.5 Rust Live Collector Authority Handoff Contract",
-    "file": "docs/RUST_CORE_V55_RUST_LIVE_COLLECTOR_AUTHORITY_HANDOFF.md",
-    "anchor": "rust-core-v55-rust-live-collector-authority-handoff-contract",
-    "summary": "Adds the live collector authority handoff contract after config/state authority handoff while keeping Python live collectors authoritative and WebUI/UX unchanged."
-  },
-  "rust.core_v56_circuit_builder_authority_handoff": {
-    "title": "Rust Core v5.6 Rust Circuit Builder Authority Handoff Contract",
-    "file": "docs/RUST_CORE_V56_RUST_CIRCUIT_BUILDER_AUTHORITY_HANDOFF.md",
-    "anchor": "rust-core-v56-rust-circuit-builder-authority-handoff-contract",
-    "summary": "Adds a non-mutating Rust circuit builder authority handoff contract after live collector authority handoff while keeping Python fallback and WebUI/UX unchanged."
-  },
-  "rust.core_v57_rust_sync_engine_authority_handoff": {
-    "title": "Rust Core v5.7 Rust Sync Engine Authority Handoff Contract",
-    "file": "docs/RUST_CORE_V57_RUST_SYNC_ENGINE_AUTHORITY_HANDOFF.md",
-    "anchor": "rust-core-v57-rust-sync-engine-authority-handoff-contract",
-    "summary": "Adds the Rust sync engine authority handoff contract after circuit builder authority, preserving WebUI/UX and Python fallback."
-  },
-  "rust.core_v58_apply_journal_rollback_handoff": {
-    "title": "Rust Core v5.8 Rust Apply/Journal/Rollback Authority Handoff Contract",
-    "file": "docs/RUST_CORE_V58_RUST_APPLY_JOURNAL_ROLLBACK_AUTHORITY_HANDOFF.md",
-    "anchor": "rust-core-v58-rust-apply-journal-rollback-authority-handoff-contract",
-    "summary": "Adds the Rust apply/journal/rollback authority handoff contract after sync engine authority while keeping Python authoritative and WebUI/UX unchanged."
-  },
-  "rust.core_v59_backend_service_runtime_handoff": {
-    "title": "Rust Core v5.9 Rust Backend Service Runtime Handoff Contract",
-    "file": "docs/RUST_CORE_V59_RUST_BACKEND_SERVICE_RUNTIME_HANDOFF.md",
-    "anchor": "rust-core-v59-rust-backend-service-runtime-handoff-contract",
-    "summary": "Adds a non-mutating Rust backend service/API runtime handoff contract after apply/journal/rollback authority while preserving WebUI/UX and Python fallback."
-  },
-  "rust.core_v60_full_rust_backend_production_readiness": {
-    "title": "Rust Core v6.0 Full Rust Backend Production Readiness Contract",
-    "file": "docs/RUST_CORE_V60_FULL_RUST_BACKEND_PRODUCTION_READINESS.md",
-    "anchor": "rust-core-v60-full-rust-backend-production-readiness-contract",
-    "summary": "Adds the first full Rust backend production-readiness contract after service/runtime handoff, while keeping Python fallback and WebUI/UX unchanged."
-  },
-  "rust.core_v61_full_backend_cutover_plan": {
-    "title": "Rust Core v6.1 Full Rust Backend Cutover Plan",
-    "file": "docs/RUST_CORE_V61_FULL_RUST_BACKEND_CUTOVER_PLAN.md",
-    "anchor": "rust-core-v61-full-rust-backend-cutover-plan",
-    "summary": "Adds the non-mutating full Rust backend cutover plan after production-readiness while preserving WebUI/UX and requiring Python fallback."
-  },
-  "rust.core_v62_full_backend_cutover_execution": {
-    "title": "Rust Core v6.2 Full Rust Backend Cutover Execution Contract",
-    "file": "docs/RUST_CORE_V62_FULL_RUST_BACKEND_CUTOVER_EXECUTION.md",
-    "anchor": "rust-core-v62-full-rust-backend-cutover-execution-contract",
-    "summary": "Adds the non-mutating full Rust backend cutover execution contract after v6.1 cutover planning while preserving WebUI/UX and Python fallback."
-  },
-  "rust.core_v63_python_backend_retirement_plan": {
-    "title": "Rust Core v6.3 Python Backend Retirement Plan",
-    "file": "docs/RUST_CORE_V63_PYTHON_BACKEND_RETIREMENT_PLAN.md",
-    "anchor": "rust-core-v63-python-backend-retirement-plan",
-    "summary": "Adds a non-mutating Python backend retirement planning gate after the full Rust backend cutover execution contract while keeping WebUI/UX unchanged and Python fallback mandatory."
-  },
-  "rust.core_v64_rust_backend_production_enablement": {
-    "title": "Rust Core v6.4 Rust Backend Production Enablement Contract",
-    "file": "docs/RUST_CORE_V64_RUST_BACKEND_PRODUCTION_ENABLEMENT.md",
-    "anchor": "rust-core-v64-rust-backend-production-enablement-contract",
-    "summary": "Adds a non-mutating Rust backend production enablement contract after Python backend retirement planning while keeping Python fallback and WebUI/UX unchanged."
-  },
-  "rust.core_v65_python_backend_removal_execution": {
-    "title": "Rust Core v6.5 Python Backend Removal Execution Contract",
-    "file": "docs/RUST_CORE_V65_PYTHON_BACKEND_REMOVAL_EXECUTION.md",
-    "anchor": "rust-core-v65-python-backend-removal-execution-contract",
-    "summary": "Adds the first explicit Python backend removal execution contract while keeping Python fallback, WebUI/UX, and all mutation guards in place."
-  },
-  "rust.core_v66_full_rust_backend_removal_rehearsal": {
-    "title": "Rust Core v6.6 Full Rust Backend Removal Rehearsal",
-    "file": "docs/RUST_CORE_V66_FULL_RUST_BACKEND_REMOVAL_REHEARSAL.md",
-    "anchor": "rust-core-v66-full-rust-backend-removal-rehearsal",
-    "summary": "Final non-mutating rehearsal before a future v7.0 actual full Rust backend cutover / Python backend removal package."
-  },
-  "rust.core_v70_full_backend_production_cutover": {
-    "title": "Rust Core v7.0 Full Rust Backend Production Cutover",
-    "file": "docs/RUST_CORE_V70_FULL_RUST_BACKEND_PRODUCTION_CUTOVER.md",
-    "anchor": "rust-core-v70-full-rust-backend-production-cutover",
-    "summary": "First actual full-Rust-backend production cutover package, preserving WebUI/UX and requiring final server/rollback gates before Python backend removal is allowed."
-  },
-  "rust.core_v71_full_backend_production_verifier": {
-    "title": "Rust Core v7.1 Full Rust Backend Production Verifier / Python Retirement Guard",
-    "file": "docs/RUST_CORE_V71_FULL_RUST_BACKEND_PRODUCTION_VERIFIER.md",
-    "anchor": "rust-core-v71-full-rust-backend-production-verifier",
-    "summary": "Adds the post-cutover Rust production verifier and guarded Python backend retirement executor while preserving WebUI/UX/static assets."
-  },
-  "rust.core_v72_full_rust_backend_post_retirement_verifier": {
-    "title": "Rust Core v7.2 Full Rust Backend Post-Retirement Verifier",
-    "file": "docs/RUST_CORE_V72_FULL_RUST_BACKEND_POST_RETIREMENT_VERIFIER.md",
-    "anchor": "rust-core-v72-full-rust-backend-post-retirement-verifier",
-    "summary": "Verifies full Rust backend production after guarded Python backend retirement while preserving WebUI/UX and rollback safety."
-  },
-  "rust.core_v73_full_rust_backend_steady_state_guard": {
-    "title": "Rust Core v7.3 Full Rust Backend Steady-State Guard",
-    "file": "docs/RUST_CORE_V73_FULL_RUST_BACKEND_STEADY_STATE_GUARD.md",
-    "summary": "Adds a post-retirement steady-state guard for full Rust backend production, verifying Rust runtime authority, no Python drift, unchanged WebUI/UX, rollback readiness, and server healthchecks."
-  },
-  "rust.core_v731_steady_state_guard_hotfix": {
-    "title": "Rust Core v7.3.1 Steady-State Guard Hotfix",
-    "file": "docs/RUST_CORE_V731_STEADY_STATE_GUARD_HOTFIX.md",
-    "anchor": "rust-core-v731-steady-state-guard-hotfix",
-    "summary": "Fixes the aggregate self-test steady-state guard fixture by adding the missing WebUI static assets preserved gate."
-  },
-  "rust.core_v732_steady_state_guard_hotfix": {
-    "title": "Rust Core v7.3.2 Steady-State Guard Self-Test Hotfix",
-    "file": "docs/RUST_CORE_V732_STEADY_STATE_GUARD_HOTFIX.md",
-    "anchor": "rust-core-v732-steady-state-guard-self-test-hotfix",
-    "summary": "Fixes the aggregate self-test steady-state guard fixture by including both WebUI static asset path and preservation gates."
-  },
-  "rust.core_v733_steady_state_guard_hotfix": {
-    "title": "Rust Core v7.3.3 Steady-State Guard Hotfix",
-    "file": "docs/RUST_CORE_V733_STEADY_STATE_GUARD_HOTFIX.md",
-    "anchor": "rust-core-v733-steady-state-guard-hotfix",
-    "summary": "Fixes aggregate self-test steady-state guard by adding the missing top-level webui_ux_unchanged gate alongside static asset preservation gates."
-  },
-  "rust.core_v734_steady_state_guard_hotfix": {
-    "title": "Rust Core v7.3.4 Steady-State Guard Hotfix",
-    "file": "docs/RUST_CORE_V734_STEADY_STATE_GUARD_HOTFIX.md",
-    "anchor": "rust-core-v734-steady-state-guard-hotfix",
-    "summary": "Adds missing python_backend_rollback_package_ready to the aggregate steady-state guard self-test fixture."
-  },
-  "rust.core_v74_full_backend_production_drift_monitor": {
-    "title": "Rust Core v7.4 Full Rust Backend Production Drift Monitor",
-    "file": "docs/RUST_CORE_V74_FULL_RUST_BACKEND_PRODUCTION_DRIFT_MONITOR.md",
-    "anchor": "rust-core-v74-full-rust-backend-production-drift-monitor",
-    "summary": "Adds the post-steady-state production drift monitor that verifies Rust backend authority, no Python drift, WebUI/UX preservation, rollback readiness, and server healthchecks."
-  },
-  "rust.core_v75_full_backend_production_audit_sentinel": {
-    "title": "Rust Core v7.5 Full Rust Backend Production Audit Sentinel",
-    "file": "docs/RUST_CORE_V75_FULL_RUST_BACKEND_PRODUCTION_AUDIT_SENTINEL.md",
-    "anchor": "rust-core-v75-full-rust-backend-production-audit-sentinel",
-    "summary": "Adds a post-drift-monitor production audit sentinel that verifies audit trail, journal visibility, rollback previews, WebUI/UX preservation, and Rust production authority without side effects."
-  },
-  "rust.core_v751_installation_docs_alignment": {
-    "title": "Rust Core v7.5.1 Installation Documentation and Installer Alignment",
-    "file": "docs/RUST_CORE_V751_INSTALLATION_DOCS_ALIGNMENT.md",
-    "anchor": "rust-core-v751-installation-documentation-and-installer-alignment",
-    "summary": "Aligns installation guides, GitHub install examples, installer defaults, canonical /opt/LQoSync path, lqosync-in-rust branch usage, and Rust daemon self-test flow."
-  },
-  "rust.core_v752_stale_codebase_cleanup_guard": {
-    "title": "Rust Core v7.5.2 Stale Codebase Cleanup Guard",
-    "file": "docs/RUST_CORE_V752_STALE_CODEBASE_CLEANUP_GUARD.md",
-    "anchor": "rust-core-v752-stale-codebase-cleanup-guard",
-    "summary": "Safe cleanup guard for stale LQoSync working trees, legacy Python remnants, old install paths, and rollback-first archive workflows."
-  },
-  "operations.stale_codebase_cleanup_policy": {
-    "title": "Stale Codebase Cleanup Policy",
-    "file": "docs/STALE_CODEBASE_CLEANUP_POLICY.md",
-    "anchor": "stale-codebase-cleanup-policy",
-    "summary": "Classification policy for keep, archive-candidate, inspect, and never-delete paths during LQoSync cleanup."
-  },
-  "rust.core_v753_stale_codebase_cleanup_execution": {
-    "title": "Rust Core v7.5.3 Stale Codebase Cleanup Execution Guard",
-    "file": "docs/RUST_CORE_V753_STALE_CODEBASE_CLEANUP_EXECUTION.md",
-    "anchor": "rust-core-v753-stale-codebase-cleanup-execution-guard",
-    "summary": "Archive-first guarded cleanup execution for stale LQoSync working trees while protecting /opt/LQoSync, LibreQoS, Rust daemon, WebUI assets, and rollback safety."
+    "file": "docs/content/install_update_safety.md",
+    "summary": "Backup-first fresh install behavior and preserve-existing update rules for operator-owned LibreQoS files.",
+    "title": "Install and Update Safety"
+  },
+  "lifecycle.client_timeline": {
+    "anchor": "client-lifecycle-timeline",
+    "file": "docs/content/client_lifecycle_timeline.md",
+    "summary": "v2.53 client lifecycle timeline, active/stale/queued/removed/returned states, cleanup queue, confirmations, and exports.",
+    "title": "Client Lifecycle Timeline"
+  },
+  "lifecycle.view_filter_hotfix": {
+    "anchor": "v2601-client-lifecycle-view-and-filter-hotfix",
+    "file": "docs/content/client_lifecycle_timeline.md",
+    "summary": "v2.60.1 fixes Lifecycle View button wiring, adds instant table/card filtering, and adds timeline pagination/row limits.",
+    "title": "Client Lifecycle View and Filter Hotfix"
+  },
+  "network_layout.drag_drop": {
+    "anchor": "network-layout-drag-and-drop",
+    "description": "v2.54.3 wired desktop drag-and-drop for moving topology nodes with safe validation and preview-before-save behavior.",
+    "file": "docs/content/network_layout_drag_drop.md",
+    "title": "Network Layout Drag-and-Drop"
+  },
+  "notifications.telegram": {
+    "anchor": "v258-telegram-notifications",
+    "file": "docs/content/telegram_notifications.md",
+    "summary": "v2.58 optional Telegram delivery for internal health, policy, apply, and source notification candidates.",
+    "title": "Telegram Notifications"
+  },
+  "operations.apply_failure_visibility": {
+    "anchor": "libreqos-apply-failure-visibility",
+    "file": "docs/content/apply_failure_visibility.md",
+    "summary": "v2.70.7-rc1 apply failure diagnostics page, notification targets, Operations detail/resolve buttons, and stderr/stdout resolution workflow.",
+    "title": "LibreQoS Apply Failure Visibility"
   },
   "operations.stale_codebase_cleanup_execution_runbook": {
-    "title": "Stale Codebase Cleanup Execution Runbook",
-    "file": "docs/STALE_CODEBASE_CLEANUP_EXECUTION_RUNBOOK.md",
     "anchor": "stale-codebase-cleanup-execution-runbook",
-    "summary": "Operator runbook for planning, executing, verifying, and restoring archive-first stale codebase cleanup."
+    "file": "docs/STALE_CODEBASE_CLEANUP_EXECUTION_RUNBOOK.md",
+    "summary": "Operator runbook for planning, executing, verifying, and restoring archive-first stale codebase cleanup.",
+    "title": "Stale Codebase Cleanup Execution Runbook"
+  },
+  "operations.stale_codebase_cleanup_policy": {
+    "anchor": "stale-codebase-cleanup-policy",
+    "file": "docs/STALE_CODEBASE_CLEANUP_POLICY.md",
+    "summary": "Classification policy for keep, archive-candidate, inspect, and never-delete paths during LQoSync cleanup.",
+    "title": "Stale Codebase Cleanup Policy"
+  },
+  "operator.overview": {
+    "anchor": "operator-overview",
+    "file": "docs/content/operator_overview.md",
+    "summary": "Atomic explanation of how LQoSync collects, builds, validates, writes, applies, and reports.",
+    "title": "Operator Overview"
+  },
+  "ops.branch_install_cleanup_guide": {
+    "anchor": "v754-branch-install-cleanup-alignment-guide",
+    "file": "docs/BRANCH_INSTALL_AND_CLEANUP_GUIDE.md",
+    "summary": "Canonical lqosync-in-rust branch install, Rust daemon verification, and archive-only stale codebase cleanup flow.",
+    "title": "Branch Install and Cleanup Guide"
+  },
+  "package_quality.environment_doctor": {
+    "anchor": "v255-package-quality--environment-doctor",
+    "file": "docs/content/package_quality_environment_doctor.md",
+    "summary": "v2.55 release integrity checks, environment doctor, route/template validation, and Smart Defaults Repair.",
+    "title": "Package Quality + Environment Doctor"
+  },
+  "policy.custom_policy_mode_persistence": {
+    "anchor": "custom-policy-mode-persistence-hotfix",
+    "file": "docs/content/custom_policy_mode_persistence.md",
+    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center \u2192 Policies.",
+    "title": "Custom Policy Mode Persistence Hotfix"
+  },
+  "policy.hierarchy_ui": {
+    "anchor": "config-policy-hierarchy-ui",
+    "file": "docs/content/policy_hierarchy_ui.md",
+    "summary": "v2.70.2-rc1 compact Config Center policy hierarchy, required/recommended/optional setting classes, and auto-apply vs optional auto-backup behavior.",
+    "title": "Config Policy Hierarchy UI"
+  },
+  "policy.preset_alignment_save_semantics": {
+    "anchor": "policy-preset-alignment--save-semantics",
+    "file": "docs/content/policy_preset_alignment_save_semantics.md",
+    "summary": "v2.70.8 aligns Conservative/Balanced/Aggressive presets and adds server-side custom mode reconciliation.",
+    "title": "Policy Preset Alignment + Save Semantics"
+  },
+  "policy.preset_wiring_hotfix": {
+    "anchor": "policy-preset-wiring-hotfix",
+    "file": "docs/content/policy_preset_wiring_hotfix.md",
+    "summary": "v2.70.3-rc1 fixes Config Center policy preset apply controls and managed policies.mode display.",
+    "title": "Policy Preset Wiring Hotfix"
+  },
+  "policy.settings_integration": {
+    "anchor": "policy-settings-integration",
+    "file": "docs/content/policy_settings_integration.md",
+    "title": "Policy Settings Integration"
+  },
+  "policy.smart_policy_center": {
+    "anchor": "smart-policy-center",
+    "file": "docs/SMART_POLICY_CENTER.md",
+    "title": "Smart Policy Center"
+  },
+  "policy_aware_cleanup_intelligence": {
+    "anchor": "policy-aware-cleanup-intelligence",
+    "file": "docs/content/policy_aware_cleanup_intelligence.md",
+    "summary": "v2.50 source-aware stale lifecycle, optional grace, risk-aware auto apply, and decision trace.",
+    "title": "Policy-Aware Cleanup Intelligence"
+  },
+  "policy_center_settings_guidelines": {
+    "anchor": "policy-center-settings-guidelines",
+    "description": "Atomic operator explanations for every editable Policy Center setting.",
+    "file": "docs/content/policy_center_settings_guidelines.md",
+    "title": "Policy Center Settings Guidelines"
+  },
+  "policy_overview_custom_wiring_hotfix": {
+    "anchor": "policy-overview-custom-wiring-hotfix",
+    "file": "docs/content/policy_overview_custom_wiring_hotfix.md",
+    "summary": "v2.70.10 fixes Custom policy mode for Operation Mode, Auto Apply, Optional Auto Backup, and Backup Retention changes inside Config Center Policies.",
+    "title": "Policy Overview Custom Wiring Hotfix"
+  },
+  "policy_ux.conflict_identity": {
+    "anchor": "v256-policy-ux--conflict-intelligence",
+    "file": "docs/content/policy_ux_conflict_identity.md",
+    "summary": "v2.56 Policy Conflict Resolver, richer preset comparison, and client identity handling guidance.",
+    "title": "Policy UX + Conflict Intelligence"
+  },
+  "privacy_icon_polish": {
+    "anchor": "v2545-privacy-icon-polish",
+    "file": "docs/content/privacy_icon_polish.md",
+    "title": "Privacy Icon Polish"
+  },
+  "production_readiness_score": {
+    "anchor": "production-readiness-score",
+    "file": "docs/content/production_readiness_score.md",
+    "summary": "v2.68 Dashboard production readiness score, go-live checks, blockers, recommendations, and read-only readiness API.",
+    "title": "Production Readiness Score"
+  },
+  "reports.smart_operator_audit": {
+    "anchor": "smart-reports--operator-audit",
+    "file": "docs/content/smart_reports_operator_audit.md",
+    "summary": "v2.52 operator report page with 24h summary, policy decision report, cleanup report, client changes, config audit, and exports.",
+    "title": "Smart Reports + Operator Audit"
+  },
+  "router.insight_dedup_policy_path_audit": {
+    "anchor": "router-insight-de-duplication--policypath-audit",
+    "file": "docs/content/router_insight_dedup_policy_path_audit.md",
+    "summary": "v2.69.1 moves Router Insight into Config Center, keeps /routers as a redirect alias, removes duplicate router page UI, and adds policy/path audit checks.",
+    "title": "Router Insight De-duplication + Policy/Path Audit"
+  },
+  "router.overview_multi_router_ux": {
+    "anchor": "router-overview--multi-router-ux-polish",
+    "file": "docs/content/router_overview_multi_router_ux.md",
+    "summary": "v2.69 read-only router overview, per-router source visibility, row ownership hints, and multi-router operator workflow polish.",
+    "title": "Router Overview + Multi-Router UX Polish"
+  },
+  "rust.autosave_atomic_state": {
+    "anchor": "autosave-and-atomic-state-model",
+    "file": "docs/AUTOSAVE_AND_ATOMIC_STATE.md",
+    "summary": "No-save-button autosave flow, dangerous-change confirmation, atomic file/state writes, and rollback guidance.",
+    "title": "Autosave and Atomic State Model"
+  },
+  "rust.collector_output_contract": {
+    "anchor": "collector-output-contract",
+    "file": "docs/COLLECTOR_OUTPUT_CONTRACT.md",
+    "summary": "Typed source trust contract to prevent silent partial or suspicious zero RouterOS results from triggering unsafe cleanup.",
+    "title": "Collector Output Contract"
+  },
+  "rust.commit_push_guide": {
+    "anchor": "commit-and-push-guide-for-lqosync-in-rust",
+    "file": "docs/COMMIT_AND_PUSH_GUIDE.md",
+    "summary": "Branch workflow, review checklist, commit message, pull request, and push instructions for the Rust migration branch.",
+    "title": "Commit and Push Guide for lqosync-in-rust"
+  },
+  "rust.core_migration": {
+    "anchor": "lqosync-in-rust-core-migration-plan",
+    "file": "docs/RUST_CORE_MIGRATION.md",
+    "summary": "Phased plan for adding a Rust safety core while preserving Python Flask WebUI, pure JSON/files, and autosave behavior.",
+    "title": "LQoSync-in-Rust Core Migration Plan"
+  },
+  "rust.core_protocol": {
+    "anchor": "rust-core-protocol",
+    "file": "docs/RUST_CORE_PROTOCOL.md",
+    "summary": "Transport-neutral JSON request/response envelope for subprocess CLI and future Unix socket daemon.",
+    "title": "Rust Core Protocol"
+  },
+  "rust.core_scaffold": {
+    "anchor": "current-package-implementation-status",
+    "file": "docs/RUST_CORE_MIGRATION.md",
+    "summary": "Current optional lqosync-core scaffold files, operations, build commands, and Python fallback behavior.",
+    "title": "Rust Core Scaffold Implementation"
+  },
+  "rust.core_v37_collector_authority_selection": {
+    "anchor": "rust-core-v37-collector-authority-dry-run-selection",
+    "file": "docs/RUST_CORE_V37_COLLECTOR_AUTHORITY_SELECTION.md",
+    "summary": "Dry-run source selector that maps collector authority manifest decisions to Python or Rust-shadow collector candidates while keeping Python authoritative.",
+    "title": "Rust Core v3.7 Collector Authority Dry-Run Selection"
+  },
+  "rust.core_v38_collector_dry_run_bundle": {
+    "anchor": "rust-core-v38-collector-authority-dry-run-bundle",
+    "file": "docs/RUST_CORE_V38_COLLECTOR_DRY_RUN_BUNDLE.md",
+    "summary": "Non-mutating Rust-shadow collector dry-run bundle that combines source selection, normalized rows, and parity while keeping Python authoritative.",
+    "title": "Rust Core v3.8 Collector Authority Dry-Run Bundle"
+  },
+  "rust.core_v39_run_cycle_shadow": {
+    "anchor": "rust-core-v39--run_cycle-rust-shadow-integration-report",
+    "file": "docs/RUST_CORE_V39_RUN_CYCLE_SHADOW.md",
+    "summary": "Non-mutating run_cycle Rust-shadow report that attaches Rust candidate collector output beside Python-authoritative cycle results.",
+    "title": "Rust Core v3.9 run_cycle Rust-Shadow Integration Report"
+  },
+  "rust.core_v40_collector_authority_activation": {
+    "anchor": "rust-core-v40-collector-authority-activation-plan",
+    "file": "docs/RUST_CORE_V40_COLLECTOR_AUTHORITY_ACTIVATION.md",
+    "summary": "Non-mutating activation plan for future Rust collector authority pilot, based on run_cycle Rust-shadow results and successful shadow-cycle gates.",
+    "title": "Rust Core v4.0 Collector Authority Activation Plan"
+  },
+  "rust.core_v41_collector_authority_runtime": {
+    "anchor": "rust-core-v41-collector-authority-runtime-contract",
+    "file": "docs/RUST_CORE_V41_COLLECTOR_AUTHORITY_RUNTIME.md",
+    "summary": "Adds a non-mutating runtime contract bridge after the collector authority activation plan while keeping Python collectors authoritative.",
+    "title": "Rust Core v4.1 Collector Authority Runtime Contract"
+  },
+  "rust.core_v42_collector_authority_switch": {
+    "category": "Rust Core",
+    "id": "rust.core_v42_collector_authority_switch",
+    "path": "docs/RUST_CORE_V42_COLLECTOR_AUTHORITY_SWITCH.md",
+    "summary": "Adds a non-mutating collector authority switch rehearsal after the v4.1 runtime contract while keeping Python collectors authoritative.",
+    "title": "Rust Core v4.2 Collector Authority Switch Rehearsal"
+  },
+  "rust.core_v431_pilot_execution_recursion_hotfix": {
+    "anchor": "rust-core-v431-collector-authority-pilot-execution-recursion-hotfix",
+    "file": "docs/RUST_CORE_V431_PILOT_EXECUTION_RECURSION_HOTFIX.md",
+    "summary": "Fixes the serde_json json! macro recursion compile error by building the pilot execution response incrementally while preserving fail-safe behavior.",
+    "title": "Rust Core v4.3.1 Collector Authority Pilot Execution Recursion Hotfix"
+  },
+  "rust.core_v432_pilot_execution_confirmation_hotfix": {
+    "category": "rust-core",
+    "path": "docs/RUST_CORE_V432_PILOT_EXECUTION_CONFIRMATION_HOTFIX.md",
+    "summary": "Fixes collector authority pilot execution readiness by separating switch rehearsal and pilot execution confirmation tokens while preserving non-mutating fail-safe behavior.",
+    "title": "Rust Core v4.3.2 Collector Authority Pilot Execution Confirmation Hotfix"
+  },
+  "rust.core_v43_collector_authority_pilot_execution": {
+    "category": "Rust Core",
+    "id": "rust.core_v43_collector_authority_pilot_execution",
+    "path": "docs/RUST_CORE_V43_COLLECTOR_AUTHORITY_PILOT_EXECUTION.md",
+    "summary": "Adds a non-mutating collector authority pilot execution contract after the v4.2 switch rehearsal while keeping Python collectors authoritative.",
+    "title": "Rust Core v4.3 Collector Authority Pilot Execution Contract"
+  },
+  "rust.core_v44_collector_authority_pilot_result": {
+    "category": "rust-core",
+    "path": "docs/RUST_CORE_V44_COLLECTOR_AUTHORITY_PILOT_RESULT.md",
+    "summary": "Adds a non-mutating evaluator for future Rust collector authority pilot results, checking contract readiness, parity, side effects, and freshness while keeping Python authoritative.",
+    "title": "Rust Core v4.4 Collector Authority Pilot Result Evaluator"
+  },
+  "rust.core_v45_collector_authority_promotion_readiness": {
+    "category": "rust-core",
+    "path": "docs/RUST_CORE_V45_COLLECTOR_AUTHORITY_PROMOTION_READINESS.md",
+    "summary": "Adds a non-mutating promotion readiness report after pilot result evaluation, requiring explicit gates, manual confirmation, fresh Rust-shadow data, and Python fallback while keeping Python collectors authoritative.",
+    "title": "Rust Core v4.5 Collector Authority Promotion Readiness"
+  },
+  "rust.core_v46_collector_authority_promotion_execution": {
+    "category": "rust-core",
+    "path": "docs/RUST_CORE_V46_COLLECTOR_AUTHORITY_PROMOTION_EXECUTION.md",
+    "summary": "Adds a non-mutating promotion execution rehearsal after v4.5 readiness, requiring explicit gates, manual confirmation, fresh Rust-shadow data, and Python fallback while keeping Python collectors authoritative.",
+    "title": "Rust Core v4.6 Collector Authority Promotion Execution Rehearsal"
+  },
+  "rust.core_v47_promotion_commit": {
+    "anchor": "rust-core-v47-collector-authority-promotion-commit-plan",
+    "file": "docs/RUST_CORE_V47_COLLECTOR_AUTHORITY_PROMOTION_COMMIT.md",
+    "summary": "Non-mutating commit-plan bridge after promotion execution rehearsal while keeping Python collectors authoritative.",
+    "title": "Rust Core v4.7 Collector Authority Promotion Commit Plan"
+  },
+  "rust.core_v481_cutover_ledger_hotfix": {
+    "anchor": "rust-core-v481-cutover-ledger-hotfix",
+    "file": "docs/RUST_CORE_V481_CUTOVER_LEDGER_HOTFIX.md",
+    "summary": "Fixes the v4.8 cutover ledger readiness unit fixture while preserving non-mutating Python-authoritative behavior.",
+    "title": "Rust Core v4.8.1 Cutover Ledger Hotfix"
+  },
+  "rust.core_v48_promotion_cutover": {
+    "anchor": "rust-core-v48-collector-authority-promotion-cutover-ledger",
+    "file": "docs/RUST_CORE_V48_COLLECTOR_AUTHORITY_PROMOTION_CUTOVER.md",
+    "summary": "Non-mutating cutover ledger after the promotion commit plan, requiring explicit gates, manual confirmation, rollback path, and Python fallback while keeping Python collectors authoritative.",
+    "title": "Rust Core v4.8 Collector Authority Promotion Cutover Ledger"
+  },
+  "rust.core_v49_production_freeze": {
+    "anchor": "rust-core-v49-collector-authority-production-freeze-gate",
+    "file": "docs/RUST_CORE_V49_COLLECTOR_AUTHORITY_PRODUCTION_FREEZE.md",
+    "summary": "Final non-mutating pre-production freeze gate before a future v5 Rust collector-authority production switch contract.",
+    "title": "Rust Core v4.9 Collector Authority Production Freeze Gate"
+  },
+  "rust.core_v50_production_switch_contract": {
+    "anchor": "rust-core-v50-collector-authority-production-switch-contract",
+    "file": "docs/RUST_CORE_V50_COLLECTOR_AUTHORITY_PRODUCTION_SWITCH.md",
+    "summary": "Adds the first non-mutating production collector-authority switch contract after the v4.9 freeze gate while keeping Python backend and fallback required.",
+    "title": "Rust Core v5.0 Collector Authority Production Switch Contract"
+  },
+  "rust.core_v51_rust_backend_api_handoff": {
+    "anchor": "rust-core-v51-rust-backend-api-handoff-plan",
+    "file": "docs/RUST_CORE_V51_RUST_BACKEND_API_HANDOFF.md",
+    "summary": "Starts the full Rust backend track with a non-mutating API handoff plan while preserving existing WebUI/UX and keeping Python backend fallback required.",
+    "title": "Rust Core v5.1 Rust Backend API Handoff Plan"
+  },
+  "rust.core_v52_scheduler_handoff": {
+    "anchor": "rust-core-v52-rust-backend-scheduler-run-cycle-handoff-plan",
+    "file": "docs/RUST_CORE_V52_RUST_BACKEND_SCHEDULER_HANDOFF.md",
+    "summary": "Adds the non-mutating Rust scheduler/run_cycle handoff planning bridge after API handoff while keeping Python scheduler/run_cycle authoritative.",
+    "title": "Rust Core v5.2 Rust Backend Scheduler / Run Cycle Handoff Plan"
+  },
+  "rust.core_v53_run_cycle_orchestrator_handoff": {
+    "anchor": "rust-core-v53-rust-run-cycle-orchestrator-handoff-contract",
+    "file": "docs/RUST_CORE_V53_RUST_RUN_CYCLE_ORCHESTRATOR_HANDOFF.md",
+    "summary": "Adds a non-mutating Rust run_cycle orchestrator handoff contract after scheduler handoff planning while keeping Python run_cycle authoritative and preserving WebUI/UX.",
+    "title": "Rust Core v5.3 Rust Run Cycle Orchestrator Handoff Contract"
+  },
+  "rust.core_v54_config_state_authority_handoff": {
+    "anchor": "rust-core-v54-rust-config-state-authority-handoff-contract",
+    "file": "docs/RUST_CORE_V54_RUST_CONFIG_STATE_AUTHORITY_HANDOFF.md",
+    "summary": "Adds a non-mutating Rust config/state authority handoff contract after run_cycle orchestrator handoff while keeping Python config/state authoritative and WebUI/UX unchanged.",
+    "title": "Rust Core v5.4 Rust Config/State Authority Handoff Contract"
+  },
+  "rust.core_v55_rust_live_collector_authority_handoff": {
+    "anchor": "rust-core-v55-rust-live-collector-authority-handoff-contract",
+    "file": "docs/RUST_CORE_V55_RUST_LIVE_COLLECTOR_AUTHORITY_HANDOFF.md",
+    "summary": "Adds the live collector authority handoff contract after config/state authority handoff while keeping Python live collectors authoritative and WebUI/UX unchanged.",
+    "title": "Rust Core v5.5 Rust Live Collector Authority Handoff Contract"
+  },
+  "rust.core_v56_circuit_builder_authority_handoff": {
+    "anchor": "rust-core-v56-rust-circuit-builder-authority-handoff-contract",
+    "file": "docs/RUST_CORE_V56_RUST_CIRCUIT_BUILDER_AUTHORITY_HANDOFF.md",
+    "summary": "Adds a non-mutating Rust circuit builder authority handoff contract after live collector authority handoff while keeping Python fallback and WebUI/UX unchanged.",
+    "title": "Rust Core v5.6 Rust Circuit Builder Authority Handoff Contract"
+  },
+  "rust.core_v57_rust_sync_engine_authority_handoff": {
+    "anchor": "rust-core-v57-rust-sync-engine-authority-handoff-contract",
+    "file": "docs/RUST_CORE_V57_RUST_SYNC_ENGINE_AUTHORITY_HANDOFF.md",
+    "summary": "Adds the Rust sync engine authority handoff contract after circuit builder authority, preserving WebUI/UX and Python fallback.",
+    "title": "Rust Core v5.7 Rust Sync Engine Authority Handoff Contract"
+  },
+  "rust.core_v58_apply_journal_rollback_handoff": {
+    "anchor": "rust-core-v58-rust-apply-journal-rollback-authority-handoff-contract",
+    "file": "docs/RUST_CORE_V58_RUST_APPLY_JOURNAL_ROLLBACK_AUTHORITY_HANDOFF.md",
+    "summary": "Adds the Rust apply/journal/rollback authority handoff contract after sync engine authority while keeping Python authoritative and WebUI/UX unchanged.",
+    "title": "Rust Core v5.8 Rust Apply/Journal/Rollback Authority Handoff Contract"
+  },
+  "rust.core_v59_backend_service_runtime_handoff": {
+    "anchor": "rust-core-v59-rust-backend-service-runtime-handoff-contract",
+    "file": "docs/RUST_CORE_V59_RUST_BACKEND_SERVICE_RUNTIME_HANDOFF.md",
+    "summary": "Adds a non-mutating Rust backend service/API runtime handoff contract after apply/journal/rollback authority while preserving WebUI/UX and Python fallback.",
+    "title": "Rust Core v5.9 Rust Backend Service Runtime Handoff Contract"
+  },
+  "rust.core_v60_full_rust_backend_production_readiness": {
+    "anchor": "rust-core-v60-full-rust-backend-production-readiness-contract",
+    "file": "docs/RUST_CORE_V60_FULL_RUST_BACKEND_PRODUCTION_READINESS.md",
+    "summary": "Adds the first full Rust backend production-readiness contract after service/runtime handoff, while keeping Python fallback and WebUI/UX unchanged.",
+    "title": "Rust Core v6.0 Full Rust Backend Production Readiness Contract"
+  },
+  "rust.core_v61_full_backend_cutover_plan": {
+    "anchor": "rust-core-v61-full-rust-backend-cutover-plan",
+    "file": "docs/RUST_CORE_V61_FULL_RUST_BACKEND_CUTOVER_PLAN.md",
+    "summary": "Adds the non-mutating full Rust backend cutover plan after production-readiness while preserving WebUI/UX and requiring Python fallback.",
+    "title": "Rust Core v6.1 Full Rust Backend Cutover Plan"
+  },
+  "rust.core_v62_full_backend_cutover_execution": {
+    "anchor": "rust-core-v62-full-rust-backend-cutover-execution-contract",
+    "file": "docs/RUST_CORE_V62_FULL_RUST_BACKEND_CUTOVER_EXECUTION.md",
+    "summary": "Adds the non-mutating full Rust backend cutover execution contract after v6.1 cutover planning while preserving WebUI/UX and Python fallback.",
+    "title": "Rust Core v6.2 Full Rust Backend Cutover Execution Contract"
+  },
+  "rust.core_v63_python_backend_retirement_plan": {
+    "anchor": "rust-core-v63-python-backend-retirement-plan",
+    "file": "docs/RUST_CORE_V63_PYTHON_BACKEND_RETIREMENT_PLAN.md",
+    "summary": "Adds a non-mutating Python backend retirement planning gate after the full Rust backend cutover execution contract while keeping WebUI/UX unchanged and Python fallback mandatory.",
+    "title": "Rust Core v6.3 Python Backend Retirement Plan"
+  },
+  "rust.core_v64_rust_backend_production_enablement": {
+    "anchor": "rust-core-v64-rust-backend-production-enablement-contract",
+    "file": "docs/RUST_CORE_V64_RUST_BACKEND_PRODUCTION_ENABLEMENT.md",
+    "summary": "Adds a non-mutating Rust backend production enablement contract after Python backend retirement planning while keeping Python fallback and WebUI/UX unchanged.",
+    "title": "Rust Core v6.4 Rust Backend Production Enablement Contract"
+  },
+  "rust.core_v65_python_backend_removal_execution": {
+    "anchor": "rust-core-v65-python-backend-removal-execution-contract",
+    "file": "docs/RUST_CORE_V65_PYTHON_BACKEND_REMOVAL_EXECUTION.md",
+    "summary": "Adds the first explicit Python backend removal execution contract while keeping Python fallback, WebUI/UX, and all mutation guards in place.",
+    "title": "Rust Core v6.5 Python Backend Removal Execution Contract"
+  },
+  "rust.core_v66_full_rust_backend_removal_rehearsal": {
+    "anchor": "rust-core-v66-full-rust-backend-removal-rehearsal",
+    "file": "docs/RUST_CORE_V66_FULL_RUST_BACKEND_REMOVAL_REHEARSAL.md",
+    "summary": "Final non-mutating rehearsal before a future v7.0 actual full Rust backend cutover / Python backend removal package.",
+    "title": "Rust Core v6.6 Full Rust Backend Removal Rehearsal"
+  },
+  "rust.core_v70_full_backend_production_cutover": {
+    "anchor": "rust-core-v70-full-rust-backend-production-cutover",
+    "file": "docs/RUST_CORE_V70_FULL_RUST_BACKEND_PRODUCTION_CUTOVER.md",
+    "summary": "First actual full-Rust-backend production cutover package, preserving WebUI/UX and requiring final server/rollback gates before Python backend removal is allowed.",
+    "title": "Rust Core v7.0 Full Rust Backend Production Cutover"
+  },
+  "rust.core_v71_full_backend_production_verifier": {
+    "anchor": "rust-core-v71-full-rust-backend-production-verifier",
+    "file": "docs/RUST_CORE_V71_FULL_RUST_BACKEND_PRODUCTION_VERIFIER.md",
+    "summary": "Adds the post-cutover Rust production verifier and guarded Python backend retirement executor while preserving WebUI/UX/static assets.",
+    "title": "Rust Core v7.1 Full Rust Backend Production Verifier / Python Retirement Guard"
+  },
+  "rust.core_v72_full_rust_backend_post_retirement_verifier": {
+    "anchor": "rust-core-v72-full-rust-backend-post-retirement-verifier",
+    "file": "docs/RUST_CORE_V72_FULL_RUST_BACKEND_POST_RETIREMENT_VERIFIER.md",
+    "summary": "Verifies full Rust backend production after guarded Python backend retirement while preserving WebUI/UX and rollback safety.",
+    "title": "Rust Core v7.2 Full Rust Backend Post-Retirement Verifier"
+  },
+  "rust.core_v731_steady_state_guard_hotfix": {
+    "anchor": "rust-core-v731-steady-state-guard-hotfix",
+    "file": "docs/RUST_CORE_V731_STEADY_STATE_GUARD_HOTFIX.md",
+    "summary": "Fixes the aggregate self-test steady-state guard fixture by adding the missing WebUI static assets preserved gate.",
+    "title": "Rust Core v7.3.1 Steady-State Guard Hotfix"
+  },
+  "rust.core_v732_steady_state_guard_hotfix": {
+    "anchor": "rust-core-v732-steady-state-guard-self-test-hotfix",
+    "file": "docs/RUST_CORE_V732_STEADY_STATE_GUARD_HOTFIX.md",
+    "summary": "Fixes the aggregate self-test steady-state guard fixture by including both WebUI static asset path and preservation gates.",
+    "title": "Rust Core v7.3.2 Steady-State Guard Self-Test Hotfix"
+  },
+  "rust.core_v733_steady_state_guard_hotfix": {
+    "anchor": "rust-core-v733-steady-state-guard-hotfix",
+    "file": "docs/RUST_CORE_V733_STEADY_STATE_GUARD_HOTFIX.md",
+    "summary": "Fixes aggregate self-test steady-state guard by adding the missing top-level webui_ux_unchanged gate alongside static asset preservation gates.",
+    "title": "Rust Core v7.3.3 Steady-State Guard Hotfix"
+  },
+  "rust.core_v734_steady_state_guard_hotfix": {
+    "anchor": "rust-core-v734-steady-state-guard-hotfix",
+    "file": "docs/RUST_CORE_V734_STEADY_STATE_GUARD_HOTFIX.md",
+    "summary": "Adds missing python_backend_rollback_package_ready to the aggregate steady-state guard self-test fixture.",
+    "title": "Rust Core v7.3.4 Steady-State Guard Hotfix"
+  },
+  "rust.core_v73_full_rust_backend_steady_state_guard": {
+    "file": "docs/RUST_CORE_V73_FULL_RUST_BACKEND_STEADY_STATE_GUARD.md",
+    "summary": "Adds a post-retirement steady-state guard for full Rust backend production, verifying Rust runtime authority, no Python drift, unchanged WebUI/UX, rollback readiness, and server healthchecks.",
+    "title": "Rust Core v7.3 Full Rust Backend Steady-State Guard"
+  },
+  "rust.core_v74_full_backend_production_drift_monitor": {
+    "anchor": "rust-core-v74-full-rust-backend-production-drift-monitor",
+    "file": "docs/RUST_CORE_V74_FULL_RUST_BACKEND_PRODUCTION_DRIFT_MONITOR.md",
+    "summary": "Adds the post-steady-state production drift monitor that verifies Rust backend authority, no Python drift, WebUI/UX preservation, rollback readiness, and server healthchecks.",
+    "title": "Rust Core v7.4 Full Rust Backend Production Drift Monitor"
+  },
+  "rust.core_v751_installation_docs_alignment": {
+    "anchor": "rust-core-v751-installation-documentation-and-installer-alignment",
+    "file": "docs/RUST_CORE_V751_INSTALLATION_DOCS_ALIGNMENT.md",
+    "summary": "Aligns installation guides, GitHub install examples, installer defaults, canonical /opt/LQoSync path, lqosync-in-rust branch usage, and Rust daemon self-test flow.",
+    "title": "Rust Core v7.5.1 Installation Documentation and Installer Alignment"
+  },
+  "rust.core_v752_stale_codebase_cleanup_guard": {
+    "anchor": "rust-core-v752-stale-codebase-cleanup-guard",
+    "file": "docs/RUST_CORE_V752_STALE_CODEBASE_CLEANUP_GUARD.md",
+    "summary": "Safe cleanup guard for stale LQoSync working trees, legacy Python remnants, old install paths, and rollback-first archive workflows.",
+    "title": "Rust Core v7.5.2 Stale Codebase Cleanup Guard"
+  },
+  "rust.core_v753_stale_codebase_cleanup_execution": {
+    "anchor": "rust-core-v753-stale-codebase-cleanup-execution-guard",
+    "file": "docs/RUST_CORE_V753_STALE_CODEBASE_CLEANUP_EXECUTION.md",
+    "summary": "Archive-first guarded cleanup execution for stale LQoSync working trees while protecting /opt/LQoSync, LibreQoS, Rust daemon, WebUI assets, and rollback safety.",
+    "title": "Rust Core v7.5.3 Stale Codebase Cleanup Execution Guard"
+  },
+  "rust.core_v75_full_backend_production_audit_sentinel": {
+    "anchor": "rust-core-v75-full-rust-backend-production-audit-sentinel",
+    "file": "docs/RUST_CORE_V75_FULL_RUST_BACKEND_PRODUCTION_AUDIT_SENTINEL.md",
+    "summary": "Adds a post-drift-monitor production audit sentinel that verifies audit trail, journal visibility, rollback previews, WebUI/UX preservation, and Rust production authority without side effects.",
+    "title": "Rust Core v7.5 Full Rust Backend Production Audit Sentinel"
+  },
+  "rust.v02_trust_diff": {
+    "anchor": "rust-core-v02-trust-and-diff-update",
+    "file": "docs/RUST_CORE_V02_TRUST_DIFF.md",
+    "summary": "Collector output trust guard, suspicious zero protection, and Rust diff operations for the lqosync-in-rust branch.",
+    "title": "Rust Core v0.2 Trust and Diff Update"
+  },
+  "rust.v03_atomic_state": {
+    "anchor": "rust-core-v03-atomic-state-and-file-engine",
+    "file": "docs/RUST_CORE_V03_ATOMIC_STATE.md",
+    "summary": "Atomic runtime_state, policy_state, collector_cache, audit JSONL, generated file write protocol, and v2.73.1 CSV terminator build hotfix for the lqosync-in-rust branch.",
+    "title": "Rust Core v0.3 Atomic State and File Engine"
+  },
+  "rust.v04_daemon": {
+    "anchor": "rust-core-v04-daemon-mode",
+    "file": "docs/RUST_CORE_V04_DAEMON.md",
+    "summary": "Optional Unix socket daemon for the Rust core with subprocess and Python fallback safety.",
+    "title": "Rust Core v0.4 Daemon Mode"
+  },
+  "rust.v05_policy_shadow": {
+    "anchor": "rust-core-v05-policy-shadow-engine",
+    "file": "docs/RUST_CORE_V05_POLICY_SHADOW.md",
+    "summary": "Shadow Rust policy decision engine, risk scoring, Python/Rust parity checks, and Dry Run visibility for the lqosync-in-rust branch.",
+    "title": "Rust Core v0.5 Policy Shadow Engine"
+  },
+  "rust.v06_circuit_shadow": {
+    "anchor": "rust-core-v06-circuit-shadow-normalizer",
+    "file": "docs/RUST_CORE_V06_CIRCUIT_SHADOW.md",
+    "summary": "Shadow Rust circuit normalization, typed circuit row diagnostics, and Dry Run visibility for the lqosync-in-rust branch.",
+    "title": "Rust Core v0.6 Circuit Shadow Normalizer"
+  },
+  "rust.v07_sync_plan": {
+    "anchor": "rust-core-v07-sync-plan-shadow-engine",
+    "file": "docs/RUST_CORE_V07_SYNC_PLAN.md",
+    "summary": "End-to-end shadow sync planner that composes collector trust, diff, validation, circuit shadow, policy shadow, and preflight diagnostics.",
+    "title": "Rust Core v0.7 Sync Plan Shadow Engine"
+  },
+  "rust.v08_authority_gates": {
+    "anchor": "rust-core-v08-authority-gates",
+    "file": "docs/RUST_CORE_V08_AUTHORITY_GATES.md",
+    "summary": "Opt-in Rust sync-plan authority gate that can block unsafe non-dry-run writes while preserving Python default behavior.",
+    "title": "Rust Core v0.8 Authority Gates"
+  },
+  "rust.v09_apply_manifest": {
+    "anchor": "rust-core-v09-apply-manifest--transaction-preview",
+    "file": "docs/RUST_CORE_V09_APPLY_MANIFEST.md",
+    "summary": "Non-destructive Rust transaction manifest for backup, generated file writes, pending-apply state, and LibreQoS apply intent.",
+    "title": "Rust Core v0.9 Apply Manifest Preview"
+  },
+  "rust.v10_apply_transaction": {
+    "anchor": "rust-core-v10-apply-transaction-executor",
+    "file": "docs/RUST_CORE_V10_APPLY_TRANSACTION.md",
+    "summary": "Opt-in Rust apply transaction rehearsal/executor for safe file writes, with Python remaining authoritative by default.",
+    "title": "Rust Core v1.0 Apply Transaction Executor"
+  },
+  "rust.v11_self_test": {
+    "anchor": "rust-core-v11-runtime-self-test-and-capability-audit",
+    "file": "docs/RUST_CORE_V11_SELF_TEST.md",
+    "summary": "Runtime self-test, capability audit, transaction routing, and v1.1.1 build/daemon restart hotfix for the lqosync-in-rust branch.",
+    "title": "Rust Core v1.1 Runtime Self-Test and Capability Audit"
+  },
+  "rust.v12_transaction_journal": {
+    "anchor": "rust-core-v12-transaction-journal-and-rollback-manifest",
+    "file": "docs/RUST_CORE_V12_TRANSACTION_JOURNAL.md",
+    "summary": "Non-mutating transaction journal and rollback manifest previews for Rust apply transaction accountability.",
+    "title": "Rust Core v1.2 Transaction Journal and Rollback Manifest"
+  },
+  "rust.v13_transaction_journal_persistence": {
+    "anchor": "rust-core-v13-transaction-journal-persistence",
+    "file": "docs/RUST_CORE_V13_TRANSACTION_JOURNAL_PERSISTENCE.md",
+    "summary": "Opt-in append-transaction-journal operation for durable Rust apply transaction accountability.",
+    "title": "Rust Core v1.3 Transaction Journal Persistence"
+  },
+  "rust.v14_transaction_history": {
+    "anchor": "rust-core-v14-transaction-history-and-rollback-plan-viewer",
+    "file": "docs/RUST_CORE_V14_TRANSACTION_HISTORY.md",
+    "summary": "Read-only Rust transaction journal history APIs and rollback-plan-from-journal preview for Operations visibility.",
+    "title": "Rust Core v1.4 Transaction History and Rollback Plan Viewer"
+  },
+  "rust.v15_rollback_executor": {
+    "anchor": "rust-core-v15-rollback-execution-rehearsal",
+    "file": "docs/RUST_CORE_V15_ROLLBACK_EXECUTOR.md",
+    "summary": "Gated execute-rollback operation, rollback rehearsal, confirmation requirements, and opt-in file restore authority.",
+    "title": "Rust Core v1.5 Rollback Execution Rehearsal"
+  },
+  "rust.v16_authority_readiness": {
+    "anchor": "rust-core-v16-authority-readiness-report",
+    "file": "docs/RUST_CORE_V16_AUTHORITY_READINESS.md",
+    "summary": "Read-only Rust authority readiness scoring before enabling sync-plan enforcement, file-write authority, journal persistence, or rollback authority.",
+    "title": "Rust Core v1.6 Authority Readiness Report"
+  },
+  "rust.v17_full_backend_readiness": {
+    "anchor": "rust-core-v17-full-backend-readiness--authority-pilot-plan",
+    "file": "docs/RUST_CORE_V17_FULL_BACKEND_READINESS.md",
+    "summary": "Read-only full Rust backend readiness report and staged authority pilot plan for safely moving beyond hybrid mode.",
+    "title": "Rust Core v1.7 Full Backend Readiness + Authority Pilot Plan"
+  },
+  "rust.v18_collector_bundle": {
+    "anchor": "rust-core-v18-collector-bundle-shadow-builder",
+    "file": "docs/RUST_CORE_V18_COLLECTOR_BUNDLE.md",
+    "summary": "Shadow Rust collector-bundle builder that converts raw PPPoE/DHCP/Hotspot snapshots into ShapedDevices-compatible circuit rows without replacing Python collectors.",
+    "title": "Rust Core v1.8 Collector Bundle Shadow Builder"
+  },
+  "rust.v19_collector_parity": {
+    "anchor": "rust-core-v19-collector-bundle-parity-report",
+    "file": "docs/RUST_CORE_V19_COLLECTOR_PARITY.md",
+    "summary": "Diagnostic parity comparison between Python-authoritative generated rows and Rust-shadow collector bundle rows.",
+    "title": "Rust Core v1.9 Collector Bundle Parity Report"
+  },
+  "rust.v201_script_permission_hotfix": {
+    "anchor": "rust-core-v201-script-permission-hotfix",
+    "file": "docs/RUST_CORE_V201_SCRIPT_PERMISSION_HOTFIX.md",
+    "summary": "Fixes manual ZIP/checkouts where script executable bits are lost and documents bash/chmod repair commands before v2.0 installation.",
+    "title": "Rust Core v2.0.1 Script Permission Hotfix"
+  },
+  "rust.v20_routeros_collector_plan": {
+    "anchor": "rust-core-v20-routeros-collector-plan",
+    "file": "docs/RUST_CORE_V20_ROUTEROS_COLLECTOR_PLAN.md",
+    "summary": "Read-only RouterOS collector command planning for PPPoE, DHCP, and Hotspot before live Rust RouterOS transport migration.",
+    "title": "Rust Core v2.0 RouterOS Collector Plan"
+  },
+  "rust.v21_routeros_read_results": {
+    "anchor": "rust-core-v21-routeros-read-result-contract",
+    "file": "docs/RUST_CORE_V21_ROUTEROS_READ_RESULTS.md",
+    "summary": "Command-level RouterOS read-result trust validation that compares Python live read results against the Rust collector plan before future Rust transport migration.",
+    "title": "Rust Core v2.1 RouterOS Read Result Contract"
+  },
+  "rust.v22_routeros_transport_session": {
+    "anchor": "rust-core-v22-routeros-transport-session-rehearsal",
+    "file": "docs/RUST_CORE_V22_ROUTEROS_TRANSPORT_SESSION.md",
+    "summary": "Non-network RouterOS transport rehearsal with credential redaction and live transport blocking before Rust RouterOS API migration.",
+    "title": "Rust Core v2.2 RouterOS Transport Session Rehearsal"
+  },
+  "rust.v23_routeros_live_read_pilot": {
+    "anchor": "rust-core-v23-routeros-live-read-pilot-gate",
+    "file": "docs/RUST_CORE_V23_ROUTEROS_LIVE_READ_PILOT.md",
+    "summary": "Gated non-network live-read pilot contract for a future read-only Rust RouterOS transport adapter.",
+    "title": "Rust Core v2.3 RouterOS Live Read Pilot Gate"
+  },
+  "rust.v24_routeros_read_pilot_fixture": {
+    "anchor": "rust-core-v24-routeros-read-pilot-fixture-adapter",
+    "file": "docs/RUST_CORE_V24_ROUTEROS_READ_PILOT_FIXTURE.md",
+    "summary": "Offline run-routeros-read-pilot fixture adapter for validating RouterOS read-pilot execution shape without live MikroTik sockets.",
+    "title": "Rust Core v2.4 RouterOS Read Pilot Fixture Adapter"
+  },
+  "rust.v25_routeros_api_codec": {
+    "anchor": "rust-core-v25-routeros-api-sentence-codec",
+    "file": "docs/RUST_CORE_V25_ROUTEROS_API_CODEC.md",
+    "summary": "Offline RouterOS API sentence codec with redacted sensitive proplist field reporting and v2.5.1 redaction hotfix.",
+    "title": "Rust Core v2.5 RouterOS API Sentence Codec"
+  },
+  "rust.v26_routeros_api_reply_codec": {
+    "anchor": "rust-core-v26-routeros-api-reply-codec--offline-parser",
+    "file": "docs/RUST_CORE_V26_ROUTEROS_API_REPLY_CODEC.md",
+    "summary": "Offline RouterOS API reply word decoder for sanitized rows/traps before live Rust socket transport.",
+    "title": "Rust Core v2.6 RouterOS API Reply Codec"
+  },
+  "rust.v27_routeros_api_frame_codec": {
+    "anchor": "rust-core-v27-routeros-api-frame-codec",
+    "file": "docs/RUST_CORE_V27_ROUTEROS_API_FRAME_CODEC.md",
+    "summary": "Offline RouterOS API binary frame encoder/decoder for future live Rust socket transport, with sensitive attribute redaction and no network access.",
+    "title": "Rust Core v2.7 RouterOS API Frame Codec"
+  },
+  "rust.v28_routeros_offline_session": {
+    "anchor": "rust-core-v28-routeros-offline-session-pipeline",
+    "file": "docs/RUST_CORE_V28_ROUTEROS_OFFLINE_SESSION.md",
+    "summary": "End-to-end offline RouterOS API sentence, frame, and reply pipeline using fixtures only before any live Rust socket transport.",
+    "title": "Rust Core v2.8 RouterOS Offline Session Pipeline"
+  },
+  "rust.v29_routeros_tcp_connectivity": {
+    "anchor": "rust-core-v29-routeros-tcp-connectivity-pilot",
+    "file": "docs/RUST_CORE_V29_ROUTEROS_TCP_CONNECTIVITY.md",
+    "summary": "Gated TCP reachability pilot for Rust RouterOS transport preparation; no authentication or API reads yet.",
+    "title": "Rust Core v2.9 RouterOS TCP Connectivity Pilot"
+  },
+  "rust.v30_routeros_auth_plan": {
+    "anchor": "rust-core-v30-routeros-authentication-plan",
+    "file": "docs/RUST_CORE_V30_ROUTEROS_AUTH_PLAN.md",
+    "summary": "Redacted RouterOS authentication planning before live Rust auth or collector authority.",
+    "title": "Rust Core v3.0 RouterOS Authentication Plan"
+  },
+  "rust.v31_auth_handshake_fixture": {
+    "anchor": "rust-core-v31-routeros-auth-handshake-fixture",
+    "file": "docs/RUST_CORE_V31_AUTH_HANDSHAKE_FIXTURE.md",
+    "summary": "Offline RouterOS authentication handshake fixture that decodes login replies without opening sockets or emitting credentials.",
+    "title": "Rust Core v3.1 RouterOS Auth Handshake Fixture"
+  },
+  "rust.v32_auth_session_contract": {
+    "anchor": "rust-core-v32-routeros-auth-session-contract",
+    "file": "docs/RUST_CORE_V32_AUTH_SESSION_CONTRACT.md",
+    "summary": "Redacted authenticated-session contract built from RouterOS auth fixture replies before live Rust authenticated reads.",
+    "title": "Rust Core v3.2 RouterOS Auth Session Contract"
+  },
+  "rust.v33_authenticated_read_fixture": {
+    "anchor": "rust-core-v33-authenticated-read-fixture-pipeline",
+    "file": "docs/RUST_CORE_V33_AUTHENTICATED_READ_FIXTURE.md",
+    "summary": "Fixture-only authenticated RouterOS read pipeline that composes auth session, offline session, and read-result trust before live Rust reads.",
+    "title": "Rust Core v3.3 Authenticated Read Fixture Pipeline"
+  },
+  "rust.v34_live_read_adapter": {
+    "anchor": "rust-core-v34-live-read-adapter-contract",
+    "file": "docs/RUST_CORE_V34_LIVE_READ_ADAPTER.md",
+    "summary": "Guarded live RouterOS read adapter contract that composes TCP/auth/API sentence readiness without opening sockets or replacing Python collectors.",
+    "title": "Rust Core v3.4 Live Read Adapter Contract"
+  },
+  "rust.v35_collector_authority_pilot": {
+    "anchor": "rust-core-v35-collector-authority-pilot-gate",
+    "file": "docs/RUST_CORE_V35_COLLECTOR_AUTHORITY_PILOT.md",
+    "summary": "Non-mutating Rust collector authority pilot gate that composes live-read adapter readiness, source allow-lists, and collector parity before any Python collector authority migration.",
+    "title": "Rust Core v3.5 Collector Authority Pilot Gate"
+  },
+  "rust.v754_branch_install_cleanup_alignment": {
+    "anchor": "v754-branch-install-cleanup-alignment-guide",
+    "file": "docs/RUST_CORE_V754_BRANCH_INSTALL_CLEANUP_ALIGNMENT.md",
+    "summary": "Documentation and operations alignment for branch installs and stale working tree cleanup in the final Rust production series.",
+    "title": "Rust Core v7.5.4 Branch Install Cleanup Alignment"
+  },
+  "security.access_control_role_hardening": {
+    "anchor": "access-control--role-hardening",
+    "file": "docs/content/access_control_role_hardening.md",
+    "summary": "v2.67 owner/admin/operator/viewer role hierarchy, owner-only controls, and upgrade-safe role migration.",
+    "title": "Access Control + Role Hardening"
+  },
+  "settings_ui_state_wiring_hotfix": {
+    "anchor": "settings-ui-state-wiring-hotfix",
+    "file": "docs/content/settings_ui_state_wiring_hotfix.md",
+    "summary": "v2.70.5-rc1 fixes Config Center preset active-state mismatch and adds deeper Config Center state wiring audit coverage.",
+    "title": "Settings UI State Wiring Hotfix"
+  },
+  "setup_repair.center": {
+    "anchor": "setup--repair-center",
+    "file": "docs/content/setup_repair_center.md",
+    "title": "Setup & Repair Center"
+  },
+  "setup_repair.smart_setup_repair": {
+    "anchor": "smart-setup--repair",
+    "file": "docs/SMART_SETUP_REPAIR.md",
+    "title": "Smart Setup / Repair"
+  },
+  "setup_wizard.better_fresh_install": {
+    "anchor": "better-fresh-install-experience",
+    "file": "docs/content/better_fresh_install_experience.md",
+    "summary": "v2.60 first-run gate, scheduler readiness protection, setup wizard redirect, and fresh install workflow.",
+    "title": "Better Fresh Install Experience"
+  },
+  "setup_wizard.first_run": {
+    "anchor": "first-run-setup-wizard",
+    "file": "docs/content/setup_wizard_first_run.md",
+    "summary": "v2.54 guided first-run onboarding for paths, routers, sources, layout, policy preset, Dry Run, and scheduler readiness.",
+    "title": "First Run Setup Wizard"
+  },
+  "smart_reports_route_hotfix": {
+    "anchor": "v2541-smart-reports-route-hotfix",
+    "file": "docs/content/smart_reports_route_hotfix.md",
+    "title": "Smart Reports route hotfix"
+  },
+  "source_health_performance_trends": {
+    "description": "Dashboard-consolidated source health, RouterOS API timing, LibreQoS apply health, and internal notification candidates.",
+    "file": "docs/content/source_health_performance_trends.md",
+    "title": "Source Health & Performance Trends"
+  },
+  "stable.policy_path_reference": {
+    "anchor": "policy--path-reference",
+    "file": "docs/POLICY_PATH_REFERENCE.md",
+    "summary": "Policy/path audit purpose and important policy groups.",
+    "title": "Policy / Path Reference"
+  },
+  "stable.route_compatibility_map": {
+    "anchor": "route-compatibility-map",
+    "file": "docs/ROUTE_COMPATIBILITY.md",
+    "summary": "Compatibility aliases for compact canonical UI routes.",
+    "title": "Route Compatibility Map"
+  },
+  "stable.stable_release_candidate": {
+    "anchor": "stable-release-candidate",
+    "file": "docs/content/stable_release_candidate.md",
+    "summary": "v2.70 feature freeze, validation chain, and stable candidate rules.",
+    "title": "Stable Release Candidate"
+  },
+  "stable.stable_release_checklist": {
+    "anchor": "stable-release-checklist",
+    "file": "docs/STABLE_RELEASE_CHECKLIST.md",
+    "summary": "Preflight, operator review, and release discipline checklist.",
+    "title": "Stable Release Checklist"
+  },
+  "stable.upgrade_guide": {
+    "anchor": "upgrade-guide",
+    "file": "docs/UPGRADE_GUIDE.md",
+    "summary": "Safe GitHub update, diverged Git handling, and post-upgrade checks.",
+    "title": "Upgrade Guide"
+  },
+  "stable_rc_stale_template_cleanup": {
+    "anchor": "stable-rc-stale-template-cleanup-hotfix",
+    "file": "docs/content/stable_rc_stale_template_cleanup.md",
+    "summary": "v2.70.1-rc1 stale-file cleanup helper for old ZIP/manual installs, including old templates/routers.html.",
+    "title": "Stable RC Stale Template Cleanup Hotfix"
+  },
+  "ui_wiring_audit_role_visibility": {
+    "anchor": "ui-wiring-audit--role-visibility-hotfix",
+    "file": "docs/content/ui_wiring_audit_role_visibility.md",
+    "summary": "v2.70.4-rc1 UI wiring audit, role visibility fixes, owner-only link gating, stale file detection, and policy preset wiring validation.",
+    "title": "UI Wiring Audit + Role Visibility Hotfix"
   }
 }

@@ -707,3 +707,9 @@ Run `bash scripts/verify-installation-docs-alignment.sh` to confirm docs and ins
 
 The production series now includes safe stale-codebase cleanup helpers. Use `scripts/stale-codebase-inventory.sh` and `scripts/stale-codebase-cleanup-dry-run.sh` before archiving duplicate working trees. The guarded archive executor never touches `/opt/LQoSync`, `/opt/libreqos`, the Rust daemon binary, or WebUI/static assets.
 
+## v7.5.4 branch install + cleanup alignment
+
+The production Rust branch is `lqosync-in-rust`; the canonical runtime/source directory is `/opt/LQoSync`. Use `scripts/verify-branch-cleanup-installation-alignment.sh` before archiving stale duplicate working trees. Cleanup is archive-first and protects `/opt/LQoSync`, `/opt/libreqos`, `lqosync-core.service`, `/usr/local/bin/lqosync-core`, and WebUI/static assets. See `docs/BRANCH_INSTALL_AND_CLEANUP_GUIDE.md`.
+
+
+Cleanup archives are stored under `/opt/LQoSync-archive/<timestamp>` and are restore-first, not delete-first.

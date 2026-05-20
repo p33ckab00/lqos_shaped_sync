@@ -551,3 +551,6 @@ Runtime/default path examples in docs, installer scripts, Python helper defaults
 
 This package adds safe stale-codebase cleanup tooling. It is archive-first and confirmation-gated. It is intended to clean duplicate working directories and stale install remnants only after Rust production verification passes.
 
+## v7.5.4 package notes
+
+This package aligns the `lqosync-in-rust` branch installation guide with stale-codebase cleanup tooling. It is documentation/operations focused and does not add a new Rust core operation.

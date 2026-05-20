@@ -2244,3 +2244,9 @@ Also aligns codebase/runtime path defaults and operator-facing repair/update com
 - Added cleanup policy documentation for canonical `/opt/LQoSync`, Rust daemon, WebUI/static assets, rollback paths, and duplicate working trees.
 - No service restarts, Python deletions, WebUI mutations, or LibreQoS writes are performed by default.
 
+## 2.145.4-rc1 - v7.5.4 Branch Install + Cleanup Alignment
+
+- Added `docs/BRANCH_INSTALL_AND_CLEANUP_GUIDE.md` and `docs/RUST_CORE_V754_BRANCH_INSTALL_CLEANUP_ALIGNMENT.md`.
+- Added `scripts/verify-branch-cleanup-installation-alignment.sh`.
+- Updated install docs to include Rust branch install, verification, and archive-only cleanup flow.
+- Hardened cleanup executor protected paths to include `/opt/lqosync-website`.

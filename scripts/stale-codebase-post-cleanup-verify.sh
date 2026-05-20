@@ -43,6 +43,14 @@ else
   fail=1
 fi
 
+
+if [ -d /opt/LQoSync/.git ]; then
+  echo
+  echo "== Canonical git source =="
+  echo "branch=$(cd /opt/LQoSync && git branch --show-current 2>/dev/null || true)"
+  echo "head=$(cd /opt/LQoSync && git rev-parse --short HEAD 2>/dev/null || true)"
+fi
+
 echo
 echo "== Candidate path status =="
 for p in /home/pi/lqosync_docker /home/pi/lqosync /opt/lqosync; do

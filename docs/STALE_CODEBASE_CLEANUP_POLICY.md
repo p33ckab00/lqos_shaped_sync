@@ -60,3 +60,17 @@ CONFIRM_STALE_CODEBASE_ARCHIVE=CONFIRM_STALE_CODEBASE_ARCHIVE
 ```
 
 This prevents accidental archive moves.
+
+## v7.5.4 cleanup execution command alignment
+
+Use the guarded cleanup execution flow after `/opt/LQoSync` and `lqosync-core` self-test are verified:
+
+```bash
+bash scripts/stale-codebase-cleanup-execution-plan.sh
+export CONFIRM_STALE_CODEBASE_CLEANUP_EXECUTION=CONFIRM_STALE_CODEBASE_CLEANUP_EXECUTION
+export LQOSYNC_CANONICAL_VERIFIED=1
+export LQOSYNC_CORE_SELF_TEST_OK=1
+sudo -E bash scripts/stale-codebase-cleanup-execute-guard.sh --execute
+```
+
+Archives are stored under `/opt/LQoSync-archive/<timestamp>` and can be restored with `scripts/stale-codebase-restore-from-archive.sh`.

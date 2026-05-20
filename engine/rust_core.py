@@ -3175,7 +3175,11 @@ def _python_build_collector_authority_pilot_execution_contract(payload: dict[str
     if isinstance(switch, dict) and isinstance(switch.get("result"), dict):
         switch = switch.get("result") or {}
     if not isinstance(switch, dict) or not switch:
-        switch = rust_build_collector_authority_switch_rehearsal(payload.get("config") or {}, payload).get("result") or {}
+        switch_payload = dict(payload)
+        switch_confirmation = payload.get("collector_authority_switch_confirmation") or payload.get("switch_confirmation")
+        if switch_confirmation:
+            switch_payload["confirmation"] = switch_confirmation
+        switch = rust_build_collector_authority_switch_rehearsal(payload.get("config") or {}, switch_payload).get("result") or {}
     switch_ready = switch.get("status") == "collector_authority_switch_rehearsal_ready" and switch.get("production_collector_authority_switched") is False
     requested = bool(allow and pilot and mode == "rust_collector_authority_pilot_execution_contract")
     errors: list[dict[str, Any]] = []

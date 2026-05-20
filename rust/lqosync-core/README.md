@@ -308,3 +308,7 @@ Adds `build-collector-authority-pilot-execution-contract`, a non-mutating contra
 ### v4.3.1
 
 Fixes a compile-time recursion limit issue in the collector authority pilot execution contract response construction.
+
+### v4.3.2
+
+Fixes collector authority pilot execution readiness by separating switch-rehearsal confirmation from pilot-execution confirmation. This remains a non-mutating contract-only bridge.

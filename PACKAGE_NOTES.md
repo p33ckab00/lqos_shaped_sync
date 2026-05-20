@@ -352,3 +352,7 @@ Adds `build-collector-authority-pilot-execution-contract`, a non-mutating contra
 ## v2.113.1-rc1 Package Notes - Rust Core v4.3.1 Pilot Execution Recursion Hotfix
 
 This package fixes the v4.3 Rust compile failure caused by a large nested `serde_json::json!` response object in `collector_authority_pilot_execution.rs`. The response is now built incrementally to avoid macro recursion limits. No production authority behavior changes are introduced.
+
+## v2.113.2-rc1 Package Notes - Rust Core v4.3.2 Confirmation Hotfix
+
+Fixes the v4.3.1 pilot execution readiness regression where one root confirmation token could not satisfy both the prerequisite switch rehearsal and the pilot execution contract. The Rust core now accepts `collector_authority_switch_confirmation` for the prerequisite check while keeping the pilot execution contract non-mutating and Python-authoritative by default.

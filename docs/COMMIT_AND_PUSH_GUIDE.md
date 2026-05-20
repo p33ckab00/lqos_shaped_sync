@@ -669,3 +669,12 @@ git commit -m "rust(core): fix pilot execution response recursion" \
   -m "Fix the collector authority pilot execution contract compile error by replacing the large serde_json json macro response with incremental serde_json Map construction while preserving fail-safe behavior."
 git push -u origin lqosync-in-rust
 ```
+
+## Rust Core v4.3.2 hotfix commit
+
+```bash
+git add .
+git commit -m "rust(core): fix pilot execution confirmation gating" \
+  -m "Fix collector authority pilot execution readiness by separating switch rehearsal confirmation from pilot execution confirmation while preserving non-mutating fail-safe behavior."
+git push -u origin lqosync-in-rust
+```

@@ -421,7 +421,7 @@
     "title": "Custom Policy Mode Persistence Hotfix",
     "file": "docs/content/custom_policy_mode_persistence.md",
     "anchor": "custom-policy-mode-persistence-hotfix",
-    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center → Policies."
+    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center \u2192 Policies."
   },
   "policy_overview_custom_wiring_hotfix": {
     "title": "Policy Overview Custom Wiring Hotfix",
@@ -706,5 +706,11 @@
     "file": "docs/RUST_CORE_V431_PILOT_EXECUTION_RECURSION_HOTFIX.md",
     "anchor": "rust-core-v431-collector-authority-pilot-execution-recursion-hotfix",
     "summary": "Fixes the serde_json json! macro recursion compile error by building the pilot execution response incrementally while preserving fail-safe behavior."
+  },
+  "rust.core_v432_pilot_execution_confirmation_hotfix": {
+    "title": "Rust Core v4.3.2 Collector Authority Pilot Execution Confirmation Hotfix",
+    "path": "docs/RUST_CORE_V432_PILOT_EXECUTION_CONFIRMATION_HOTFIX.md",
+    "category": "rust-core",
+    "summary": "Fixes collector authority pilot execution readiness by separating switch rehearsal and pilot execution confirmation tokens while preserving non-mutating fail-safe behavior."
   }
 }

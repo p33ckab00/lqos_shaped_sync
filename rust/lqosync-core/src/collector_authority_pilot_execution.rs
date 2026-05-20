@@ -65,9 +65,21 @@ pub fn build_collector_authority_pilot_execution_contract_payload(payload: &Valu
         .or_else(|| payload.get("collector_authority_switch_rehearsal"))
         .cloned();
 
+    let switch_confirmation = payload
+        .get("collector_authority_switch_confirmation")
+        .or_else(|| payload.get("switch_confirmation"))
+        .and_then(Value::as_str);
+
+    let mut switch_payload = payload.clone();
+    if let Some(token) = switch_confirmation {
+        if let Some(obj) = switch_payload.as_object_mut() {
+            obj.insert("confirmation".to_string(), json!(token));
+        }
+    }
+
     let (switch_rehearsal, switch_errors, mut switch_warnings) = match switch_value {
         Some(v) if v.is_object() => (v, Vec::new(), Vec::new()),
-        _ => build_collector_authority_switch_rehearsal_payload(payload),
+        _ => build_collector_authority_switch_rehearsal_payload(&switch_payload),
     };
     warnings.append(&mut switch_warnings);
 
@@ -193,7 +205,7 @@ pub fn build_collector_authority_pilot_execution_contract_payload(payload: &Valu
     result_map.insert("api_sentence_write_count".to_string(), json!(0));
     result_map.insert("api_reply_read_count".to_string(), json!(0));
     result_map.insert("next_stage".to_string(), json!("rust_collector_authority_pilot_observation_window"));
-    result_map.insert("note".to_string(), json!("v4.3.1 fixes the non-mutating collector authority pilot execution contract response construction. It does not execute production authority transfer."));
+    result_map.insert("note".to_string(), json!("v4.3.2 fixes pilot execution readiness gating by allowing a separate switch-rehearsal confirmation token while preserving non-mutating fail-safe behavior."));
 
     let result = Value::Object(result_map);
 
@@ -226,6 +238,7 @@ mod tests {
             obj.insert("successful_shadow_cycles".to_string(), json!(3));
             obj.insert("shadow_age_seconds".to_string(), json!(30));
             obj.insert("confirmation".to_string(), json!("CONFIRM_COLLECTOR_AUTHORITY_PILOT_EXECUTION"));
+            obj.insert("collector_authority_switch_confirmation".to_string(), json!("CONFIRM_COLLECTOR_AUTHORITY_REHEARSAL"));
             obj.insert("rust_core".to_string(), json!({
                 "allow_rust_collector_authority": true,
                 "rust_collector_authority_pilot": true,

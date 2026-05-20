@@ -508,3 +508,7 @@ Adds `build-collector-authority-pilot-execution-contract`, a non-mutating contra
 ### Rust Core v4.3.1 Pilot Execution Recursion Hotfix
 
 Fixes a compile-time macro recursion issue in the collector authority pilot execution contract while keeping Python collectors authoritative and fail-safe defaults unchanged.
+
+### v4.3.2
+
+Fixes collector authority pilot execution readiness by separating switch-rehearsal confirmation from pilot-execution confirmation. This remains a non-mutating contract-only bridge.

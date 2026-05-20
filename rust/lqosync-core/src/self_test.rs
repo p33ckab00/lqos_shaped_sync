@@ -730,6 +730,7 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     let mut pilot_execution_payload = switch_payload.clone();
     if let Some(obj) = pilot_execution_payload.as_object_mut() {
         obj.insert("confirmation".to_string(), json!("CONFIRM_COLLECTOR_AUTHORITY_PILOT_EXECUTION"));
+        obj.insert("collector_authority_switch_confirmation".to_string(), json!("CONFIRM_COLLECTOR_AUTHORITY_REHEARSAL"));
         if let Some(rc) = obj.get_mut("rust_core").and_then(Value::as_object_mut) {
             rc.insert("collector_authority_pilot_execution_pilot".to_string(), json!(true));
             rc.insert("allow_collector_authority_pilot_execution_contract".to_string(), json!(true));

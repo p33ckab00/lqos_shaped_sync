@@ -859,5 +859,11 @@
     "file": "docs/RUST_CORE_V65_PYTHON_BACKEND_REMOVAL_EXECUTION.md",
     "anchor": "rust-core-v65-python-backend-removal-execution-contract",
     "summary": "Adds the first explicit Python backend removal execution contract while keeping Python fallback, WebUI/UX, and all mutation guards in place."
+  },
+  "rust.core_v66_full_rust_backend_removal_rehearsal": {
+    "title": "Rust Core v6.6 Full Rust Backend Removal Rehearsal",
+    "file": "docs/RUST_CORE_V66_FULL_RUST_BACKEND_REMOVAL_REHEARSAL.md",
+    "anchor": "rust-core-v66-full-rust-backend-removal-rehearsal",
+    "summary": "Final non-mutating rehearsal before a future v7.0 actual full Rust backend cutover / Python backend removal package."
   }
 }

@@ -469,3 +469,8 @@ Adds `build-rust-backend-production-enablement-contract`, the bridge after Pytho
 ## Rust Core v6.5 Python Backend Removal Execution Contract
 
 Adds `build-python-backend-removal-execution-contract`, the first explicit Python backend removal execution contract after Rust backend production enablement. It is still non-mutating: it can mark a Python-removal candidate but does not remove Python, disable Flask, switch API traffic, or enable Rust service authority. WebUI/UX remains unchanged and Python fallback remains mandatory.
+
+
+## Rust Core v6.6 Full Rust Backend Removal Rehearsal
+
+Adds `build-full-rust-backend-removal-rehearsal`, the final non-mutating rehearsal before a future v7.0 actual full Rust backend cutover / Python backend removal package. WebUI/UX remains unchanged and Python backend fallback remains mandatory.

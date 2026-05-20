@@ -887,3 +887,13 @@ git commit -m "rust(core): add Python backend removal execution contract" \
   -m "Add build-python-backend-removal-execution-contract, the first explicit Python backend removal execution contract after Rust backend production enablement while keeping Python fallback and WebUI/UX unchanged."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Rust Core v6.6 commit suggestion
+
+```bash
+git add .
+git commit -m "rust(core): add full Rust backend removal rehearsal" \
+  -m "Add build-full-rust-backend-removal-rehearsal, the final non-mutating rehearsal before v7 actual full Rust backend cutover and Python backend removal while preserving WebUI/UX and Python fallback."
+git push -u origin lqosync-in-rust
+```

@@ -283,3 +283,4 @@ Adds `evaluate-collector-authority-pilot-result`, a fail-safe evaluator for futu
 - [Rust Core v6.4 Rust Backend Production Enablement Contract](RUST_CORE_V64_RUST_BACKEND_PRODUCTION_ENABLEMENT.md) — candidate gate after Python backend retirement planning; non-mutating, WebUI/UX unchanged.
 
 - [Rust Core v6.5 Python Backend Removal Execution Contract](RUST_CORE_V65_PYTHON_BACKEND_REMOVAL_EXECUTION.md)
+- [Rust Core v6.6 Full Rust Backend Removal Rehearsal](RUST_CORE_V66_FULL_RUST_BACKEND_REMOVAL_REHEARSAL.md)

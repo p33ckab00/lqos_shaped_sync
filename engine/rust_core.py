@@ -5491,6 +5491,118 @@ def rust_build_python_backend_removal_execution_contract(config: dict, payload: 
         return _python_build_python_backend_removal_execution_contract(req_payload, started=started)
     return response
 
+
+
+def _python_build_full_rust_backend_removal_rehearsal(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rc = dict(((payload.get("config") or {}).get("rust_core") or payload.get("rust_core") or {}) if isinstance(payload, dict) else {})
+    allow = bool(rc.get("allow_full_rust_backend_removal_rehearsal"))
+    pilot = bool(rc.get("full_rust_backend_removal_rehearsal_pilot"))
+    mode = str(rc.get("full_rust_backend_removal_rehearsal_mode") or "rehearsal_only")
+    require_removal = rc.get("full_rust_backend_removal_rehearsal_require_removal_execution_contract", True) is not False
+    require_fallback = rc.get("full_rust_backend_removal_rehearsal_require_python_fallback", True) is not False
+    require_confirmation = rc.get("full_rust_backend_removal_rehearsal_require_manual_confirmation", True) is not False
+    require_webui = rc.get("full_rust_backend_removal_rehearsal_require_webui_unchanged", True) is not False
+    require_rollback = rc.get("full_rust_backend_removal_rehearsal_require_rollback_path", True) is not False
+    require_operator_ack = rc.get("full_rust_backend_removal_rehearsal_require_operator_ack", True) is not False
+    require_no_side_effects = rc.get("full_rust_backend_removal_rehearsal_require_no_side_effects", True) is not False
+    max_shadow_age = int(rc.get("full_rust_backend_removal_rehearsal_max_shadow_age_seconds") or 900)
+    shadow_age = int(payload.get("shadow_age_seconds") or 0)
+    confirmation_ok = (not require_confirmation) or payload.get("confirmation") == "CONFIRM_FULL_RUST_BACKEND_REMOVAL_REHEARSAL"
+    removal = payload.get("python_backend_removal_execution_contract") or payload.get("python_backend_removal_contract") or {}
+    if isinstance(removal, dict) and isinstance(removal.get("result"), dict):
+        removal = removal.get("result") or {}
+    if not isinstance(removal, dict) or not removal:
+        nested = dict(payload)
+        nested["confirmation"] = payload.get("python_backend_removal_execution_confirmation") or "CONFIRM_PYTHON_BACKEND_REMOVAL_EXECUTION_CONTRACT"
+        removal = rust_build_python_backend_removal_execution_contract(payload.get("config") or {}, nested).get("result") or {}
+    removal_ready = (
+        isinstance(removal, dict)
+        and removal.get("status") == "python_backend_removal_execution_contract_ready"
+        and removal.get("python_backend_removal_execution_contract_ready") is True
+        and removal.get("full_rust_backend_candidate") is True
+        and removal.get("python_backend_removal_candidate") is True
+        and removal.get("python_backend_removed") is False
+        and removal.get("api_traffic_switched_to_rust") is False
+        and removal.get("rust_service_runtime_authoritative") is False
+    )
+    webui_unchanged = bool(payload.get("webui_ux_unchanged", True)) and bool(payload.get("webui_static_asset_paths_unchanged", True)) and bool(removal.get("webui_ux_unchanged", True) if isinstance(removal, dict) else True)
+    rollback_path = str(payload.get("rollback_path") or "restore_python_backend_and_flask_routes")
+    rollback_ready = (not require_rollback) or bool(rollback_path.strip())
+    operator_ack = bool(payload.get("operator_full_rust_backend_removal_rehearsal_ack") or payload.get("operator_python_backend_removal_execution_ack") or payload.get("operator_acknowledged"))
+    side_effects = any(bool(payload.get(k)) for k in ["python_backend_removed", "python_backend_removable", "python_removal_allowed", "python_removal_executed", "flask_routes_disabled", "api_traffic_switched_to_rust", "rust_service_runtime_authoritative", "full_rust_backend_production_enabled", "generated_files_written", "libreqos_apply_executed", "remove_python", "disable_flask", "switch_api", "execute_removal", "execute_cutover"])
+    errors: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if bool(payload.get("execute")) or str(payload.get("mode") or "").lower() in {"execute", "remove-python", "disable-flask", "switch-api", "authoritative", "production", "cutover-now", "delete-python", "enable-rust"}:
+        errors.append({"code": "full_rust_backend_removal_rehearsal_execute_not_implemented", "severity": "error", "path": "full_rust_backend_removal_rehearsal", "message": "Python fallback cannot remove Python or switch production authority."})
+    if require_removal and not removal_ready:
+        warnings.append({"code": "full_rust_backend_removal_rehearsal_removal_contract_not_ready", "severity": "warning", "path": "python_backend_removal_execution_contract", "message": "Python backend removal execution contract has not passed."})
+    if require_confirmation and not confirmation_ok:
+        warnings.append({"code": "full_rust_backend_removal_rehearsal_confirmation_required", "severity": "warning", "path": "confirmation", "message": "Full Rust backend removal rehearsal confirmation is required."})
+    if not require_fallback:
+        errors.append({"code": "full_rust_backend_removal_rehearsal_requires_python_fallback", "severity": "error", "path": "rust_core.full_rust_backend_removal_rehearsal_require_python_fallback", "message": "v6.6 still requires Python backend fallback."})
+    if require_webui and not webui_unchanged:
+        warnings.append({"code": "full_rust_backend_removal_rehearsal_webui_changed", "severity": "warning", "path": "webui_ux_unchanged", "message": "WebUI/UX must remain unchanged."})
+    if require_rollback and not rollback_ready:
+        warnings.append({"code": "full_rust_backend_removal_rehearsal_rollback_path_required", "severity": "warning", "path": "rollback_path", "message": "Rollback path is required."})
+    if require_operator_ack and not operator_ack:
+        warnings.append({"code": "full_rust_backend_removal_rehearsal_operator_ack_required", "severity": "warning", "path": "operator_full_rust_backend_removal_rehearsal_ack", "message": "Operator acknowledgment is required."})
+    if require_no_side_effects and side_effects:
+        errors.append({"code": "full_rust_backend_removal_rehearsal_side_effect_detected", "severity": "error", "path": "full_rust_backend_removal_rehearsal", "message": "Mutation side effects are forbidden in v6.6."})
+    if shadow_age > max_shadow_age:
+        warnings.append({"code": "full_rust_backend_removal_rehearsal_shadow_stale", "severity": "warning", "path": "shadow_age_seconds", "message": "Rust-shadow data is stale."})
+    gates_ready = bool(allow and pilot and mode == "rehearsal_only")
+    if not gates_ready:
+        warnings.append({"code": "full_rust_backend_removal_rehearsal_gates_not_enabled", "severity": "warning", "path": "rust_core", "message": "Full Rust backend removal rehearsal gates are not fully enabled."})
+    ready = not errors and gates_ready and confirmation_ok and (removal_ready or not require_removal) and webui_unchanged and rollback_ready and operator_ack and require_fallback and not side_effects and shadow_age <= max_shadow_age
+    review = not errors and removal_ready and webui_unchanged and rollback_ready and not side_effects
+    status = "blocked" if errors else ("full_rust_backend_removal_rehearsal_ready" if ready else ("full_rust_backend_removal_rehearsal_review" if review else "full_rust_backend_removal_rehearsal_shadow_only"))
+    return {
+        "version": "1",
+        "op": "build-full-rust-backend-removal-rehearsal",
+        "ok": not errors,
+        "result": {
+            "mode": "full_rust_backend_removal_rehearsal",
+            "status": status,
+            "full_rust_backend_removal_rehearsal_ready": ready,
+            "full_rust_backend_candidate": ready,
+            "python_backend_retirement_candidate": ready,
+            "python_backend_removal_candidate": ready,
+            "python_backend_removal_execution_status": removal.get("status") if isinstance(removal, dict) else None,
+            "python_backend_removal_execution_ready": removal_ready,
+            "webui_ux_unchanged": webui_unchanged,
+            "rollback_path": rollback_path,
+            "rollback_ready": rollback_ready,
+            "operator_full_rust_backend_removal_rehearsal_ack": operator_ack,
+            "python_backend_fallback_required": True,
+            "full_rust_backend": False,
+            "full_rust_backend_production_enabled": False,
+            "python_backend_removed": False,
+            "python_backend_removable": False,
+            "python_removal_allowed": False,
+            "python_removal_executed": False,
+            "flask_routes_disabled": False,
+            "api_traffic_switched_to_rust": False,
+            "rust_service_runtime_authoritative": False,
+            "next_stage": "v7_actual_full_rust_backend_cutover_python_removal",
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "full_rust_backend_removal_rehearsal_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_full_rust_backend_removal_rehearsal(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-full-rust-backend-removal-rehearsal", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_full_rust_backend_removal_rehearsal(req_payload, started=started)
+    return response
+
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

@@ -310,7 +310,7 @@
     },
     {
       "path": "docs/RUST_CORE_V441_PILOT_RESULT_RECURSION_HOTFIX.md",
-      "title": "Rust Core v4.4.1 \u2014 Pilot Result Recursion Hotfix",
+      "title": "Rust Core v4.4.1 — Pilot Result Recursion Hotfix",
       "tags": [
         "rust",
         "collector-authority",
@@ -430,7 +430,7 @@
     "title": "Custom Policy Mode Persistence Hotfix",
     "file": "docs/content/custom_policy_mode_persistence.md",
     "anchor": "custom-policy-mode-persistence-hotfix",
-    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center \u2192 Policies."
+    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center → Policies."
   },
   "policy_overview_custom_wiring_hotfix": {
     "title": "Policy Overview Custom Wiring Hotfix",
@@ -811,5 +811,11 @@
     "file": "docs/RUST_CORE_V57_RUST_SYNC_ENGINE_AUTHORITY_HANDOFF.md",
     "anchor": "rust-core-v57-rust-sync-engine-authority-handoff-contract",
     "summary": "Adds the Rust sync engine authority handoff contract after circuit builder authority, preserving WebUI/UX and Python fallback."
+  },
+  "rust.core_v58_apply_journal_rollback_handoff": {
+    "title": "Rust Core v5.8 Rust Apply/Journal/Rollback Authority Handoff Contract",
+    "file": "docs/RUST_CORE_V58_RUST_APPLY_JOURNAL_ROLLBACK_AUTHORITY_HANDOFF.md",
+    "anchor": "rust-core-v58-rust-apply-journal-rollback-authority-handoff-contract",
+    "summary": "Adds the Rust apply/journal/rollback authority handoff contract after sync engine authority while keeping Python authoritative and WebUI/UX unchanged."
   }
 }

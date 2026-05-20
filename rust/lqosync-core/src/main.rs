@@ -52,6 +52,7 @@ use lqosync_core::rust_config_state_authority_handoff::build_rust_config_state_a
 use lqosync_core::rust_live_collector_authority_handoff::build_rust_live_collector_authority_handoff_contract_payload;
 use lqosync_core::rust_circuit_builder_authority_handoff::build_rust_circuit_builder_authority_handoff_contract_payload;
 use lqosync_core::rust_sync_engine_authority_handoff::build_rust_sync_engine_authority_handoff_contract_payload;
+use lqosync_core::rust_apply_journal_rollback_authority_handoff::build_rust_apply_journal_rollback_authority_handoff_contract_payload;
 use lqosync_core::self_test::{advertised_operations, self_test_payload};
 use lqosync_core::shaped_devices::{parse_csv_text, render_csv_text, validate_rows};
 use lqosync_core::sync_plan::evaluate_sync_plan_payload;
@@ -390,6 +391,10 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
         }
         "build-rust-sync-engine-authority-handoff-contract" => {
             let (result, errors, warnings) = build_rust_sync_engine_authority_handoff_contract_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "build-rust-apply-journal-rollback-authority-handoff-contract" => {
+            let (result, errors, warnings) = build_rust_apply_journal_rollback_authority_handoff_contract_payload(&req.payload);
             Ok(CoreResponse::validation(req, result, errors, warnings, started))
         }
         "build-collector-circuit-bundle" => {

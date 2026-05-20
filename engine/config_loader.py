@@ -288,6 +288,18 @@ DEFAULT_CONFIG = {
         "rust_sync_engine_authority_handoff_require_cleanup_safety": True,
         "rust_sync_engine_authority_handoff_require_no_side_effects": True,
         "rust_sync_engine_authority_handoff_max_shadow_age_seconds": 900,
+        "rust_apply_journal_rollback_authority_handoff_contract_pilot": False,
+        "allow_rust_apply_journal_rollback_authority_handoff_contract": False,
+        "rust_apply_journal_rollback_authority_handoff_mode": "contract_only",
+        "rust_apply_journal_rollback_authority_handoff_require_sync_engine_authority": True,
+        "rust_apply_journal_rollback_authority_handoff_require_python_fallback": True,
+        "rust_apply_journal_rollback_authority_handoff_require_manual_confirmation": True,
+        "rust_apply_journal_rollback_authority_handoff_require_apply_shadow": True,
+        "rust_apply_journal_rollback_authority_handoff_require_journal_shadow": True,
+        "rust_apply_journal_rollback_authority_handoff_require_rollback_shadow": True,
+        "rust_apply_journal_rollback_authority_handoff_require_audit_shadow": True,
+        "rust_apply_journal_rollback_authority_handoff_require_no_side_effects": True,
+        "rust_apply_journal_rollback_authority_handoff_max_shadow_age_seconds": 900,
     },
     "collector": {
         "selective_fields": True,
@@ -888,6 +900,18 @@ def validate_config(cfg: dict):
     rust_core.setdefault("rust_sync_engine_authority_handoff_require_cleanup_safety", True)
     rust_core.setdefault("rust_sync_engine_authority_handoff_require_no_side_effects", True)
     rust_core.setdefault("rust_sync_engine_authority_handoff_max_shadow_age_seconds", 900)
+    rust_core.setdefault("rust_apply_journal_rollback_authority_handoff_contract_pilot", False)
+    rust_core.setdefault("allow_rust_apply_journal_rollback_authority_handoff_contract", False)
+    rust_core.setdefault("rust_apply_journal_rollback_authority_handoff_mode", "contract_only")
+    rust_core.setdefault("rust_apply_journal_rollback_authority_handoff_require_sync_engine_authority", True)
+    rust_core.setdefault("rust_apply_journal_rollback_authority_handoff_require_python_fallback", True)
+    rust_core.setdefault("rust_apply_journal_rollback_authority_handoff_require_manual_confirmation", True)
+    rust_core.setdefault("rust_apply_journal_rollback_authority_handoff_require_apply_shadow", True)
+    rust_core.setdefault("rust_apply_journal_rollback_authority_handoff_require_journal_shadow", True)
+    rust_core.setdefault("rust_apply_journal_rollback_authority_handoff_require_rollback_shadow", True)
+    rust_core.setdefault("rust_apply_journal_rollback_authority_handoff_require_audit_shadow", True)
+    rust_core.setdefault("rust_apply_journal_rollback_authority_handoff_require_no_side_effects", True)
+    rust_core.setdefault("rust_apply_journal_rollback_authority_handoff_max_shadow_age_seconds", 900)
     if rust_core.get("authority_mode") not in ("shadow", "enforce_blockers"):
         errors.append(f"rust_core.authority_mode invalid: {rust_core.get('authority_mode')}")
     if rust_core.get("routeros_read_pilot_adapter") not in ("fixture", "disabled"):

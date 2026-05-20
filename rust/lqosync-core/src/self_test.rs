@@ -45,6 +45,7 @@ use crate::rust_config_state_authority_handoff::build_rust_config_state_authorit
 use crate::rust_live_collector_authority_handoff::build_rust_live_collector_authority_handoff_contract_payload;
 use crate::rust_circuit_builder_authority_handoff::build_rust_circuit_builder_authority_handoff_contract_payload;
 use crate::rust_sync_engine_authority_handoff::build_rust_sync_engine_authority_handoff_contract_payload;
+use crate::rust_apply_journal_rollback_authority_handoff::build_rust_apply_journal_rollback_authority_handoff_contract_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -103,6 +104,7 @@ pub const OP_BUILD_RUST_CONFIG_STATE_AUTHORITY_HANDOFF_CONTRACT: &str = "build-r
 pub const OP_BUILD_RUST_LIVE_COLLECTOR_AUTHORITY_HANDOFF_CONTRACT: &str = "build-rust-live-collector-authority-handoff-contract";
 pub const OP_BUILD_RUST_CIRCUIT_BUILDER_AUTHORITY_HANDOFF_CONTRACT: &str = "build-rust-circuit-builder-authority-handoff-contract";
 pub const OP_BUILD_RUST_SYNC_ENGINE_AUTHORITY_HANDOFF_CONTRACT: &str = "build-rust-sync-engine-authority-handoff-contract";
+pub const OP_BUILD_RUST_APPLY_JOURNAL_ROLLBACK_AUTHORITY_HANDOFF_CONTRACT: &str = "build-rust-apply-journal-rollback-authority-handoff-contract";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -175,6 +177,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_RUST_LIVE_COLLECTOR_AUTHORITY_HANDOFF_CONTRACT,
         OP_BUILD_RUST_CIRCUIT_BUILDER_AUTHORITY_HANDOFF_CONTRACT,
         OP_BUILD_RUST_SYNC_ENGINE_AUTHORITY_HANDOFF_CONTRACT,
+        OP_BUILD_RUST_APPLY_JOURNAL_ROLLBACK_AUTHORITY_HANDOFF_CONTRACT,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -1299,6 +1302,52 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     })));
     if !sync_engine_handoff_ok {
         errors.push(Diagnostic::error("self_test_rust_sync_engine_authority_handoff_failed", Some("build-rust-sync-engine-authority-handoff-contract".to_string()), "Self-test Rust sync engine authority handoff contract should report ready without switching sync engine authority."));
+    }
+
+    let mut apply_journal_handoff_payload = sync_engine_handoff_payload.clone();
+    if let Some(obj) = apply_journal_handoff_payload.as_object_mut() {
+        obj.insert("confirmation".to_string(), json!("CONFIRM_RUST_APPLY_JOURNAL_ROLLBACK_AUTHORITY_HANDOFF_CONTRACT"));
+        obj.insert("rust_sync_engine_authority_handoff_contract".to_string(), json!(sync_engine_handoff.clone()));
+        obj.insert("apply_transaction_shadow_ready".to_string(), json!(true));
+        obj.insert("apply_manifest_replay_ready".to_string(), json!(true));
+        obj.insert("apply_transaction_shadow_blocker_count".to_string(), json!(0));
+        obj.insert("transaction_journal_shadow_ready".to_string(), json!(true));
+        obj.insert("journal_replay_parity_ready".to_string(), json!(true));
+        obj.insert("transaction_journal_shadow_error_count".to_string(), json!(0));
+        obj.insert("rollback_manifest_shadow_ready".to_string(), json!(true));
+        obj.insert("rollback_dry_run_ready".to_string(), json!(true));
+        obj.insert("rollback_shadow_blocker_count".to_string(), json!(0));
+        obj.insert("audit_shadow_ready".to_string(), json!(true));
+        obj.insert("audit_redaction_ready".to_string(), json!(true));
+        obj.insert("audit_shadow_error_count".to_string(), json!(0));
+        if let Some(rc) = obj.get_mut("rust_core").and_then(Value::as_object_mut) {
+            rc.insert("rust_apply_journal_rollback_authority_handoff_contract_pilot".to_string(), json!(true));
+            rc.insert("allow_rust_apply_journal_rollback_authority_handoff_contract".to_string(), json!(true));
+            rc.insert("rust_apply_journal_rollback_authority_handoff_mode".to_string(), json!("contract_only"));
+            rc.insert("rust_apply_journal_rollback_authority_handoff_require_sync_engine_authority".to_string(), json!(true));
+            rc.insert("rust_apply_journal_rollback_authority_handoff_require_python_fallback".to_string(), json!(true));
+            rc.insert("rust_apply_journal_rollback_authority_handoff_require_manual_confirmation".to_string(), json!(true));
+            rc.insert("rust_apply_journal_rollback_authority_handoff_require_apply_shadow".to_string(), json!(true));
+            rc.insert("rust_apply_journal_rollback_authority_handoff_require_journal_shadow".to_string(), json!(true));
+            rc.insert("rust_apply_journal_rollback_authority_handoff_require_rollback_shadow".to_string(), json!(true));
+            rc.insert("rust_apply_journal_rollback_authority_handoff_require_audit_shadow".to_string(), json!(true));
+            rc.insert("rust_apply_journal_rollback_authority_handoff_require_no_side_effects".to_string(), json!(true));
+            rc.insert("rust_apply_journal_rollback_authority_handoff_max_shadow_age_seconds".to_string(), json!(900));
+        }
+    }
+    let (apply_journal_handoff, apply_journal_handoff_errors, _apply_journal_handoff_warnings) = build_rust_apply_journal_rollback_authority_handoff_contract_payload(&apply_journal_handoff_payload);
+    let apply_journal_handoff_ok = apply_journal_handoff_errors.is_empty()
+        && apply_journal_handoff.get("status").and_then(Value::as_str) == Some("rust_apply_journal_rollback_authority_handoff_contract_ready")
+        && apply_journal_handoff.get("rust_apply_journal_rollback_authority_handoff_ready").and_then(Value::as_bool) == Some(true)
+        && apply_journal_handoff.get("rust_apply_journal_rollback_authoritative").and_then(Value::as_bool) == Some(false)
+        && apply_journal_handoff.get("python_apply_journal_rollback_authoritative").and_then(Value::as_bool) == Some(true);
+    checks.push(check("rust_apply_journal_rollback_authority_handoff_contract", apply_journal_handoff_ok, json!({
+        "status": apply_journal_handoff.get("status"),
+        "rust_apply_journal_rollback_authority_handoff_ready": apply_journal_handoff.get("rust_apply_journal_rollback_authority_handoff_ready"),
+        "rust_apply_journal_rollback_authoritative": apply_journal_handoff.get("rust_apply_journal_rollback_authoritative")
+    })));
+    if !apply_journal_handoff_ok {
+        errors.push(Diagnostic::error("self_test_rust_apply_journal_rollback_authority_handoff_failed", Some("build-rust-apply-journal-rollback-authority-handoff-contract".to_string()), "Self-test Rust apply/journal/rollback authority handoff contract should report ready without switching apply/journal/rollback authority."));
     }
 
     let collector_bundle_payload = json!({

@@ -759,6 +759,18 @@
     "rust_sync_engine_authority_handoff_require_apply_manifest_preview": true,
     "rust_sync_engine_authority_handoff_require_cleanup_safety": true,
     "rust_sync_engine_authority_handoff_require_no_side_effects": true,
-    "rust_sync_engine_authority_handoff_max_shadow_age_seconds": 900
+    "rust_sync_engine_authority_handoff_max_shadow_age_seconds": 900,
+    "rust_apply_journal_rollback_authority_handoff_contract_pilot": false,
+    "allow_rust_apply_journal_rollback_authority_handoff_contract": false,
+    "rust_apply_journal_rollback_authority_handoff_mode": "contract_only",
+    "rust_apply_journal_rollback_authority_handoff_require_sync_engine_authority": true,
+    "rust_apply_journal_rollback_authority_handoff_require_python_fallback": true,
+    "rust_apply_journal_rollback_authority_handoff_require_manual_confirmation": true,
+    "rust_apply_journal_rollback_authority_handoff_require_apply_shadow": true,
+    "rust_apply_journal_rollback_authority_handoff_require_journal_shadow": true,
+    "rust_apply_journal_rollback_authority_handoff_require_rollback_shadow": true,
+    "rust_apply_journal_rollback_authority_handoff_require_audit_shadow": true,
+    "rust_apply_journal_rollback_authority_handoff_require_no_side_effects": true,
+    "rust_apply_journal_rollback_authority_handoff_max_shadow_age_seconds": 900
   }
 }

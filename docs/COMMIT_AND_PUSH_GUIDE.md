@@ -807,3 +807,13 @@ git commit -m "rust(core): add Rust sync engine authority handoff contract" \
   -m "Add build-rust-sync-engine-authority-handoff-contract, the sync engine authority bridge after circuit builder authority while keeping Python sync engine authoritative and WebUI/UX unchanged."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Rust Core v5.8 commit suggestion
+
+```bash
+git add .
+git commit -m "rust(core): add Rust apply journal rollback authority handoff contract" \
+  -m "Add build-rust-apply-journal-rollback-authority-handoff-contract, the apply/journal/rollback authority bridge after sync engine authority while keeping Python backend fallback and WebUI/UX unchanged."
+git push -u origin lqosync-in-rust
+```

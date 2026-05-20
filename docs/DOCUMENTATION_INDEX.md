@@ -269,3 +269,5 @@ Adds `evaluate-collector-authority-pilot-result`, a fail-safe evaluator for futu
 - [Rust Core v5.6 Rust Circuit Builder Authority Handoff Contract](RUST_CORE_V56_RUST_CIRCUIT_BUILDER_AUTHORITY_HANDOFF.md) — circuit builder authority handoff while keeping Python fallback.
 
 - [Rust Core v5.7 Rust Sync Engine Authority Handoff Contract](RUST_CORE_V57_RUST_SYNC_ENGINE_AUTHORITY_HANDOFF.md)
+
+- [Rust Core v5.8 Rust Apply/Journal/Rollback Authority Handoff Contract](RUST_CORE_V58_RUST_APPLY_JOURNAL_ROLLBACK_AUTHORITY_HANDOFF.md)

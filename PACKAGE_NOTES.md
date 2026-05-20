@@ -429,3 +429,8 @@ LQoSync `2.126.0-rc1` / `lqosync-core 5.6.0` adds `build-rust-circuit-builder-au
 ## Rust Core v5.7 Rust Sync Engine Authority Handoff Contract
 
 Adds `build-rust-sync-engine-authority-handoff-contract`, the sync engine authority bridge after circuit builder authority handoff. It verifies sync-plan shadow output, diff parity, apply-manifest preview, cleanup safety, and Python fallback while keeping WebUI/UX unchanged and Python sync engine authoritative.
+
+
+## Rust Core v5.8 Rust Apply/Journal/Rollback Authority Handoff Contract
+
+Adds `build-rust-apply-journal-rollback-authority-handoff-contract`, the next full-Rust-backend bridge after sync engine authority. It prepares Rust ownership of apply transaction, transaction journal, rollback manifest/executor, and audit paths while keeping Python authoritative and WebUI/UX unchanged.

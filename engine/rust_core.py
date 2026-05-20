@@ -4674,6 +4674,105 @@ def rust_build_rust_sync_engine_authority_handoff_contract(config: dict, payload
     return response
 
 
+
+def _python_build_rust_apply_journal_rollback_authority_handoff_contract(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rc = dict(((payload.get("config") or {}).get("rust_core") or payload.get("rust_core") or {}) if isinstance(payload, dict) else {})
+    allow = bool(rc.get("allow_rust_apply_journal_rollback_authority_handoff_contract"))
+    pilot = bool(rc.get("rust_apply_journal_rollback_authority_handoff_contract_pilot"))
+    mode = str(rc.get("rust_apply_journal_rollback_authority_handoff_mode") or "contract_only")
+    require_sync = rc.get("rust_apply_journal_rollback_authority_handoff_require_sync_engine_authority", True) is not False
+    require_fallback = rc.get("rust_apply_journal_rollback_authority_handoff_require_python_fallback", True) is not False
+    require_confirmation = rc.get("rust_apply_journal_rollback_authority_handoff_require_manual_confirmation", True) is not False
+    require_apply = rc.get("rust_apply_journal_rollback_authority_handoff_require_apply_shadow", True) is not False
+    require_journal = rc.get("rust_apply_journal_rollback_authority_handoff_require_journal_shadow", True) is not False
+    require_rollback = rc.get("rust_apply_journal_rollback_authority_handoff_require_rollback_shadow", True) is not False
+    require_audit = rc.get("rust_apply_journal_rollback_authority_handoff_require_audit_shadow", True) is not False
+    require_no_side_effects = rc.get("rust_apply_journal_rollback_authority_handoff_require_no_side_effects", True) is not False
+    max_shadow_age = int(rc.get("rust_apply_journal_rollback_authority_handoff_max_shadow_age_seconds") or 900)
+    shadow_age = int(payload.get("shadow_age_seconds") or 0)
+    confirmation_ok = (not require_confirmation) or payload.get("confirmation") == "CONFIRM_RUST_APPLY_JOURNAL_ROLLBACK_AUTHORITY_HANDOFF_CONTRACT"
+
+    sync = payload.get("rust_sync_engine_authority_handoff_contract") or payload.get("sync_engine_authority_handoff_contract") or {}
+    if isinstance(sync, dict) and isinstance(sync.get("result"), dict):
+        sync = sync.get("result") or {}
+    sync_ready = isinstance(sync, dict) and sync.get("status") == "rust_sync_engine_authority_handoff_contract_ready" and sync.get("rust_sync_engine_authority_handoff_ready") is True and sync.get("rust_sync_engine_authoritative") is False and sync.get("python_sync_engine_authoritative", True) is True
+    apply_ready = (not require_apply) or (bool(payload.get("apply_transaction_shadow_ready")) and bool(payload.get("apply_manifest_replay_ready")) and int(payload.get("apply_transaction_shadow_blocker_count") or 0) == 0)
+    journal_ready = (not require_journal) or (bool(payload.get("transaction_journal_shadow_ready")) and bool(payload.get("journal_replay_parity_ready")) and int(payload.get("transaction_journal_shadow_error_count") or 0) == 0)
+    rollback_ready = (not require_rollback) or (bool(payload.get("rollback_manifest_shadow_ready")) and bool(payload.get("rollback_dry_run_ready")) and int(payload.get("rollback_shadow_blocker_count") or 0) == 0)
+    audit_ready = (not require_audit) or (bool(payload.get("audit_shadow_ready")) and bool(payload.get("audit_redaction_ready")) and int(payload.get("audit_shadow_error_count") or 0) == 0)
+    side_effect_free = not any([
+        payload.get("apply_authority_switched_to_rust"), payload.get("journal_authority_switched_to_rust"), payload.get("rollback_authority_switched_to_rust"), payload.get("python_backend_removed"), payload.get("shaped_devices_write_attempted"), payload.get("config_write_attempted"), payload.get("state_write_attempted"), payload.get("audit_write_attempted"), payload.get("journal_append_attempted"), payload.get("rollback_execute_attempted"), payload.get("apply_attempted"), payload.get("cleanup_attempted"),
+    ])
+    gates_ready = bool(allow and pilot and mode == "contract_only")
+    errors: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if bool(payload.get("execute")) or str(payload.get("mode") or "").lower() in {"execute", "commit", "switch", "remove-python", "replace-apply", "production", "authoritative", "apply-live", "journal-live", "rollback-live"}:
+        errors.append({"code": "rust_apply_journal_rollback_authority_handoff_execute_not_implemented", "severity": "error", "path": "rust_apply_journal_rollback_authority_handoff_contract", "message": "Python fallback cannot execute apply/journal/rollback authority handoff or remove Python."})
+    if require_sync and not sync_ready:
+        warnings.append({"code": "rust_apply_journal_rollback_authority_handoff_sync_engine_not_ready", "severity": "warning", "path": "rust_sync_engine_authority_handoff_contract", "message": "Sync engine authority handoff has not passed."})
+    if require_confirmation and not confirmation_ok:
+        warnings.append({"code": "rust_apply_journal_rollback_authority_handoff_confirmation_required", "severity": "warning", "path": "confirmation", "message": "Apply/journal/rollback authority handoff confirmation is required."})
+    if not require_fallback:
+        errors.append({"code": "rust_apply_journal_rollback_authority_handoff_requires_python_fallback", "severity": "error", "path": "rust_core.rust_apply_journal_rollback_authority_handoff_require_python_fallback", "message": "v5.8 still requires Python backend fallback."})
+    if not all([apply_ready, journal_ready, rollback_ready, audit_ready]):
+        warnings.append({"code": "rust_apply_journal_rollback_authority_handoff_shadow_requirements_missing", "severity": "warning", "path": "apply_transaction_shadow_ready", "message": "One or more apply/journal/rollback shadow requirements are missing."})
+    if require_no_side_effects and not side_effect_free:
+        errors.append({"code": "rust_apply_journal_rollback_authority_handoff_side_effect_detected", "severity": "error", "path": "rust_apply_journal_rollback_authority_handoff_contract", "message": "Apply/journal/rollback handoff side effects are forbidden."})
+    if shadow_age > max_shadow_age:
+        warnings.append({"code": "rust_apply_journal_rollback_authority_handoff_shadow_stale", "severity": "warning", "path": "shadow_age_seconds", "message": "Rust-shadow data is stale."})
+    if not gates_ready:
+        warnings.append({"code": "rust_apply_journal_rollback_authority_handoff_gates_not_enabled", "severity": "warning", "path": "rust_core", "message": "Apply/journal/rollback authority handoff gates are not enabled."})
+
+    ready = not errors and gates_ready and confirmation_ok and (sync_ready or not require_sync) and require_fallback and apply_ready and journal_ready and rollback_ready and audit_ready and side_effect_free and shadow_age <= max_shadow_age
+    review = not errors and sync_ready and apply_ready and journal_ready and rollback_ready and audit_ready and side_effect_free
+    status = "blocked" if errors else ("rust_apply_journal_rollback_authority_handoff_contract_ready" if ready else ("rust_apply_journal_rollback_authority_handoff_contract_review" if review else "rust_apply_journal_rollback_authority_handoff_contract_shadow_only"))
+    return {
+        "version": "1",
+        "op": "build-rust-apply-journal-rollback-authority-handoff-contract",
+        "ok": not errors,
+        "result": {
+            "mode": "rust_apply_journal_rollback_authority_handoff_contract",
+            "status": status,
+            "rust_apply_journal_rollback_authority_handoff_ready": ready,
+            "sync_engine_authority_handoff_ready": sync_ready,
+            "apply_transaction_shadow_ready": apply_ready,
+            "transaction_journal_shadow_ready": journal_ready,
+            "rollback_manifest_shadow_ready": rollback_ready,
+            "audit_shadow_ready": audit_ready,
+            "webui_ux_unchanged": True,
+            "full_rust_backend": False,
+            "python_backend_removable": False,
+            "python_backend_removed": False,
+            "python_backend_required": True,
+            "python_backend_fallback_required": True,
+            "python_apply_journal_rollback_authoritative": True,
+            "rust_apply_journal_rollback_authoritative": False,
+            "python_sync_engine_authoritative": True,
+            "rust_sync_engine_authoritative": False,
+            "safe_for_cleanup": False,
+            "write_allowed": False,
+            "apply_allowed": False,
+            "journal_append_allowed": False,
+            "rollback_execute_allowed": False,
+            "next_stage": "rust_backend_service_runtime_handoff_contract",
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_rust_apply_journal_rollback_authority_handoff_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_rust_apply_journal_rollback_authority_handoff_contract(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-rust-apply-journal-rollback-authority-handoff-contract", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_rust_apply_journal_rollback_authority_handoff_contract(req_payload, started=started)
+    return response
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

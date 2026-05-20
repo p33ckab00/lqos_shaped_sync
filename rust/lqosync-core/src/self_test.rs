@@ -1804,6 +1804,7 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
         obj.insert("python_backend_unexpectedly_running".to_string(), json!(false));
         obj.insert("flask_routes_reappeared".to_string(), json!(false));
         obj.insert("api_traffic_routed_to_python".to_string(), json!(false));
+        obj.insert("webui_ux_unchanged".to_string(), json!(true));
         obj.insert("webui_static_asset_paths_unchanged".to_string(), json!(true));
         obj.insert("webui_static_assets_preserved".to_string(), json!(true));
         obj.insert("operator_full_rust_backend_steady_state_ack".to_string(), json!(true));

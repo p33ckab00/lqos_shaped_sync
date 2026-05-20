@@ -957,3 +957,13 @@ git commit -m "rust(core): fix steady-state guard webui path self-test gate" \
   -m "Fix v7.3.1 aggregate steady-state guard self-test by adding the missing webui_static_asset_paths_unchanged gate alongside webui_static_assets_preserved while keeping WebUI/UX and rollback safety enforced."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Rust Core v7.3.3 hotfix commit
+
+```bash
+git add .
+git commit -m "rust(core): fix steady-state guard webui ux self-test gate" \
+  -m "Fix v7.3.2 aggregate steady-state guard self-test by adding the missing top-level webui_ux_unchanged gate alongside WebUI static asset preservation gates."
+git push -u origin lqosync-in-rust
+```

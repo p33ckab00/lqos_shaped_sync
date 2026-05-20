@@ -294,3 +294,4 @@ Adds `evaluate-collector-authority-pilot-result`, a fail-safe evaluator for futu
 - [Rust Core v7.3 Full Rust Backend Steady-State Guard](RUST_CORE_V73_FULL_RUST_BACKEND_STEADY_STATE_GUARD.md)
 - [Rust Core v7.3.1 Steady-State Guard Hotfix](RUST_CORE_V731_STEADY_STATE_GUARD_HOTFIX.md) — fixes the aggregate steady-state guard self-test fixture.
 - [Rust Core v7.3.2 Steady-State Guard Self-Test Hotfix](RUST_CORE_V732_STEADY_STATE_GUARD_HOTFIX.md) — Adds the missing WebUI static asset path gate to the aggregate steady-state self-test.
+- [Rust Core v7.3.3 Steady-State Guard Hotfix](RUST_CORE_V733_STEADY_STATE_GUARD_HOTFIX.md) — Adds missing top-level `webui_ux_unchanged` gate to aggregate steady-state self-test payload.

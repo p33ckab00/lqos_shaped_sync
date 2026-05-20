@@ -28,6 +28,7 @@ use crate::collector_authority_selection::build_collector_authority_selection_pa
 use crate::collector_authority_dry_run::build_collector_authority_dry_run_bundle_payload;
 use crate::collector_run_cycle_shadow::build_run_cycle_rust_shadow_report_payload;
 use crate::collector_authority_activation::build_collector_authority_activation_plan_payload;
+use crate::collector_authority_runtime::build_collector_authority_runtime_contract_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -69,6 +70,7 @@ pub const OP_BUILD_COLLECTOR_AUTHORITY_SELECTION: &str = "build-collector-author
 pub const OP_BUILD_COLLECTOR_AUTHORITY_DRY_RUN_BUNDLE: &str = "build-collector-authority-dry-run-bundle";
 pub const OP_BUILD_RUN_CYCLE_RUST_SHADOW_REPORT: &str = "build-run-cycle-rust-shadow-report";
 pub const OP_BUILD_COLLECTOR_AUTHORITY_ACTIVATION_PLAN: &str = "build-collector-authority-activation-plan";
+pub const OP_BUILD_COLLECTOR_AUTHORITY_RUNTIME_CONTRACT: &str = "build-collector-authority-runtime-contract";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -124,6 +126,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_COLLECTOR_AUTHORITY_DRY_RUN_BUNDLE,
         OP_BUILD_RUN_CYCLE_RUST_SHADOW_REPORT,
         OP_BUILD_COLLECTOR_AUTHORITY_ACTIVATION_PLAN,
+        OP_BUILD_COLLECTOR_AUTHORITY_RUNTIME_CONTRACT,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -663,6 +666,33 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     if !activation_ok {
         errors.push(Diagnostic::error("self_test_collector_authority_activation_failed", Some("build-collector-authority-activation-plan".to_string()), "Self-test collector authority activation plan should become ready only as a non-mutating pilot with Python fallback retained."));
     }
+
+    let mut runtime_payload = activation_payload.clone();
+    if let Some(obj) = runtime_payload.as_object_mut() {
+        obj.insert("shadow_age_seconds".to_string(), json!(30));
+        if let Some(rc) = obj.get_mut("rust_core").and_then(Value::as_object_mut) {
+            rc.insert("collector_authority_runtime_pilot".to_string(), json!(true));
+            rc.insert("allow_collector_authority_runtime_contract".to_string(), json!(true));
+            rc.insert("collector_authority_runtime_mode".to_string(), json!("rust_collector_authority_runtime_contract"));
+            rc.insert("collector_authority_runtime_require_activation_plan".to_string(), json!(true));
+            rc.insert("collector_authority_runtime_require_python_fallback".to_string(), json!(true));
+            rc.insert("collector_authority_runtime_max_shadow_age_seconds".to_string(), json!(900));
+        }
+    }
+    let (runtime_contract, runtime_errors, _runtime_warnings) = build_collector_authority_runtime_contract_payload(&runtime_payload);
+    let runtime_ok = runtime_errors.is_empty()
+        && runtime_contract.get("status").and_then(Value::as_str) == Some("collector_authority_runtime_contract_ready")
+        && runtime_contract.get("production_collector_authority_switched").and_then(Value::as_bool) == Some(false)
+        && runtime_contract.get("rust_can_drive_cleanup").and_then(Value::as_bool) == Some(false);
+    checks.push(check("collector_authority_runtime_contract", runtime_ok, json!({
+        "status": runtime_contract.get("status"),
+        "collector_authority": runtime_contract.get("collector_authority"),
+        "runtime_contract_only": runtime_contract.get("runtime_contract_only")
+    })));
+    if !runtime_ok {
+        errors.push(Diagnostic::error("self_test_collector_authority_runtime_failed", Some("build-collector-authority-runtime-contract".to_string()), "Self-test collector authority runtime contract should become ready only as a non-mutating pilot with Python fallback retained."));
+    }
+
 
     let collector_bundle_payload = json!({
         "router": {"name":"RB5009", "pppoe":{"per_plan_node":true, "plan_node_name":"{profile}-{router}"}},

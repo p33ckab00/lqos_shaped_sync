@@ -217,3 +217,8 @@ Adds `build-routeros-auth-session-contract`, a redacted authenticated-session co
 - [Rust Core v3.9 run_cycle Rust-Shadow Integration Report](RUST_CORE_V39_RUN_CYCLE_SHADOW.md) — attaches non-mutating Rust-shadow collector dry-run reports to Python run_cycle output while keeping Python authoritative.
 
 - [Rust Core v4.0 Collector Authority Activation Plan](RUST_CORE_V40_COLLECTOR_AUTHORITY_ACTIVATION.md) — evaluates readiness for a future Rust collector authority pilot while keeping Python collectors authoritative.
+
+
+## Rust Core v4.1 Collector Authority Runtime Contract
+
+Adds `build-collector-authority-runtime-contract`, a non-mutating runtime contract after the collector authority activation plan. Python collectors remain authoritative; Rust cannot drive cleanup, apply, or generated-file writes from this contract. See `docs/RUST_CORE_V41_COLLECTOR_AUTHORITY_RUNTIME.md`.

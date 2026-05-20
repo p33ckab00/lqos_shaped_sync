@@ -332,3 +332,8 @@ Includes run_cycle Rust-shadow report support, config defaults, API wrapper, and
 ## Rust Core v4.0 Collector Authority Activation Plan
 
 Adds `build-collector-authority-activation-plan`, a non-mutating activation readiness plan for the future Rust collector authority pilot. It requires a clean run_cycle Rust-shadow report, successful shadow-cycle history, explicit activation gates, and Python fallback. Python collectors remain authoritative; Rust cannot drive cleanup, writes, or apply in this release.
+
+
+## Rust Core v4.1 Collector Authority Runtime Contract
+
+Adds `build-collector-authority-runtime-contract`, a non-mutating runtime contract after the collector authority activation plan. Python collectors remain authoritative; Rust cannot drive cleanup, apply, or generated-file writes from this contract. See `docs/RUST_CORE_V41_COLLECTOR_AUTHORITY_RUNTIME.md`.

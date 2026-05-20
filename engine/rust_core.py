@@ -3010,6 +3010,77 @@ def rust_build_collector_authority_activation_plan(config: dict, payload: dict[s
     return response
 
 
+
+def _python_build_collector_authority_runtime_contract(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rust_core = payload.get("rust_core") if isinstance(payload.get("rust_core"), dict) else ((payload.get("config") or {}).get("rust_core") if isinstance(payload.get("config"), dict) else {}) or {}
+    allow = bool(rust_core.get("allow_collector_authority_runtime_contract"))
+    pilot = bool(rust_core.get("collector_authority_runtime_pilot"))
+    mode = str(rust_core.get("collector_authority_runtime_mode") or "contract_only")
+    require_fallback = rust_core.get("collector_authority_runtime_require_python_fallback", True) is not False
+    max_age = int(rust_core.get("collector_authority_runtime_max_shadow_age_seconds") or 900)
+    shadow_age = int(payload.get("shadow_age_seconds") or rust_core.get("collector_authority_shadow_age_seconds") or 0)
+    activation_resp = _python_build_collector_authority_activation_plan(payload, started=started)
+    activation = activation_resp.get("result") if isinstance(activation_resp.get("result"), dict) else {}
+    activation_ready = activation.get("status") == "collector_authority_activation_ready_for_pilot" and activation.get("production_collector_authority_switched") is False
+    errors = []
+    warnings = []
+    if payload.get("execute") or str(payload.get("mode") or "contract") in {"execute", "promote", "switch", "authority", "apply", "production"}:
+        errors.append({"code": "collector_authority_runtime_execute_not_implemented", "severity": "error", "path": "collector_authority_runtime", "message": "Python fallback cannot switch Rust collector authority."})
+    if not require_fallback:
+        errors.append({"code": "collector_authority_runtime_requires_python_fallback", "severity": "error", "path": "rust_core.collector_authority_runtime_require_python_fallback", "message": "Collector authority runtime pilot requires Python collector fallback in this release."})
+    if shadow_age > max_age:
+        warnings.append({"code": "collector_authority_runtime_shadow_state_stale", "severity": "warning", "path": "collector_authority_runtime.shadow_age_seconds", "message": "Rust-shadow collector state is older than the runtime pilot freshness limit."})
+    requested = bool(allow and pilot and mode == "rust_collector_authority_runtime_contract")
+    ready = not errors and requested and activation_ready and require_fallback and shadow_age <= max_age
+    status = "blocked" if errors else ("collector_authority_runtime_contract_ready" if ready else ("collector_authority_runtime_waiting_for_gates" if activation_ready else "collector_authority_runtime_shadow_only"))
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "build-collector-authority-runtime-contract",
+        "available": False,
+        "ok": not errors,
+        "result": {
+            "mode": "collector_authority_runtime_contract",
+            "status": status,
+            "collector_authority": "python_authoritative",
+            "target_authority": "rust_collector_authority_runtime_candidate" if ready else "python_authoritative",
+            "runtime_requested": requested,
+            "activation_status": activation.get("status"),
+            "activation_ready": activation_ready,
+            "shadow_age_seconds": shadow_age,
+            "max_shadow_age_seconds": max_age,
+            "shadow_fresh": shadow_age <= max_age,
+            "collector_authority_activation_plan": activation,
+            "full_rust_backend": False,
+            "production_collector_authority_switched": False,
+            "collector_authority_switch_supported": False,
+            "python_collector_fallback_required": True,
+            "runtime_contract_only": True,
+            "rust_pilot_may_select_rows_for_diagnostics": ready,
+            "rust_can_drive_cleanup": False,
+            "rust_can_drive_apply": False,
+            "rust_can_write_generated_files": False,
+            "safe_for_cleanup": False,
+            "write_allowed": False,
+            "apply_allowed": False,
+            "next_stage": "rust_collector_authority_pilot_controlled_handoff",
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_collector_authority_runtime_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_collector_authority_runtime_contract(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-collector-authority-runtime-contract", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_collector_authority_runtime_contract(req_payload, started=started)
+    return response
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

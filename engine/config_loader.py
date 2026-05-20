@@ -128,6 +128,13 @@ DEFAULT_CONFIG = {
         "collector_authority_require_run_cycle_shadow": True,
         "collector_authority_min_shadow_cycles": 3,
         "collector_authority_successful_shadow_cycles": 0,
+        "collector_authority_runtime_pilot": False,
+        "allow_collector_authority_runtime_contract": False,
+        "collector_authority_runtime_mode": "contract_only",
+        "collector_authority_runtime_require_activation_plan": True,
+        "collector_authority_runtime_require_python_fallback": True,
+        "collector_authority_runtime_max_shadow_age_seconds": 900,
+        "collector_authority_shadow_age_seconds": 0,
     },
     "collector": {
         "selective_fields": True,

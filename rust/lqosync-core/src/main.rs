@@ -35,6 +35,7 @@ use lqosync_core::collector_authority_selection::build_collector_authority_selec
 use lqosync_core::collector_authority_dry_run::build_collector_authority_dry_run_bundle_payload;
 use lqosync_core::collector_run_cycle_shadow::build_run_cycle_rust_shadow_report_payload;
 use lqosync_core::collector_authority_activation::build_collector_authority_activation_plan_payload;
+use lqosync_core::collector_authority_runtime::build_collector_authority_runtime_contract_payload;
 use lqosync_core::self_test::{advertised_operations, self_test_payload};
 use lqosync_core::shaped_devices::{parse_csv_text, render_csv_text, validate_rows};
 use lqosync_core::sync_plan::evaluate_sync_plan_payload;
@@ -305,6 +306,10 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
         }
         "build-collector-authority-activation-plan" => {
             let (result, errors, warnings) = build_collector_authority_activation_plan_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "build-collector-authority-runtime-contract" => {
+            let (result, errors, warnings) = build_collector_authority_runtime_contract_payload(&req.payload);
             Ok(CoreResponse::validation(req, result, errors, warnings, started))
         }
         "build-collector-circuit-bundle" => {

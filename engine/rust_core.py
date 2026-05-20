@@ -3647,6 +3647,102 @@ def rust_build_collector_authority_promotion_commit_plan(config: dict, payload: 
     return response
 
 
+
+
+def _python_build_collector_authority_promotion_cutover_ledger(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rc = dict(((payload.get("config") or {}).get("rust_core") or payload.get("rust_core") or {}) if isinstance(payload, dict) else {})
+    allow = bool(rc.get("allow_collector_authority_promotion_cutover_ledger"))
+    pilot = bool(rc.get("collector_authority_promotion_cutover_ledger_pilot"))
+    mode = str(rc.get("collector_authority_promotion_cutover_mode") or "ledger_only")
+    require_commit = bool(rc.get("collector_authority_promotion_cutover_require_commit_plan", True))
+    require_fallback = bool(rc.get("collector_authority_promotion_cutover_require_python_fallback", True))
+    require_confirmation = bool(rc.get("collector_authority_promotion_cutover_require_manual_confirmation", True))
+    require_no_side_effects = bool(rc.get("collector_authority_promotion_cutover_require_no_cleanup_apply", True))
+    require_rollback_path = bool(rc.get("collector_authority_promotion_cutover_require_rollback_path", True))
+    max_shadow_age = int(rc.get("collector_authority_promotion_cutover_max_shadow_age_seconds") or 900)
+    shadow_age = int(payload.get("shadow_age_seconds") or 0)
+    confirmation_ok = (not require_confirmation) or str(payload.get("confirmation") or "") == "CONFIRM_COLLECTOR_AUTHORITY_PROMOTION_CUTOVER_LEDGER"
+    commit = payload.get("collector_authority_promotion_commit_plan") or payload.get("promotion_commit_plan") or {}
+    if isinstance(commit, dict) and isinstance(commit.get("result"), dict):
+        commit = commit.get("result")
+    commit_ready = isinstance(commit, dict) and commit.get("status") == "collector_authority_promotion_commit_plan_ready" and bool(commit.get("promotion_commit_plan_ready")) and commit.get("production_collector_authority_switched") is False
+    side_effect_free = not any([
+        payload.get("cleanup_attempted"), payload.get("apply_attempted"), payload.get("write_attempted"), payload.get("production_collector_authority_switched"),
+        isinstance(commit, dict) and commit.get("cleanup_attempted"), isinstance(commit, dict) and commit.get("apply_attempted"), isinstance(commit, dict) and commit.get("write_attempted"), isinstance(commit, dict) and commit.get("production_collector_authority_switched"),
+    ])
+    rollback_path = str(payload.get("rollback_path") or "python_fallback_revert")
+    rollback_ready = (not require_rollback_path) or bool(rollback_path.strip())
+    gates_ready = bool(allow and pilot and mode == "ledger_only")
+    errors: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if bool(payload.get("execute")) or str(payload.get("mode") or "").lower() in {"execute", "commit", "switch", "promote", "authority", "apply", "production", "cutover"}:
+        errors.append({"code": "collector_authority_promotion_cutover_not_implemented", "severity": "error", "path": "collector_authority_promotion_cutover_ledger", "message": "Python fallback cannot execute collector authority promotion cutover."})
+    if require_commit and not commit_ready:
+        warnings.append({"code": "collector_authority_promotion_cutover_commit_plan_not_ready", "severity": "warning", "path": "collector_authority_promotion_commit_plan", "message": "Promotion commit plan has not passed."})
+    if require_confirmation and not confirmation_ok:
+        warnings.append({"code": "collector_authority_promotion_cutover_confirmation_required", "severity": "warning", "path": "confirmation", "message": "Cutover ledger confirmation is required."})
+    if not require_fallback:
+        errors.append({"code": "collector_authority_promotion_cutover_requires_python_fallback", "severity": "error", "path": "rust_core.collector_authority_promotion_cutover_require_python_fallback", "message": "Cutover ledger requires Python collector fallback."})
+    if require_no_side_effects and not side_effect_free:
+        errors.append({"code": "collector_authority_promotion_cutover_side_effect_detected", "severity": "error", "path": "collector_authority_promotion_cutover_ledger", "message": "Cleanup/apply/write/authority side effects are forbidden."})
+    if shadow_age > max_shadow_age:
+        warnings.append({"code": "collector_authority_promotion_cutover_shadow_stale", "severity": "warning", "path": "shadow_age_seconds", "message": "Rust-shadow data is stale."})
+    if not rollback_ready:
+        warnings.append({"code": "collector_authority_promotion_cutover_rollback_path_required", "severity": "warning", "path": "rollback_path", "message": "Cutover ledger requires a rollback path."})
+    if not gates_ready:
+        warnings.append({"code": "collector_authority_promotion_cutover_gates_not_enabled", "severity": "warning", "path": "rust_core", "message": "Cutover ledger gates are not fully enabled."})
+
+    ready = not errors and gates_ready and confirmation_ok and (commit_ready or not require_commit) and shadow_age <= max_shadow_age and side_effect_free and require_fallback and rollback_ready
+    review = not errors and commit_ready and side_effect_free and rollback_ready
+    status = "blocked" if errors else ("collector_authority_promotion_cutover_ledger_ready" if ready else ("collector_authority_promotion_cutover_ledger_review" if review else "collector_authority_promotion_cutover_ledger_shadow_only"))
+    return {
+        "version": "1",
+        "op": "build-collector-authority-promotion-cutover-ledger",
+        "ok": not errors,
+        "result": {
+            "mode": "collector_authority_promotion_cutover_ledger",
+            "status": status,
+            "collector_authority": "python_authoritative",
+            "cutover_ledger_ready": ready,
+            "cutover_ledger_only": True,
+            "full_rust_backend": False,
+            "production_collector_authority_switched": False,
+            "collector_authority_promotion_supported": False,
+            "collector_authority_promotion_executed": False,
+            "promotion_commit_plan_status": commit.get("status") if isinstance(commit, dict) else None,
+            "promotion_commit_plan_ready": commit_ready,
+            "manual_confirmation_accepted": confirmation_ok,
+            "gates_ready": gates_ready,
+            "python_collector_fallback_required": True,
+            "rollback_ready": rollback_ready,
+            "rollback_path": rollback_path,
+            "rust_can_drive_cleanup": False,
+            "rust_can_drive_apply": False,
+            "rust_can_write_generated_files": False,
+            "safe_for_cleanup": False,
+            "write_allowed": False,
+            "apply_allowed": False,
+            "shadow_age_seconds": shadow_age,
+            "max_shadow_age_seconds": max_shadow_age,
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_collector_authority_promotion_cutover_ledger_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_collector_authority_promotion_cutover_ledger(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-collector-authority-promotion-cutover-ledger", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_collector_authority_promotion_cutover_ledger(req_payload, started=started)
+    return response
+
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

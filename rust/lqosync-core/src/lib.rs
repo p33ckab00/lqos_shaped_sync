@@ -55,3 +55,4 @@ pub mod collector_authority_pilot_result;
 pub mod collector_authority_promotion;
 pub mod collector_authority_promotion_execution;
 pub mod collector_authority_promotion_commit;
+pub mod collector_authority_promotion_cutover;

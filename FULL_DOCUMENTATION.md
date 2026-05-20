@@ -7789,3 +7789,8 @@ LQoSync `2.116.0-rc1` / `lqosync-core 4.6.0` adds `build-collector-authority-pro
 ## Rust Core v4.7 Collector Authority Promotion Commit Plan
 
 LQoSync `2.117.0-rc1` / `lqosync-core 4.7.0` adds `build-collector-authority-promotion-commit-plan`, a non-mutating bridge after v4.6 promotion execution rehearsal. It requires explicit gates, `CONFIRM_COLLECTOR_AUTHORITY_PROMOTION_COMMIT_PLAN`, fresh Rust-shadow data, and Python fallback. It does not promote Rust collectors, transfer cleanup/apply authority, write generated files, or claim full Rust backend production.
+
+
+## Rust Core v4.8 Collector Authority Promotion Cutover Ledger
+
+Adds `build-collector-authority-promotion-cutover-ledger`, a non-mutating cutover ledger after the v4.7 promotion commit plan. It requires explicit gates, manual confirmation, a rollback path, and Python fallback. It does not switch collector authority, drive cleanup/apply, or write generated LibreQoS files.

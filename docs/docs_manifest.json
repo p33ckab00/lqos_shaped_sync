@@ -745,5 +745,11 @@
     "file": "docs/RUST_CORE_V47_COLLECTOR_AUTHORITY_PROMOTION_COMMIT.md",
     "anchor": "rust-core-v47-collector-authority-promotion-commit-plan",
     "summary": "Non-mutating commit-plan bridge after promotion execution rehearsal while keeping Python collectors authoritative."
+  },
+  "rust.core_v48_promotion_cutover": {
+    "title": "Rust Core v4.8 Collector Authority Promotion Cutover Ledger",
+    "file": "docs/RUST_CORE_V48_COLLECTOR_AUTHORITY_PROMOTION_CUTOVER.md",
+    "anchor": "rust-core-v48-collector-authority-promotion-cutover-ledger",
+    "summary": "Non-mutating cutover ledger after the promotion commit plan, requiring explicit gates, manual confirmation, rollback path, and Python fallback while keeping Python collectors authoritative."
   }
 }

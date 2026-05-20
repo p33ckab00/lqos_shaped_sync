@@ -651,6 +651,15 @@
     "collector_authority_promotion_commit_require_python_fallback": true,
     "collector_authority_promotion_commit_require_manual_confirmation": true,
     "collector_authority_promotion_commit_require_no_cleanup_apply": true,
-    "collector_authority_promotion_commit_max_shadow_age_seconds": 900
+    "collector_authority_promotion_commit_max_shadow_age_seconds": 900,
+    "collector_authority_promotion_cutover_ledger_pilot": false,
+    "allow_collector_authority_promotion_cutover_ledger": false,
+    "collector_authority_promotion_cutover_mode": "ledger_only",
+    "collector_authority_promotion_cutover_require_commit_plan": true,
+    "collector_authority_promotion_cutover_require_python_fallback": true,
+    "collector_authority_promotion_cutover_require_manual_confirmation": true,
+    "collector_authority_promotion_cutover_require_no_cleanup_apply": true,
+    "collector_authority_promotion_cutover_require_rollback_path": true,
+    "collector_authority_promotion_cutover_max_shadow_age_seconds": 900
   }
 }

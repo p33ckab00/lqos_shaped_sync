@@ -7,7 +7,7 @@ It covers:
 1. Docker installation uninstall
 2. Bare-metal Ubuntu/systemd uninstall
 3. Git-based install cleanup
-4. Optional cleanup of `/opt/lqosync`
+4. Optional cleanup of `/opt/LQoSync`
 5. Optional cleanup of permissions/ACL
 6. Optional restore of old `updatecsv.service`
 
@@ -30,7 +30,7 @@ Before removing anything, create a backup:
 ```bash
 sudo mkdir -p /root/lqosync_uninstall_backup_$(date +%F_%H%M%S)
 BACKUP_DIR=$(ls -td /root/lqosync_uninstall_backup_* | head -1)
-sudo cp -a /opt/lqosync "$BACKUP_DIR/opt_lqosync" 2>/dev/null || true
+sudo cp -a /opt/LQoSync "$BACKUP_DIR/opt_lqosync" 2>/dev/null || true
 sudo cp -a /opt/libreqos/src/config.json "$BACKUP_DIR/config.json" 2>/dev/null || true
 sudo cp -a /opt/libreqos/src/ShapedDevices.csv "$BACKUP_DIR/ShapedDevices.csv" 2>/dev/null || true
 sudo cp -a /opt/libreqos/src/network.json "$BACKUP_DIR/network.json" 2>/dev/null || true
@@ -52,7 +52,7 @@ sudo docker compose up -d --build
 Common locations:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 ```
 
 or:
@@ -105,14 +105,14 @@ sudo docker image rm lqosync:2.17-opt-lqosync 2>/dev/null || true
 LQoSync runtime path:
 
 ```text
-/opt/lqosync
+/opt/LQoSync
 ```
 
 Backup then delete:
 
 ```bash
-sudo tar -czf /root/lqosync_runtime_backup_$(date +%F_%H%M%S).tar.gz /opt/lqosync 2>/dev/null || true
-sudo rm -rf /opt/lqosync
+sudo tar -czf /root/lqosync_runtime_backup_$(date +%F_%H%M%S).tar.gz /opt/LQoSync 2>/dev/null || true
+sudo rm -rf /opt/LQoSync
 ```
 
 ## 5. Optional: remove Git project folder
@@ -120,7 +120,7 @@ sudo rm -rf /opt/lqosync
 If installed from Git:
 
 ```bash
-rm -rf /opt/lqosync
+rm -rf /opt/LQoSync
 ```
 
 If using old local folder name:
@@ -138,21 +138,21 @@ Only do this after you no longer need local source files.
 Fast path using the bundled uninstall helper:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash uninstall.sh
 ```
 
-Remove `/opt/lqosync` too:
+Remove `/opt/LQoSync` too:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo REMOVE_RUNTIME=true bash uninstall.sh
 ```
 
 Restore the entire LibreQoS src tree to root ownership instead of only managed files:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo RESTORE_MODE=full bash uninstall.sh
 ```
 
@@ -199,8 +199,8 @@ sudo rm -f /etc/sudoers.d/lqosync
 ## 4. Backup and remove app/runtime folder
 
 ```bash
-sudo tar -czf /root/lqosync_runtime_backup_$(date +%F_%H%M%S).tar.gz /opt/lqosync 2>/dev/null || true
-sudo rm -rf /opt/lqosync
+sudo tar -czf /root/lqosync_runtime_backup_$(date +%F_%H%M%S).tar.gz /opt/LQoSync 2>/dev/null || true
+sudo rm -rf /opt/LQoSync
 ```
 
 ## 5. Remove log file, optional
@@ -223,7 +223,7 @@ Bare-metal LQoSync grants ACL write access to the `lqosync` user so it can creat
 Recommended managed restore:
 
 ```bash
-sudo bash /opt/lqosync/scripts/restore_libreqos_permissions.sh --managed
+sudo bash /opt/LQoSync/scripts/restore_libreqos_permissions.sh --managed
 ```
 
 This restores only the directory and files managed by LQoSync:
@@ -247,7 +247,7 @@ Expected result:
 Optional full restore if you intentionally want everything under `/opt/libreqos/src` returned to root ownership:
 
 ```bash
-sudo bash /opt/lqosync/scripts/restore_libreqos_permissions.sh --full
+sudo bash /opt/LQoSync/scripts/restore_libreqos_permissions.sh --full
 ```
 
 Manual fallback if the script is already gone:
@@ -271,7 +271,7 @@ sudo chmod 644 /opt/libreqos/src/ShapedDevices.csv /opt/libreqos/src/network.jso
 If installed from Git:
 
 ```bash
-rm -rf /opt/lqosync
+rm -rf /opt/LQoSync
 ```
 
 If using old extracted package folder:
@@ -326,7 +326,7 @@ Make sure LQoSync is stopped/removed first to avoid two writers touching `Shaped
 
 ```bash
 systemctl status lqosync
-ls -lah /opt/lqosync
+ls -lah /opt/LQoSync
 sudo docker ps -a | grep lqos || true
 ```
 
@@ -334,7 +334,7 @@ Expected after full uninstall:
 
 ```text
 Unit lqosync.service could not be found
-/opt/lqosync: No such file or directory
+/opt/LQoSync: No such file or directory
 no lqosync container
 ```
 

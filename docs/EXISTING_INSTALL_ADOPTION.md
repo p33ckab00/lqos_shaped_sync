@@ -33,17 +33,17 @@ Ask operator what to do
 Check:
 
 ```text
-/opt/lqosync
-/opt/lqosync/.git
+/opt/LQoSync
+/opt/LQoSync/.git
 /etc/systemd/system/lqosync.service
 /etc/sudoers.d/lqosync
 /opt/libreqos/src/config.json
 /opt/libreqos/src/ShapedDevices.csv
 /opt/libreqos/src/network.json
-/opt/lqosync/users.json
-/opt/lqosync/.env
-/opt/lqosync/state/
-/opt/lqosync/logs/
+/opt/LQoSync/users.json
+/opt/LQoSync/.env
+/opt/LQoSync/state/
+/opt/LQoSync/logs/
 ```
 
 Then installer shows:
@@ -68,7 +68,7 @@ This is the **best default**.
 Use case:
 
 ```text
-May existing /opt/lqosync, pero hindi Git repo
+May existing /opt/LQoSync, pero hindi Git repo
 Installed from ZIP/manual copy
 Gusto mo maging GitHub-managed na without losing config/users/logs
 ```
@@ -77,7 +77,7 @@ Behavior:
 
 ```text
 1. Stop lqosync
-2. Backup /opt/lqosync
+2. Backup /opt/LQoSync
 3. Preserve local files:
    - users.json
    - .env
@@ -172,7 +172,7 @@ Pero preserve user/config/data
 Behavior:
 
 ```text
-Backup /opt/lqosync
+Backup /opt/LQoSync
 Delete/replace app code
 Restore:
 - users.json
@@ -266,14 +266,14 @@ For your system, safest default should be:
 
 ```bash
 cd /opt
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh
 ```
 
 Then future updates:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash upgrade.sh
 ```
 
@@ -302,10 +302,10 @@ The installer should treat these as **operator-owned/live files**:
 /opt/libreqos/src/config.json
 /opt/libreqos/src/ShapedDevices.csv
 /opt/libreqos/src/network.json
-/opt/lqosync/users.json
-/opt/lqosync/.env
-/opt/lqosync/state/
-/opt/lqosync/logs/
+/opt/LQoSync/users.json
+/opt/LQoSync/.env
+/opt/LQoSync/state/
+/opt/LQoSync/logs/
 ```
 
 GitHub should update only the **application source**, not destroy live operational data.
@@ -330,9 +330,9 @@ LQoSync Smart Existing Install Adoption
 ```bash
 git commit -m "Add smart existing install adoption flow" -m "Improves the GitHub source installer so it can safely handle existing LQoSync installations regardless of whether they were installed from ZIP, manual copy, Docker, or Git.
 
-Adds operator choices to adopt and update, update code only, repair install, replace app files with backup, remove and fresh install, or abort when /opt/lqosync already exists.
+Adds operator choices to adopt and update, update code only, repair install, replace app files with backup, remove and fresh install, or abort when /opt/LQoSync already exists.
 
-Preserves live operator-owned files by default, including /opt/libreqos/src/config.json, ShapedDevices.csv, network.json, /opt/lqosync/users.json, .env, state, logs, and backups while allowing application code to become Git-managed and safely migrated.
+Preserves live operator-owned files by default, including /opt/libreqos/src/config.json, ShapedDevices.csv, network.json, /opt/LQoSync/users.json, .env, state, logs, and backups while allowing application code to become Git-managed and safely migrated.
 
 This keeps LibreQoS integrity intact while making future GitHub-based updates cleaner, safer, and easier to operate in production."
 ```

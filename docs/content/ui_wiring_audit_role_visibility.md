@@ -15,7 +15,7 @@ The UI wiring audit validates:
 ## New command
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/ui_wiring_audit.py
 ```
 

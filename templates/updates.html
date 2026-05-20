@@ -20,7 +20,7 @@
     <a class="btn" href="/docs/search?q=stable+release"><i class="ti ti-book"></i> Stable checklist</a>
     <a class="btn" href="/setup-repair"><i class="ti ti-tool"></i> System Validation</a>
   </div>
-  <pre class="mono text-xs command-box" style="margin-top:10px">cd /opt/lqosync
+  <pre class="mono text-xs command-box" style="margin-top:10px">cd /opt/LQoSync
 python3 scripts/release_check.py
 python3 scripts/regression_check.py
 python3 scripts/config_migration_check.py
@@ -89,14 +89,14 @@ python3 scripts/stable_release_check.py</pre>
   <div class="card">
     <div class="card-title"><i class="ti ti-shield-check"></i> Default safe update</div>
     <p class="text-sm" style="color:var(--muted)">This is the recommended production update. It pulls source code from GitHub, preserves operator-owned data, migrates only missing safe config defaults, reapplies permissions, and restarts the service.</p>
-    <pre class="mono" style="white-space:pre-wrap;background:var(--bg2);border:1px solid var(--br0);border-radius:10px;padding:12px;font-size:11px">cd /opt/lqosync
+    <pre class="mono" style="white-space:pre-wrap;background:var(--bg2);border:1px solid var(--br0);border-radius:10px;padding:12px;font-size:11px">cd /opt/LQoSync
 sudo UPDATE_POLICY=preserve_and_migrate bash upgrade.sh</pre>
-    <div class="note" style="margin-top:10px"><b>Preserved:</b> /opt/libreqos/src/config.json, ShapedDevices.csv, network.json, /opt/lqosync/users.json, .env, state, logs, and backups. Existing live files are backed up first.</div>
+    <div class="note" style="margin-top:10px"><b>Preserved:</b> /opt/libreqos/src/config.json, ShapedDevices.csv, network.json, /opt/LQoSync/users.json, .env, state, logs, and backups. Existing live files are backed up first.</div>
   </div>
   <div class="card">
     <div class="card-title"><i class="ti ti-git-compare"></i> Diverged history recovery</div>
     <p class="text-sm" style="color:var(--muted)">Use this when git pull fails because local and remote histories diverged. It backs up the local branch, resets app code to GitHub main, and keeps live operational files outside the app-code history.</p>
-    <pre class="mono" style="white-space:pre-wrap;background:var(--bg2);border:1px solid var(--br0);border-radius:10px;padding:12px;font-size:11px">cd /opt/lqosync
+    <pre class="mono" style="white-space:pre-wrap;background:var(--bg2);border:1px solid var(--br0);border-radius:10px;padding:12px;font-size:11px">cd /opt/LQoSync
 sudo git branch backup-before-reset-$(date +%F_%H%M%S)
 sudo git fetch origin main
 sudo git reset --hard origin/main
@@ -108,9 +108,9 @@ sudo systemctl restart lqosync</pre>
 <section class="two-grid" style="margin-top:12px">
   <div class="card">
     <div class="card-title"><i class="ti ti-download"></i> Adopt existing ZIP/manual install</div>
-    <p class="text-sm" style="color:var(--muted)">Use this if /opt/lqosync exists but was not installed by Git clone. It creates a safety backup, pulls the GitHub source, restores local users/env/logs/state, and runs preserve-existing install.</p>
+    <p class="text-sm" style="color:var(--muted)">Use this if /opt/LQoSync exists but was not installed by Git clone. It creates a safety backup, pulls the GitHub source, restores local users/env/logs/state, and runs preserve-existing install.</p>
     <pre class="mono" style="white-space:pre-wrap;background:var(--bg2);border:1px solid var(--br0);border-radius:10px;padding:12px;font-size:11px">cd /opt
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh</pre>
     <div class="note" style="margin-top:10px">After the GitHub repository is renamed, use <code>p33ckab00/LQoSync</code>. If the rename has not been completed yet, temporarily set <code>LQOSYNC_REPO_URL=https://github.com/p33ckab00/LQoSync.git</code>.</div>
   </div>

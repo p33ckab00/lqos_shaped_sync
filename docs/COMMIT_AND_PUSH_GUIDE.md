@@ -9,7 +9,7 @@ git push -u origin lqosync-in-rust
 
 # Commit and Push Guide for `lqosync-in-rust`
 
-> **Canonical path:** LQoSync installs and runs from `/opt/lqosync`. LibreQoS remains under `/opt/libreqos`. Do not use a user-home directory as the documented install base.
+> **Canonical path:** LQoSync installs and runs from `/opt/LQoSync`. LibreQoS remains under `/opt/libreqos`. Do not use a user-home directory as the documented install base.
 
 
 Use this guide whenever a new ZIP package or local project folder is prepared for the Rust migration branch.
@@ -50,7 +50,7 @@ git fetch upstream
 
 # Start from latest main
 git checkout main
-git pull origin main
+git pull origin lqosync-in-rust
 
 # Create the Rust migration branch
 git checkout -b lqosync-in-rust
@@ -79,7 +79,7 @@ If the repo already exists:
 cd /opt/LQoSync
 git fetch origin
 git checkout main
-git pull origin main
+git pull origin lqosync-in-rust
 git checkout -b lqosync-in-rust
 ```
 
@@ -99,8 +99,8 @@ cd /opt/LQoSync
 git checkout lqosync-in-rust
 
 # Optional: backup current working tree outside git
-mkdir -p /opt/lqosync-branch-backups
-rsync -a --delete ./ /opt/lqosync-branch-backups/LQoSync-before-$(date +%Y%m%d-%H%M%S)/
+mkdir -p /opt/LQoSync-branch-backups
+rsync -a --delete ./ /opt/LQoSync-branch-backups/LQoSync-before-$(date +%Y%m%d-%H%M%S)/
 
 # Extract new ZIP into a temporary directory
 rm -rf /tmp/lqosync-new
@@ -981,3 +981,13 @@ Adds `build-full-rust-backend-production-drift-monitor`, a non-mutating post-ste
 ## v7.5 Full Rust Backend Production Audit Sentinel
 
 Adds `build-full-rust-backend-production-audit-sentinel`, a verification-only post-drift-monitor guard for audit trail readiness, transaction journal visibility, rollback preview readiness, WebUI/UX preservation, and no-Python-drift production authority. WebUI/UX remains unchanged and no service/file mutations are performed by the Rust core operation.
+
+## v7.5.1 install-doc alignment commit template
+
+```bash
+git add .
+git commit -m "docs(install): align Rust branch installation guides" \
+  -m "Align primary install docs, GitHub installer defaults, upgrade defaults, canonical /opt/LQoSync path, lqosync-in-rust branch examples, and Rust daemon build/install/self-test flow."
+git push -u origin lqosync-in-rust
+```
+

@@ -266,7 +266,7 @@ mod tests {
         let payload = json!({
             "config": {
                 "rust_core": {"enabled": true, "authority_mode":"shadow"},
-                "paths": {"shaped_devices_csv":"/opt/libreqos/src/ShapedDevices.csv", "network_json":"/opt/libreqos/src/network.json", "transaction_journal":"/opt/lqosync/logs/transaction_journal.jsonl"}
+                "paths": {"shaped_devices_csv":"/opt/libreqos/src/ShapedDevices.csv", "network_json":"/opt/libreqos/src/network.json", "transaction_journal":"/opt/LQoSync/logs/transaction_journal.jsonl"}
             },
             "rust_core_status": {"available": true, "ok": true},
             "self_test": {"ok": true, "result": {"status": "ok"}}
@@ -297,7 +297,7 @@ mod tests {
         let payload = json!({
             "config": {
                 "rust_core": {"enabled": true, "execute_apply_manifest": true, "allow_rust_file_writes": true, "append_transaction_journal": true, "allow_transaction_journal_writes": true},
-                "paths": {"shaped_devices_csv":"/opt/libreqos/src/ShapedDevices.csv", "network_json":"/opt/libreqos/src/network.json", "transaction_journal":"/opt/lqosync/logs/transaction_journal.jsonl"}
+                "paths": {"shaped_devices_csv":"/opt/libreqos/src/ShapedDevices.csv", "network_json":"/opt/libreqos/src/network.json", "transaction_journal":"/opt/LQoSync/logs/transaction_journal.jsonl"}
             },
             "rust_core_status": {"available": true, "ok": true},
             "self_test": {"ok": true, "result": {"status": "ok"}},

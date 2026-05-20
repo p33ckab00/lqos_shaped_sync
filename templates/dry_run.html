@@ -168,7 +168,7 @@
     <div class="stat"><div class="stat-label">Rollback</div><div class="stat-value {{ 'text-accent' if rb.rollback_available else 'text-muted' }}">{{ rb.status or 'N/A' }}</div></div>
     <div class="stat"><div class="stat-label">Restore ops</div><div class="stat-value text-dhcp">{{ rb.operation_count if rb.operation_count is defined else 0 }}</div></div>
   </div>
-  <p class="text-sm" style="color:var(--muted);margin-top:10px">v1.3 adds opt-in transaction journal persistence. By default this remains rehearsal-only; when explicitly enabled, Rust appends transaction journal entries to /opt/lqosync/logs/transaction_journal.jsonl for auditable apply accountability.</p>
+  <p class="text-sm" style="color:var(--muted);margin-top:10px">v1.3 adds opt-in transaction journal persistence. By default this remains rehearsal-only; when explicitly enabled, Rust appends transaction journal entries to /opt/LQoSync/logs/transaction_journal.jsonl for auditable apply accountability.</p>
   <details style="margin-top:10px"><summary class="mono text-sm text-dhcp" style="cursor:pointer">Show Rust journal / rollback JSON</summary><pre class="mono text-xs scroll-panel" style="margin-top:10px;background:var(--bg0);border:1px solid var(--br0);border-radius:10px;padding:12px;white-space:pre-wrap">{{ {'rust_transaction_journal': rust_journal, 'rust_transaction_journal_append': rust_append, 'rust_rollback_manifest': rust_rollback} | tojson(indent=2) }}</pre></details>
 </section>
 {% endif %}

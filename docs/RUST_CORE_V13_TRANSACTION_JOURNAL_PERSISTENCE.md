@@ -9,7 +9,7 @@ The goal is to make future Rust apply authority auditable before broader Rust wr
 Canonical path:
 
 ```text
-/opt/lqosync/logs/transaction_journal.jsonl
+/opt/LQoSync/logs/transaction_journal.jsonl
 ```
 
 ## New operation

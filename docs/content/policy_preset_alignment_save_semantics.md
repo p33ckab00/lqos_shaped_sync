@@ -28,7 +28,7 @@ This protects raw JSON edits, old forms, browser edge cases, and future UI chang
 ## Audit command
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/policy_preset_audit.py
 ```
 

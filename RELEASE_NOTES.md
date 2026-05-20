@@ -116,7 +116,7 @@ Path documentation cleanup package for the `lqosync-in-rust` branch.
 ### Fixed
 
 - Replaced remaining user-home install examples with canonical `/opt` paths.
-- Normalized project checkout examples to `/opt/lqosync`.
+- Normalized project checkout examples to `/opt/LQoSync`.
 - Normalized legacy Docker/project examples to `/opt/lqos_docker` where that legacy folder is still referenced for cleanup/migration guidance.
 - Confirmed the canonical installation base is `/opt`.
 
@@ -801,7 +801,7 @@ The Setup / Repair Center is read-only by default. It gives commands and explana
 
 ### Notes
 
-Smart Lifecycle uses `/opt/lqosync/state/policy_state.json`. It is runtime state and does not change operator config.
+Smart Lifecycle uses `/opt/LQoSync/state/policy_state.json`. It is runtime state and does not change operator config.
 
 ## v2.46.0 - Smart Insights
 
@@ -826,7 +826,7 @@ Smart Insights is rule-based and explanatory. It does not bypass Smart Policy Ce
 
 - Added Smart Policy Center foundation with policy-driven cleanup and apply decisions.
 - Added default policies for cleanup behavior, source lifecycle, collector guards, apply guards, mass-removal protection, small-node handling, backup readiness, topology safety, anomaly basics, and recommendations.
-- Added runtime policy state at `/opt/lqosync/state/policy_state.json` for pending confirmations, cleanup queue, last successful source counts, and last policy decision.
+- Added runtime policy state at `/opt/LQoSync/state/policy_state.json` for pending confirmations, cleanup queue, last successful source counts, and last policy decision.
 - Added policy evaluation before file write and LibreQoS apply so dangerous output can be blocked before touching `ShapedDevices.csv` or `network.json`.
 - Added Policy Center UI with current mode, last verdict, risk level, pending confirmations, source cleanup policy table, apply guards, collector guards, and runtime policy state viewer.
 - Added Dry Run Policy Verdict and Dashboard Policy Decision panels.
@@ -924,7 +924,7 @@ Privacy Mode remains browser-only redaction for screenshots and demos. It does n
 - Updated PPPoE speed priority: secret comment, active comment, profile comment, profile name, profile rate-limit, default.
 - Updated DHCP speed priority: DHCP server comment/speed_comment, DHCP server name, server config speed, global default.
 - Added Hotspot enhanced metadata reads from `/ip/hotspot/user` and `/ip/hotspot/user/profile`.
-- Added metadata cache state file at `/opt/lqosync/state/collector_cache.json`.
+- Added metadata cache state file at `/opt/LQoSync/state/collector_cache.json`.
 - Added source-aware cleanup so stale rows are removed only for successfully scanned sources.
 - Added Dashboard collector monitoring, cache efficiency, speed source breakdown, and richer Last Sync Timeline details.
 - Added Config Center Collector Settings module and updated About module documentation.
@@ -1015,7 +1015,7 @@ Privacy Mode remains browser-only redaction for screenshots and demos. It does n
 - Enforces `libreqos.working_dir` during every LibreQoS apply run so `LibreQoS.py --updateonly` always executes from `/opt/libreqos/src` in bare-metal direct mode.
 - Falls back to the directory containing the configured `LibreQoS.py` command when `working_dir` is missing.
 - Adds clearer apply metadata with the effective working directory and an early validation error if the directory is invalid.
-- Resolves bare-metal apply failures where LibreQoS reported `FileNotFoundError: ShapedDevices.csv` because it was launched from `/opt/lqosync` or another directory instead of `/opt/libreqos/src`.
+- Resolves bare-metal apply failures where LibreQoS reported `FileNotFoundError: ShapedDevices.csv` because it was launched from `/opt/LQoSync` or another directory instead of `/opt/libreqos/src`.
 
 
 ## v2.26.0 - Config Example Hardening and Startup Migration
@@ -1025,7 +1025,7 @@ Privacy Mode remains browser-only redaction for screenshots and demos. It does n
   - `libreqos.retry_if_last_apply_failed=true`
   - `libreqos.run_mode=direct`
   - `libreqos.sudo=true`
-  - absolute `/opt/lqosync` runtime paths.
+  - absolute `/opt/LQoSync` runtime paths.
 - Added startup config normalization in `app.py`. This persists missing safe defaults even when an operator updates by `git pull` and restarts the service without running `install.sh`.
 - Strengthened bare-metal detection in `engine/config_loader.py` so Docker-only `host_nsenter` cannot survive on systemd/bare-metal installs.
 - Added `scripts/validate_config_example.py` to verify the fresh-install template contains mandatory production defaults.
@@ -1054,7 +1054,7 @@ The Setup / Repair Center is read-only by default. It gives commands and explana
 - Prioritizes bare-metal/systemd installation as the default production path.
 - Forces `libreqos.run_mode=direct` and `libreqos.sudo=true` during bare-metal install/update migration.
 - Ensures `libreqos.working_dir=/opt/libreqos/src` and `libreqos.retry_if_last_apply_failed=true` remain present in live `config.json`.
-- Normalizes `/opt/lqosync/.env` during bare-metal install/update so old Docker/nsenter values cannot survive upgrades.
+- Normalizes `/opt/LQoSync/.env` during bare-metal install/update so old Docker/nsenter values cannot survive upgrades.
 - Protects service status and journal viewers from using `nsenter` on bare-metal systems.
 - Prevents the bare-metal error `nsenter: cannot open /proc/1/ns/ipc: Permission denied`.
 - Keeps Docker host-integrated mode available only through Docker environment variables and compose settings.
@@ -1153,7 +1153,7 @@ Permission denied: /opt/libreqos/src/config.json.tmp
 - Documented Docker uninstall.
 - Documented bare-metal uninstall.
 - Documented Git-source folder cleanup.
-- Documented `/opt/lqosync` backup/removal.
+- Documented `/opt/LQoSync` backup/removal.
 - Documented systemd service removal.
 - Documented sudoers cleanup.
 - Documented ACL cleanup for `/opt/libreqos/src`.
@@ -1174,28 +1174,28 @@ Permission denied: /opt/libreqos/src/config.json.tmp
 
 ---
 
-## v2.17.0 - `/opt/lqosync` Install Path
+## v2.17.0 - `/opt/LQoSync` Install Path
 
-- Changed LQoSync application/runtime install path from `/opt/lqosync` to:
+- Changed LQoSync application/runtime install path from `/opt/LQoSync` to:
 
 ```text
-/opt/lqosync
+/opt/LQoSync
 ```
 
 - Keeps LQoSync beside LibreQoS in `/opt`:
 
 ```text
 /opt/libreqos
-/opt/lqosync
+/opt/LQoSync
 ```
 
 - Docker persistent runtime volume now maps:
 
 ```text
-/opt/lqosync:/opt/lqosync
+/opt/LQoSync:/opt/LQoSync
 ```
 
-- Bare-metal installer now installs app files, `users.json`, state, logs, backups, and config backups under `/opt/lqosync`.
+- Bare-metal installer now installs app files, `users.json`, state, logs, backups, and config backups under `/opt/LQoSync`.
 - LibreQoS-managed files remain under `/opt/libreqos/src`:
   - `config.json`
   - `ShapedDevices.csv`
@@ -1326,7 +1326,7 @@ http://<server-ip>:9202
 - Updated Docker password reset command to explicitly target:
 
 ```text
-/opt/lqosync/users.json
+/opt/LQoSync/users.json
 ```
 
 - Updated bare-metal password reset command.
@@ -1778,7 +1778,7 @@ sudo /opt/libreqos/src/LibreQoS.py --updateonly
 - Reworked Config Center into a cleaner dashboard-style control plane with professional card layout, left-side module navigation, status summaries, and live raw JSON mirror.
 - Added a dedicated Apply Policy section for LibreQoS command, arguments, working directory, run mode, sudo, timeout, run-on-change behavior, and failed-apply retry.
 - Ensured the UI always wires `libreqos.working_dir=/opt/libreqos/src` and `libreqos.retry_if_last_apply_failed=true` into the saved `config.json`.
-- Improved config migration so live installs normalize relative runtime paths to `/opt/lqosync` and LibreQoS file paths to `/opt/libreqos/src` without overwriting operator router settings.
+- Improved config migration so live installs normalize relative runtime paths to `/opt/LQoSync` and LibreQoS file paths to `/opt/libreqos/src` without overwriting operator router settings.
 - Kept dry-run safe: dry-run never writes files and never applies LibreQoS; scheduled/manual non-dry-run applies changes immediately when files change.
 ## v2.36.0 - Smart Existing Install Adoption
 
@@ -1809,11 +1809,11 @@ Added production-safe existing installation handling for GitHub-source installs.
 - `/opt/libreqos/src/config.json`
 - `/opt/libreqos/src/ShapedDevices.csv`
 - `/opt/libreqos/src/network.json`
-- `/opt/lqosync/users.json`
-- `/opt/lqosync/.env`
-- `/opt/lqosync/state/`
-- `/opt/lqosync/logs/`
-- `/opt/lqosync/backups/`
+- `/opt/LQoSync/users.json`
+- `/opt/LQoSync/.env`
+- `/opt/LQoSync/state/`
+- `/opt/LQoSync/logs/`
+- `/opt/LQoSync/backups/`
 
 ### Notes
 
@@ -1884,7 +1884,7 @@ Read: `docs/RUST_CORE_V11_SELF_TEST.md`.
 
 - Adds `build-transaction-journal` to create a non-mutating transaction journal event from the Rust apply manifest and transaction result.
 - Adds `build-rollback-manifest` to preview restore operations from transaction backup paths.
-- Adds `/opt/lqosync/logs/transaction_journal.jsonl` as the canonical future transaction journal path.
+- Adds `/opt/LQoSync/logs/transaction_journal.jsonl` as the canonical future transaction journal path.
 - Adds Dry Run visibility for Rust transaction journal and rollback preview.
 - Bumps `lqosync-core` to `1.2.0`.
 
@@ -2220,3 +2220,12 @@ Adds `build-full-rust-backend-production-drift-monitor`, a non-mutating post-ste
 ## v7.5 Full Rust Backend Production Audit Sentinel
 
 Adds `build-full-rust-backend-production-audit-sentinel`, a verification-only post-drift-monitor guard for audit trail readiness, transaction journal visibility, rollback preview readiness, WebUI/UX preservation, and no-Python-drift production authority. WebUI/UX remains unchanged and no service/file mutations are performed by the Rust core operation.
+
+## v2.145.1-rc1 / Rust Core v7.5.1 — Installation Documentation and Installer Alignment
+
+Aligns primary installation guides, GitHub install examples, and installer defaults with the `lqosync-in-rust` production series. The canonical source path is now documented as `/opt/LQoSync`; install/update examples use `lqosync-in-rust`; Rust daemon installation uses `build-rust-core.sh`, `install-rust-core.sh`, and `install-rust-core-daemon.sh`; and `scripts/verify-installation-docs-alignment.sh` was added. This release is documentation/installer alignment only and preserves WebUI/UX, rollback safety, and production verification behavior.
+
+
+### v2.145.1-rc1 additional alignment note
+
+Also aligns codebase/runtime path defaults and operator-facing repair/update commands to `/opt/LQoSync`, including Python helper defaults, templates, config examples, and Rust fixture/default path examples.

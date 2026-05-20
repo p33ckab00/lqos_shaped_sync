@@ -77,7 +77,7 @@ pub fn build_transaction_journal_payload(payload: &Value) -> (Value, Vec<Diagnos
         .get("journal_path")
         .and_then(Value::as_str)
         .filter(|s| !s.trim().is_empty())
-        .unwrap_or_else(|| str_path(&paths, &["transaction_journal"], "/opt/lqosync/logs/transaction_journal.jsonl"));
+        .unwrap_or_else(|| str_path(&paths, &["transaction_journal"], "/opt/LQoSync/logs/transaction_journal.jsonl"));
     let manifest_id = manifest.get("manifest_id").and_then(Value::as_str).unwrap_or("unknown");
     let transaction_status = transaction.get("status").and_then(Value::as_str).unwrap_or("not_run");
     let executed = transaction.get("executed").and_then(Value::as_bool).unwrap_or(false);
@@ -163,7 +163,7 @@ pub fn append_transaction_journal_payload(payload: &Value) -> (Value, Vec<Diagno
     let allow_dry_run_journal = payload.get("allow_dry_run_journal").and_then(Value::as_bool).unwrap_or(false);
     let append_required = preview.get("append_required").and_then(Value::as_bool).unwrap_or(false);
     let event = preview.get("event").cloned().unwrap_or_else(|| json!({}));
-    let journal_path = preview.get("journal_path").and_then(Value::as_str).unwrap_or("/opt/lqosync/logs/transaction_journal.jsonl");
+    let journal_path = preview.get("journal_path").and_then(Value::as_str).unwrap_or("/opt/LQoSync/logs/transaction_journal.jsonl");
     let mut append_result = json!({});
     let mut append_executed = false;
     let status: String;
@@ -309,7 +309,7 @@ mod tests {
     fn builds_transaction_journal_preview() {
         let payload = json!({
             "mode": "apply",
-            "paths": {"transaction_journal": "/opt/lqosync/logs/transaction_journal.jsonl"},
+            "paths": {"transaction_journal": "/opt/LQoSync/logs/transaction_journal.jsonl"},
             "rust_apply_manifest": {"result": {"manifest_id":"apply-abc", "status":"ready", "operation_count":2, "operations":[]}},
             "rust_apply_transaction": {"result": {"status":"rehearsal_only", "executed":false, "write_count":0, "write_results":[]}},
             "rust_sync_plan": {"result": {"verdict":"ready_by_shadow_plan"}}

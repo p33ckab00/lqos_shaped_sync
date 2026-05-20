@@ -20,13 +20,13 @@ function cfgEditor(initial) {
     hotspot: {enabled: false, include_mac: true, download_limit_mbps: 10, upload_limit_mbps: 10, download_factor: 1.0, upload_factor: 1.0, node_type: 'site', node_name: 'HS-{router}'}
   });
   const absPaths = (cfg) => {
-    cfg.paths.backup_dir ||= '/opt/lqosync/backups';
-    cfg.paths.log_file ||= '/opt/lqosync/logs/lqosync.log';
-    cfg.paths.runtime_state ||= '/opt/lqosync/state/runtime_state.json';
-    cfg.paths.lock_file ||= '/opt/lqosync/state/lqosync.lock';
-    cfg.paths.audit_log ||= '/opt/lqosync/logs/audit.jsonl';
-    cfg.paths.libreqos_apply_log_dir ||= '/opt/lqosync/logs/libreqos_apply';
-    cfg.paths.collector_cache ||= '/opt/lqosync/state/collector_cache.json';
+    cfg.paths.backup_dir ||= '/opt/LQoSync/backups';
+    cfg.paths.log_file ||= '/opt/LQoSync/logs/lqosync.log';
+    cfg.paths.runtime_state ||= '/opt/LQoSync/state/runtime_state.json';
+    cfg.paths.lock_file ||= '/opt/LQoSync/state/lqosync.lock';
+    cfg.paths.audit_log ||= '/opt/LQoSync/logs/audit.jsonl';
+    cfg.paths.libreqos_apply_log_dir ||= '/opt/LQoSync/logs/libreqos_apply';
+    cfg.paths.collector_cache ||= '/opt/LQoSync/state/collector_cache.json';
     cfg.paths.shaped_devices_csv ||= '/opt/libreqos/src/ShapedDevices.csv';
     cfg.paths.network_json ||= '/opt/libreqos/src/network.json';
   };

@@ -6,8 +6,8 @@ set -euo pipefail
 # Can safely handle fresh installs and existing installs from ZIP/manual/Git/Docker leftovers.
 
 REPO_URL="${LQOSYNC_REPO_URL:-https://github.com/p33ckab00/LQoSync.git}"
-BRANCH="${LQOSYNC_BRANCH:-main}"
-INSTALL_DIR="${LQOSYNC_INSTALL_DIR:-/opt/lqosync}"
+BRANCH="${LQOSYNC_BRANCH:-lqosync-in-rust}"
+INSTALL_DIR="${LQOSYNC_INSTALL_DIR:-/opt/LQoSync}"
 SERVICE_NAME="${LQOSYNC_SERVICE_NAME:-lqosync}"
 OLD_SERVICE_NAME="${LQOSYNC_OLD_SERVICE_NAME:-lqos_shaped_sync}"
 INIT_POLICY="${LQOSYNC_INIT_POLICY:-preserve_existing}"

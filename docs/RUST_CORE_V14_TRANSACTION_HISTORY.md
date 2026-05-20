@@ -7,7 +7,7 @@ v1.4 adds read-only transaction history operations for the `lqosync-in-rust` bra
 v1.3 can append Rust transaction journal entries to:
 
 ```text
-/opt/lqosync/logs/transaction_journal.jsonl
+/opt/LQoSync/logs/transaction_journal.jsonl
 ```
 
 v1.4 makes that journal operationally useful without introducing destructive rollback execution.
@@ -32,7 +32,7 @@ Request example:
   "version": "1",
   "op": "read-transaction-journal",
   "payload": {
-    "path": "/opt/lqosync/logs/transaction_journal.jsonl",
+    "path": "/opt/LQoSync/logs/transaction_journal.jsonl",
     "limit": 50,
     "reverse": true,
     "include_event": true
@@ -67,7 +67,7 @@ Request example:
   "version": "1",
   "op": "build-rollback-from-journal",
   "payload": {
-    "path": "/opt/lqosync/logs/transaction_journal.jsonl",
+    "path": "/opt/LQoSync/logs/transaction_journal.jsonl",
     "journal_id": "txj-example"
   }
 }

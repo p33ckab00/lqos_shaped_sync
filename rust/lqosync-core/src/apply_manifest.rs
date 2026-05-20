@@ -247,7 +247,7 @@ mod tests {
             "files_changed": true,
             "csv_changed": true,
             "network_changed": true,
-            "paths": {"shaped_devices_csv": "/opt/libreqos/src/ShapedDevices.csv", "network_json": "/opt/libreqos/src/network.json", "runtime_state": "/opt/lqosync/state/runtime_state.json"},
+            "paths": {"shaped_devices_csv": "/opt/libreqos/src/ShapedDevices.csv", "network_json": "/opt/libreqos/src/network.json", "runtime_state": "/opt/LQoSync/state/runtime_state.json"},
             "config": {"app": {"auto_apply": true, "backup_before_apply": false}, "libreqos": {"cmd": "/opt/libreqos/src/LibreQoS.py", "working_dir": "/opt/libreqos/src"}},
             "policy_decision": {"write_allowed": true, "apply_allowed": true}
         }));

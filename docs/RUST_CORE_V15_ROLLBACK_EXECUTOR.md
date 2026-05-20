@@ -91,7 +91,7 @@ The rollback manifest must contain operations like:
 {
   "op": "restore_file",
   "target_path": "/opt/libreqos/src/ShapedDevices.csv",
-  "backup_path": "/opt/lqosync/backups/.../ShapedDevices.csv",
+  "backup_path": "/opt/LQoSync/backups/.../ShapedDevices.csv",
   "expected_current_sha256": "...",
   "restore_sha256": "..."
 }

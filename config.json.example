@@ -120,30 +120,30 @@
   "package_quality": {
     "check_config_defaults": true,
     "check_routes_templates": true,
-    "cleanup_stale_files_script": "/opt/lqosync/scripts/cleanup_stale_files.py",
-    "config_migration_check_script": "/opt/lqosync/scripts/config_migration_check.py",
-    "doctor_script": "/opt/lqosync/scripts/lqosync-doctor.sh",
+    "cleanup_stale_files_script": "/opt/LQoSync/scripts/cleanup_stale_files.py",
+    "config_migration_check_script": "/opt/LQoSync/scripts/config_migration_check.py",
+    "doctor_script": "/opt/LQoSync/scripts/lqosync-doctor.sh",
     "enabled": true,
-    "policy_path_audit_script": "/opt/lqosync/scripts/policy_path_audit.py",
-    "policy_preset_audit_script": "/opt/lqosync/scripts/policy_preset_audit.py",
-    "regression_check_script": "/opt/lqosync/scripts/regression_check.py",
-    "release_check_script": "/opt/lqosync/scripts/release_check.py",
+    "policy_path_audit_script": "/opt/LQoSync/scripts/policy_path_audit.py",
+    "policy_preset_audit_script": "/opt/LQoSync/scripts/policy_preset_audit.py",
+    "regression_check_script": "/opt/LQoSync/scripts/regression_check.py",
+    "release_check_script": "/opt/LQoSync/scripts/release_check.py",
     "show_in_setup_repair": true,
-    "stable_release_check_script": "/opt/lqosync/scripts/stable_release_check.py",
-    "ui_wiring_audit_script": "/opt/lqosync/scripts/ui_wiring_audit.py"
+    "stable_release_check_script": "/opt/LQoSync/scripts/stable_release_check.py",
+    "ui_wiring_audit_script": "/opt/LQoSync/scripts/ui_wiring_audit.py"
   },
   "paths": {
-    "audit_log": "/opt/lqosync/logs/audit.jsonl",
-    "backup_dir": "/opt/lqosync/backups",
-    "collector_cache": "/opt/lqosync/state/collector_cache.json",
-    "libreqos_apply_log_dir": "/opt/lqosync/logs/libreqos_apply",
-    "lock_file": "/opt/lqosync/state/lqosync.lock",
-    "log_file": "/opt/lqosync/logs/lqosync.log",
+    "audit_log": "/opt/LQoSync/logs/audit.jsonl",
+    "backup_dir": "/opt/LQoSync/backups",
+    "collector_cache": "/opt/LQoSync/state/collector_cache.json",
+    "libreqos_apply_log_dir": "/opt/LQoSync/logs/libreqos_apply",
+    "lock_file": "/opt/LQoSync/state/lqosync.lock",
+    "log_file": "/opt/LQoSync/logs/lqosync.log",
     "network_json": "/opt/libreqos/src/network.json",
-    "policy_state": "/opt/lqosync/state/policy_state.json",
-    "runtime_state": "/opt/lqosync/state/runtime_state.json",
+    "policy_state": "/opt/LQoSync/state/policy_state.json",
+    "runtime_state": "/opt/LQoSync/state/runtime_state.json",
     "shaped_devices_csv": "/opt/libreqos/src/ShapedDevices.csv",
-    "transaction_journal": "/opt/lqosync/logs/transaction_journal.jsonl"
+    "transaction_journal": "/opt/LQoSync/logs/transaction_journal.jsonl"
   },
   "policies": {
     "anomaly_detection": {
@@ -483,7 +483,7 @@
   },
   "setup_repair": {
     "allow_policy_preset_apply": true,
-    "doctor_command": "sudo CONFIG_PATH=/opt/libreqos/src/config.json python3 /opt/lqosync/scripts/doctor.py",
+    "doctor_command": "sudo CONFIG_PATH=/opt/libreqos/src/config.json python3 /opt/LQoSync/scripts/doctor.py",
     "enabled": true,
     "read_only_by_default": true,
     "show_guided_setup": true,

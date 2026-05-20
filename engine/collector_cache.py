@@ -27,7 +27,7 @@ def stable_hash(value: Any) -> str:
 
 def cache_path(config: dict) -> str:
     paths = config.setdefault("paths", {})
-    return paths.get("collector_cache") or "/opt/lqosync/state/collector_cache.json"
+    return paths.get("collector_cache") or "/opt/LQoSync/state/collector_cache.json"
 
 
 def load_cache(path: str | None) -> dict:

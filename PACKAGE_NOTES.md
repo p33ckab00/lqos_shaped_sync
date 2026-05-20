@@ -62,10 +62,10 @@ This package canonicalizes LQoSync naming across repository references, operator
 
 ```text
 GitHub repo:      https://github.com/p33ckab00/LQoSync.git
-Install path:     /opt/lqosync
+Install path:     /opt/LQoSync
 Systemd service:  lqosync
 Docker container: lqosync
-App log:          /opt/lqosync/logs/lqosync.log
+App log:          /opt/LQoSync/logs/lqosync.log
 System log:       /var/log/lqosync.log
 Sudoers file:     /etc/sudoers.d/lqosync
 ```
@@ -76,10 +76,10 @@ Sudoers file:     /etc/sudoers.d/lqosync
 All operator-facing install/update examples should use `/opt` as the base path. The canonical app checkout is:
 
 ```text
-/opt/lqosync
+/opt/LQoSync
 ```
 
-Do not document user-home based project folders as active install locations. Legacy cleanup references, when needed, should point to `/opt/lqosync` or `/opt/lqos_docker`.
+Do not document user-home based project folders as active install locations. Legacy cleanup references, when needed, should point to `/opt/LQoSync` or `/opt/lqos_docker`.
 
 ## Update safety
 
@@ -149,7 +149,7 @@ scripts/install-rust-core.sh
 The existing Python runtime remains primary. Rust validation is exposed as an optional sidecar and is non-blocking by default.
 ## 2.72.0-rc1 package note
 
-This package advances the `lqosync-in-rust` branch to Rust Core v0.2. It adds collector output trust guarding and Rust diff operations while keeping Python as the primary runtime. No database is introduced. `/opt/lqosync` and `/opt/libreqos` remain the canonical paths.
+This package advances the `lqosync-in-rust` branch to Rust Core v0.2. It adds collector output trust guarding and Rust diff operations while keeping Python as the primary runtime. No database is introduced. `/opt/LQoSync` and `/opt/libreqos` remain the canonical paths.
 
 
 
@@ -523,3 +523,12 @@ Adds `build-full-rust-backend-production-drift-monitor`, a non-mutating post-ste
 ## v7.5 Full Rust Backend Production Audit Sentinel
 
 Adds `build-full-rust-backend-production-audit-sentinel`, a verification-only post-drift-monitor guard for audit trail readiness, transaction journal visibility, rollback preview readiness, WebUI/UX preservation, and no-Python-drift production authority. WebUI/UX remains unchanged and no service/file mutations are performed by the Rust core operation.
+
+## Package note — v7.5.1 documentation/installer alignment
+
+This package aligns install docs and installer defaults with the current Rust production branch. Use `/opt/LQoSync`, branch `lqosync-in-rust`, and the Rust daemon build/install/self-test sequence. Python/Flask documentation is now treated as legacy/fallback context for the full Rust backend production series.
+
+
+### v7.5.1 codebase path alignment
+
+Runtime/default path examples in docs, installer scripts, Python helper defaults, templates, config examples, and Rust fixture paths are aligned to `/opt/LQoSync`. The branch default is `lqosync-in-rust` for GitHub install/update helpers.

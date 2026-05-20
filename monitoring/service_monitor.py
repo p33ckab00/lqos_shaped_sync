@@ -202,7 +202,7 @@ def journal_lines(config: dict, service: str, lines: int = 100) -> dict[str, Any
 
 
 def list_apply_runs(config: dict, limit: int = 20) -> list[dict[str, Any]]:
-    apply_dir = Path(config.get("paths", {}).get("libreqos_apply_log_dir", "/opt/lqosync/logs/libreqos_apply"))
+    apply_dir = Path(config.get("paths", {}).get("libreqos_apply_log_dir", "/opt/LQoSync/logs/libreqos_apply"))
     if not apply_dir.exists():
         return []
     runs = []
@@ -218,7 +218,7 @@ def list_apply_runs(config: dict, limit: int = 20) -> list[dict[str, Any]]:
 
 
 def read_apply_file(config: dict, run_id: str, stream: str) -> str:
-    apply_dir = Path(config.get("paths", {}).get("libreqos_apply_log_dir", "/opt/lqosync/logs/libreqos_apply"))
+    apply_dir = Path(config.get("paths", {}).get("libreqos_apply_log_dir", "/opt/LQoSync/logs/libreqos_apply"))
     suffix = "stdout.log" if stream == "stdout" else "stderr.log"
     target = apply_dir / f"{run_id}.{suffix}"
     if not target.exists():

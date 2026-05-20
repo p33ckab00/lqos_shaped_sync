@@ -310,7 +310,7 @@
     },
     {
       "path": "docs/RUST_CORE_V441_PILOT_RESULT_RECURSION_HOTFIX.md",
-      "title": "Rust Core v4.4.1 \u2014 Pilot Result Recursion Hotfix",
+      "title": "Rust Core v4.4.1 — Pilot Result Recursion Hotfix",
       "tags": [
         "rust",
         "collector-authority",
@@ -430,7 +430,7 @@
     "title": "Custom Policy Mode Persistence Hotfix",
     "file": "docs/content/custom_policy_mode_persistence.md",
     "anchor": "custom-policy-mode-persistence-hotfix",
-    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center \u2192 Policies."
+    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center → Policies."
   },
   "policy_overview_custom_wiring_hotfix": {
     "title": "Policy Overview Custom Wiring Hotfix",
@@ -924,5 +924,11 @@
     "file": "docs/RUST_CORE_V75_FULL_RUST_BACKEND_PRODUCTION_AUDIT_SENTINEL.md",
     "anchor": "rust-core-v75-full-rust-backend-production-audit-sentinel",
     "summary": "Adds a post-drift-monitor production audit sentinel that verifies audit trail, journal visibility, rollback previews, WebUI/UX preservation, and Rust production authority without side effects."
+  },
+  "rust.core_v751_installation_docs_alignment": {
+    "title": "Rust Core v7.5.1 Installation Documentation and Installer Alignment",
+    "file": "docs/RUST_CORE_V751_INSTALLATION_DOCS_ALIGNMENT.md",
+    "anchor": "rust-core-v751-installation-documentation-and-installer-alignment",
+    "summary": "Aligns installation guides, GitHub install examples, installer defaults, canonical /opt/LQoSync path, lqosync-in-rust branch usage, and Rust daemon self-test flow."
   }
 }

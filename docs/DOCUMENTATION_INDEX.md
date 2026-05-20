@@ -299,3 +299,9 @@ Adds `evaluate-collector-authority-pilot-result`, a fail-safe evaluator for futu
 - [Rust Core v7.4 Full Rust Backend Production Drift Monitor](RUST_CORE_V74_FULL_RUST_BACKEND_PRODUCTION_DRIFT_MONITOR.md) — Post-steady-state production drift monitor for Rust runtime authority, no Python drift, WebUI/UX preservation, rollback readiness, and healthchecks.
 
 - [Rust Core v7.5 Full Rust Backend Production Audit Sentinel](RUST_CORE_V75_FULL_RUST_BACKEND_PRODUCTION_AUDIT_SENTINEL.md)
+
+## Rust Core v7.5.1 Installation Documentation and Installer Alignment
+
+- [Rust Core v7.5.1 Installation Documentation and Installer Alignment](RUST_CORE_V751_INSTALLATION_DOCS_ALIGNMENT.md)
+- Aligns install docs with `/opt/LQoSync`, branch `lqosync-in-rust`, and Rust daemon install/self-test flow.
+

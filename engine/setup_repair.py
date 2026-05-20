@@ -58,7 +58,7 @@ def _path_check(path: str | None, *, key: str, title: str, expected: str = "file
             "detail": f"Missing: {p}",
             "why": "Fresh LibreQoS/LQoSync installs can create missing managed files, but live systems should verify paths before enabling auto-apply.",
             "fix": "Run the installer with preserve_existing or create missing files from templates.",
-            "command": "cd /opt/lqosync && sudo LQOSYNC_INIT_POLICY=preserve_existing bash install.sh",
+            "command": "cd /opt/LQoSync && sudo LQOSYNC_INIT_POLICY=preserve_existing bash install.sh",
             "category": "paths",
         }
     if not valid_type:
@@ -73,7 +73,7 @@ def _path_check(path: str | None, *, key: str, title: str, expected: str = "file
         "detail": f"{p} exists" + (" and parent is writable" if writable else "; parent may not be writable by current process"),
         "why": "LQoSync needs read/write access for generated files and state paths.",
         "fix": "If this warns on bare-metal, reapply LQoSync permissions and ACLs.",
-        "command": "cd /opt/lqosync && sudo LQOSYNC_INIT_POLICY=preserve_existing bash install.sh",
+        "command": "cd /opt/LQoSync && sudo LQOSYNC_INIT_POLICY=preserve_existing bash install.sh",
         "category": "paths",
     }
 
@@ -98,27 +98,27 @@ def repair_commands() -> list[dict[str, Any]]:
         {
             "title": "Repair / reinstall bare-metal safely",
             "description": "Reapplies service file, sudoers, ACLs, config migration, and runtime folders while preserving live LibreQoS files.",
-            "command": "cd /opt/lqosync\nsudo systemctl stop lqosync\nsudo LQOSYNC_INIT_POLICY=preserve_existing bash install.sh\nsudo systemctl start lqosync",
+            "command": "cd /opt/LQoSync\nsudo systemctl stop lqosync\nsudo LQOSYNC_INIT_POLICY=preserve_existing bash install.sh\nsudo systemctl start lqosync",
         },
         {
             "title": "Restore LibreQoS permissions after uninstall or stale ACLs",
             "description": "Returns LQoSync-managed LibreQoS files to root ownership and removes stale lqosync ACL entries.",
-            "command": "sudo bash /opt/lqosync/scripts/restore_libreqos_permissions.sh",
+            "command": "sudo bash /opt/LQoSync/scripts/restore_libreqos_permissions.sh",
         },
         {
             "title": "Run environment doctor",
             "description": "Checks config, paths, permissions, LibreQoS command path, and optional router API reachability.",
-            "command": "cd /opt/lqosync\nsudo CONFIG_PATH=/opt/libreqos/src/config.json python3 scripts/doctor.py",
+            "command": "cd /opt/LQoSync\nsudo CONFIG_PATH=/opt/libreqos/src/config.json python3 scripts/doctor.py",
         },
         {
             "title": "Safe GitHub update",
             "description": "Pulls code and migrates missing safe defaults while preserving config, users, logs, state, generated files, and LibreQoS operational data.",
-            "command": "cd /opt/lqosync\nsudo UPDATE_POLICY=preserve_and_migrate bash upgrade.sh",
+            "command": "cd /opt/LQoSync\nsudo UPDATE_POLICY=preserve_and_migrate bash upgrade.sh",
         },
         {
             "title": "Adopt existing ZIP/manual install into GitHub-managed install",
-            "description": "Backs up existing /opt/lqosync, clones GitHub source, restores local data, and runs preserve-existing install.",
-            "command": "curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh\nsudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh",
+            "description": "Backs up existing /opt/LQoSync, clones GitHub source, restores local data, and runs preserve-existing install.",
+            "command": "curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/install-from-github.sh -o /tmp/install-lqosync.sh\nsudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh",
         },
         {
             "title": "Check LibreQoS core services",
@@ -268,7 +268,7 @@ def compute_setup_repair_report(
         detail=f"relation={relation}, local={git_status.get('local_version','unknown')}, remote={git_status.get('remote_version','unknown')}",
         why="Git-managed installs can be updated safely with preserve-and-migrate policy.",
         fix="Use Update Center commands if update is available or history diverged.",
-        command="cd /opt/lqosync && sudo UPDATE_POLICY=preserve_and_migrate bash upgrade.sh",
+        command="cd /opt/LQoSync && sudo UPDATE_POLICY=preserve_and_migrate bash upgrade.sh",
         category="updates",
     )
 
@@ -282,7 +282,7 @@ def compute_setup_repair_report(
         detail=f"OK={rel_summary.get('ok',0)} WARN={rel_summary.get('warn',0)} FAIL={rel_summary.get('fail',0)}",
         why="Navigation links, Flask routes, templates, engine files, and config defaults must be internally consistent before production use.",
         fix="Run python3 scripts/release_check.py and repair any missing routes/templates/defaults.",
-        command="cd /opt/lqosync && python3 scripts/release_check.py",
+        command="cd /opt/LQoSync && python3 scripts/release_check.py",
         category="release",
     )
 

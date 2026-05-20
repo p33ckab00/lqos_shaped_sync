@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INSTALL_DIR="/opt/lqosync"
+INSTALL_DIR="/opt/LQoSync"
 LIBREQOS_SRC_DIR="/opt/libreqos/src"
 CONFIG_PATH="$LIBREQOS_SRC_DIR/config.json"
 SHAPED_DEVICES_PATH="$LIBREQOS_SRC_DIR/ShapedDevices.csv"

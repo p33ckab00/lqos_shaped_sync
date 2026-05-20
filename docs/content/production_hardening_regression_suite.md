@@ -21,28 +21,28 @@ The regression suite is designed to catch issues before pushing to GitHub or aft
 Run the release integrity checker:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/release_check.py
 ```
 
 Run the full regression suite:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/regression_check.py
 ```
 
 Run only config migration regression checks:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/config_migration_check.py
 ```
 
 Run the full environment doctor wrapper:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo CONFIG_PATH=/opt/libreqos/src/config.json bash scripts/lqosync-doctor.sh
 ```
 

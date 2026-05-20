@@ -22,7 +22,7 @@ Example: if a DHCP client disappears and policy queues cleanup for next run, the
 Lifecycle data is stored in the same Smart Policy runtime state file:
 
 ```text
-/opt/lqosync/state/policy_state.json
+/opt/LQoSync/state/policy_state.json
 ```
 
 This is runtime state, not operator config.

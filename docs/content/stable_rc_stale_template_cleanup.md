@@ -13,7 +13,7 @@ Router Insight now belongs in Config Center → Routers. `/routers` remains as a
 Run:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/cleanup_stale_files.py --apply
 python3 scripts/stable_release_check.py
 ```

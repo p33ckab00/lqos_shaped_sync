@@ -3,9 +3,9 @@ set -euo pipefail
 
 # LQoSync bare-metal uninstall helper.
 # Defaults are safe: stop/remove service + sudoers, restore LibreQoS ACL/ownership
-# for managed files, and keep /opt/lqosync as a backup source unless REMOVE_RUNTIME=true.
+# for managed files, and keep /opt/LQoSync as a backup source unless REMOVE_RUNTIME=true.
 
-INSTALL_DIR="${INSTALL_DIR:-/opt/lqosync}"
+INSTALL_DIR="${INSTALL_DIR:-/opt/LQoSync}"
 SERVICE_NAME="${SERVICE_NAME:-lqosync}"
 RESTORE_LIBREQOS_PERMS="${RESTORE_LIBREQOS_PERMS:-true}"
 RESTORE_MODE="${RESTORE_MODE:-managed}" # managed or full
@@ -72,7 +72,7 @@ rm -f /var/log/lqosync.log 2>/dev/null || true
 
 if [[ "$REMOVE_USER" == "true" ]]; then
   userdel "$LQOSYNC_USER" 2>/dev/null || true
-  # System user is created with --no-create-home; runtime files live under /opt/lqosync.
+  # System user is created with --no-create-home; runtime files live under /opt/LQoSync.
   echo "[LQoSync] Removed user $LQOSYNC_USER"
 fi
 

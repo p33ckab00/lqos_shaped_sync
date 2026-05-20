@@ -4,13 +4,13 @@ set -euo pipefail
 # Smart Git updater for LQoSync bare-metal installs.
 # Does not require GitHub CLI (gh). Uses plain git.
 
-INSTALL_DIR="${LQOSYNC_INSTALL_DIR:-/opt/lqosync}"
+INSTALL_DIR="${LQOSYNC_INSTALL_DIR:-/opt/LQoSync}"
 REPO_URL="${LQOSYNC_REPO_URL:-https://github.com/p33ckab00/LQoSync.git}"
-BRANCH="${LQOSYNC_BRANCH:-main}"
+BRANCH="${LQOSYNC_BRANCH:-lqosync-in-rust}"
 SERVICE_NAME="${LQOSYNC_SERVICE_NAME:-lqosync}"
 OLD_SERVICE_NAME="${LQOSYNC_OLD_SERVICE_NAME:-lqos_shaped_sync}"
 POLICY="${UPDATE_POLICY:-preserve_and_migrate}"
-BACKUP_ROOT="${LQOSYNC_BACKUP_ROOT:-/opt/lqosync/backups/upgrades}"
+BACKUP_ROOT="${LQOSYNC_BACKUP_ROOT:-/opt/LQoSync/backups/upgrades}"
 TS="$(date +%Y%m%d_%H%M%S)"
 BACKUP_DIR="$BACKUP_ROOT/$TS"
 LIBREQOS_SRC="${LIBREQOS_SRC:-/opt/libreqos/src}"

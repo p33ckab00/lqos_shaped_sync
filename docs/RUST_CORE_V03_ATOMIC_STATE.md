@@ -9,10 +9,10 @@ Rust now defines protocol operations for atomic state/file writes while Python k
 ## State files covered
 
 ```text
-/opt/lqosync/state/runtime_state.json
-/opt/lqosync/state/policy_state.json
-/opt/lqosync/state/collector_cache.json
-/opt/lqosync/logs/audit.jsonl
+/opt/LQoSync/state/runtime_state.json
+/opt/LQoSync/state/policy_state.json
+/opt/LQoSync/state/collector_cache.json
+/opt/LQoSync/logs/audit.jsonl
 /opt/libreqos/src/ShapedDevices.csv
 /opt/libreqos/src/network.json
 /opt/libreqos/src/config.json

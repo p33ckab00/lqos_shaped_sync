@@ -115,10 +115,10 @@ The Rust atomic state/file engine should own these files:
 /opt/libreqos/src/config.json
 /opt/libreqos/src/ShapedDevices.csv
 /opt/libreqos/src/network.json
-/opt/lqosync/state/runtime_state.json
-/opt/lqosync/state/policy_state.json
-/opt/lqosync/state/collector_cache.json
-/opt/lqosync/logs/audit.jsonl
+/opt/LQoSync/state/runtime_state.json
+/opt/LQoSync/state/policy_state.json
+/opt/LQoSync/state/collector_cache.json
+/opt/LQoSync/logs/audit.jsonl
 ```
 
 `collector_cache.json` is included because it may affect source trust and speed/source continuity in later cycles. A corrupt cache can produce bad decisions in the next sync cycle.

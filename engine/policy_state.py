@@ -37,7 +37,7 @@ def default_policy_state() -> dict[str, Any]:
 
 def policy_state_path(config: dict) -> str:
     paths = config.get("paths", {}) if isinstance(config, dict) else {}
-    return paths.get("policy_state") or "/opt/lqosync/state/policy_state.json"
+    return paths.get("policy_state") or "/opt/LQoSync/state/policy_state.json"
 
 
 def load_policy_state(path_or_config: str | dict) -> dict[str, Any]:

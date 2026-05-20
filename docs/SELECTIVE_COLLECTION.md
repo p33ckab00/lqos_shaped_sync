@@ -127,7 +127,7 @@ Speed priority:
 The metadata cache is stored at:
 
 ```text
-/opt/lqosync/state/collector_cache.json
+/opt/LQoSync/state/collector_cache.json
 ```
 
 It records source hashes and cache metrics. It is not a database. It is used for observability and future optimization phases.

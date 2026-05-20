@@ -7,7 +7,7 @@ LQoSync now uses `lqosync` as the canonical runtime name.
 ```text
 systemd service: lqosync
 sudoers file:    /etc/sudoers.d/lqosync
-app log:         /opt/lqosync/logs/lqosync.log
+app log:         /opt/LQoSync/logs/lqosync.log
 system log:      /var/log/lqosync.log
 Docker name:     lqosync
 repo:            https://github.com/p33ckab00/LQoSync.git
@@ -34,7 +34,7 @@ sudo systemctl restart lqosync
 ## What remains unchanged
 
 ```text
-/opt/lqosync
+/opt/LQoSync
 /opt/libreqos/src/config.json
 /opt/libreqos/src/ShapedDevices.csv
 /opt/libreqos/src/network.json

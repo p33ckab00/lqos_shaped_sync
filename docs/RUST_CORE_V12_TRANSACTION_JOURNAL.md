@@ -37,7 +37,7 @@ Inputs:
   "rust_sync_plan": {},
   "rust_authority_gate": {},
   "paths": {
-    "transaction_journal": "/opt/lqosync/logs/transaction_journal.jsonl"
+    "transaction_journal": "/opt/LQoSync/logs/transaction_journal.jsonl"
   }
 }
 ```
@@ -99,7 +99,7 @@ No file writes are added by this release.
 ## Canonical paths
 
 ```text
-/opt/lqosync/logs/transaction_journal.jsonl
+/opt/LQoSync/logs/transaction_journal.jsonl
 /opt/libreqos/src/ShapedDevices.csv
 /opt/libreqos/src/network.json
 ```

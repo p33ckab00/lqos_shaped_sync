@@ -16,10 +16,10 @@ GitHub is only the source-code delivery method. LQoSync still preserves producti
 /opt/libreqos/src/config.json
 /opt/libreqos/src/ShapedDevices.csv
 /opt/libreqos/src/network.json
-/opt/lqosync/users.json
-/opt/lqosync/.env
-/opt/lqosync/state/
-/opt/lqosync/logs/
+/opt/LQoSync/users.json
+/opt/LQoSync/.env
+/opt/LQoSync/state/
+/opt/LQoSync/logs/
 ```
 
 Those files are operator/runtime files and are not overwritten during normal Git updates.
@@ -33,7 +33,7 @@ sudo apt update
 sudo apt install -y git
 cd /opt
 sudo git clone https://github.com/p33ckab00/LQoSync.git lqosync
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash install.sh
 ```
 
@@ -49,7 +49,7 @@ Existing LibreQoS files found → ask/preserve by default
 If `install-from-github.sh` is available from the repository, use:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo bash /tmp/install-lqosync.sh
 ```
 
@@ -57,13 +57,13 @@ Optional variables:
 
 ```bash
 sudo LQOSYNC_REPO_URL=https://github.com/p33ckab00/LQoSync.git \
-     LQOSYNC_BRANCH=main \
-     LQOSYNC_INSTALL_DIR=/opt/lqosync \
+     LQOSYNC_BRANCH=lqosync-in-rust \
+     LQOSYNC_INSTALL_DIR=/opt/LQoSync \
      LQOSYNC_INIT_POLICY=smart_confirm \
      bash /tmp/install-lqosync.sh
 ```
 
-## If `/opt/lqosync` was installed from ZIP/manual copy
+## If `/opt/LQoSync` was installed from ZIP/manual copy
 
 The Git installer can convert it into a Git-managed install. It backs up and preserves:
 
@@ -78,10 +78,10 @@ Then it clones/syncs the GitHub source and runs the normal production-safe insta
 
 ## Smart Git update
 
-Once `/opt/lqosync` is Git-managed:
+Once `/opt/LQoSync` is Git-managed:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash upgrade.sh
 ```
 
@@ -109,7 +109,7 @@ run service health check
 ### Safe production update
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo UPDATE_POLICY=preserve_and_migrate bash upgrade.sh
 ```
 
@@ -167,3 +167,23 @@ sudo apt install -y git
 ```
 
 Public repositories can be cloned/pulled without login. Private repositories require HTTPS token or SSH key access.
+
+## Current Rust Branch Install / Update Flow
+
+For the `lqosync-in-rust` production series, use the canonical source path `/opt/LQoSync` and validate the Rust daemon before treating the install as production-ready.
+
+```bash
+cd /opt/LQoSync
+git fetch origin
+git checkout lqosync-in-rust
+git pull --ff-only origin lqosync-in-rust
+
+bash scripts/repair-script-permissions.sh
+bash scripts/build-rust-core.sh
+sudo bash scripts/install-rust-core.sh
+sudo bash scripts/install-rust-core-daemon.sh
+printf '{"version":"1","op":"self-test","payload":{}}' | lqosync-core
+```
+
+Do not install a newly built Rust binary if `scripts/build-rust-core.sh` fails. The build helper removes stale release binaries before testing, so a failed test cannot accidentally install an old binary.
+

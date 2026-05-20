@@ -24,14 +24,14 @@ The release integrity checker verifies:
 Run full environment doctor:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo CONFIG_PATH=/opt/libreqos/src/config.json bash scripts/lqosync-doctor.sh
 ```
 
 Run package integrity check only:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/release_check.py
 ```
 

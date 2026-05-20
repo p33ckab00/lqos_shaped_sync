@@ -86,14 +86,14 @@ sudo apt update
 sudo apt install -y git
 cd /opt
 sudo git clone https://github.com/p33ckab00/LQoSync.git lqosync
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash install.sh
 ```
 
 One-command bootstrap:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo bash /tmp/install-lqosync.sh
 ```
 
@@ -106,7 +106,7 @@ Fresh install behavior:
 
 ## Existing installation adoption
 
-If `/opt/lqosync` already exists, the installer should not delete it blindly. It should detect the existing install and offer options:
+If `/opt/LQoSync` already exists, the installer should not delete it blindly. It should detect the existing install and offer options:
 
 ```text
 Existing LQoSync installation detected.
@@ -124,7 +124,7 @@ Recommended adoption command:
 
 ```bash
 cd /opt
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh
 ```
 
@@ -134,11 +134,11 @@ Preserved by default:
 /opt/libreqos/src/config.json
 /opt/libreqos/src/ShapedDevices.csv
 /opt/libreqos/src/network.json
-/opt/lqosync/users.json
-/opt/lqosync/.env
-/opt/lqosync/state/
-/opt/lqosync/logs/
-/opt/lqosync/backups/
+/opt/LQoSync/users.json
+/opt/LQoSync/.env
+/opt/LQoSync/state/
+/opt/LQoSync/logs/
+/opt/LQoSync/backups/
 ```
 
 ## GitHub update flow
@@ -146,7 +146,7 @@ Preserved by default:
 Default production update:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash upgrade.sh
 ```
 
@@ -175,21 +175,21 @@ Policy meanings:
 Standard uninstall:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash uninstall.sh
 ```
 
 Remove runtime too:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo REMOVE_RUNTIME=true bash uninstall.sh
 ```
 
 Full permission restore:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo RESTORE_MODE=full bash uninstall.sh
 ```
 
@@ -219,16 +219,16 @@ Use that user in the router section of `config.json`.
 ## Important paths
 
 ```text
-/opt/lqosync                                  LQoSync app and Git source
+/opt/LQoSync                                  LQoSync app and Git source
 /opt/libreqos/src/config.json                 LQoSync live config
 /opt/libreqos/src/ShapedDevices.csv           generated LibreQoS CSV
 /opt/libreqos/src/network.json                generated LibreQoS topology
-/opt/lqosync/users.json                       UI users with bcrypt hashes
-/opt/lqosync/logs/lqosync.log        LQoSync app log
-/opt/lqosync/logs/audit.jsonl                 audit log
-/opt/lqosync/logs/libreqos_apply/             LibreQoS apply stdout/stderr/metadata
-/opt/lqosync/state/runtime_state.json         runtime state and last run summary
-/opt/lqosync/backups/                         backups
+/opt/LQoSync/users.json                       UI users with bcrypt hashes
+/opt/LQoSync/logs/lqosync.log        LQoSync app log
+/opt/LQoSync/logs/audit.jsonl                 audit log
+/opt/LQoSync/logs/libreqos_apply/             LibreQoS apply stdout/stderr/metadata
+/opt/LQoSync/state/runtime_state.json         runtime state and last run summary
+/opt/LQoSync/backups/                         backups
 ```
 
 ## Troubleshooting guide with explanations and expectations
@@ -253,7 +253,7 @@ Expected:
 Check apply metadata:
 
 ```bash
-latest_json=$(sudo find /opt/lqosync/logs/libreqos_apply -name "*.json" -printf '%T@ %p\n' | sort -n | tail -1 | cut -d' ' -f2-)
+latest_json=$(sudo find /opt/LQoSync/logs/libreqos_apply -name "*.json" -printf '%T@ %p\n' | sort -n | tail -1 | cut -d' ' -f2-)
 sudo cat "$latest_json"
 ```
 
@@ -270,7 +270,7 @@ Meaning: Docker-only host namespace mode was used on bare-metal.
 Check:
 
 ```bash
-grep -E 'LQOSYNC_RUN_MODE|HOST_CONTROL_MODE|LQOSYNC_INSTALL_MODE|LQOSYNC_FORCE_DIRECT' /opt/lqosync/.env
+grep -E 'LQOSYNC_RUN_MODE|HOST_CONTROL_MODE|LQOSYNC_INSTALL_MODE|LQOSYNC_FORCE_DIRECT' /opt/LQoSync/.env
 ```
 
 Expected:
@@ -334,7 +334,7 @@ Expected: `lqosd` and `lqos_scheduler` are active. `lqos_node_manager` is legacy
 Use the active app log path:
 
 ```bash
-tail -n 100 /opt/lqosync/logs/lqosync.log
+tail -n 100 /opt/LQoSync/logs/lqosync.log
 journalctl -u lqosync -n 100 --no-pager
 ```
 
@@ -344,7 +344,7 @@ Use adoption mode:
 
 ```bash
 cd /opt
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh
 ```
 
@@ -499,7 +499,7 @@ The Services & Journals page now uses equal-height desktop panels for Journal Vi
 
 ### Update Center detection
 
-Update Center now performs a fresh `git fetch origin main` before comparing local and remote state. It compares local `HEAD` against the latest fetched `origin/main`, displays local and remote commits, reads the remote `VERSION` file using `git show origin/main:VERSION`, and shows whether an update is needed based on commit or version difference.
+Update Center now performs a fresh `git fetch origin lqosync-in-rust` before comparing local and remote state. It compares local `HEAD` against the latest fetched `origin/main`, displays local and remote commits, reads the remote `VERSION` file using `git show origin/main:VERSION`, and shows whether an update is needed based on commit or version difference.
 
 Update Center remains read-only. It displays safe SSH commands for updating, but it does not execute Git or upgrade actions from the browser.
 
@@ -632,7 +632,7 @@ LQoSync v2.55 adds package integrity checks and a built-in Environment Doctor to
 Commands:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/release_check.py
 sudo CONFIG_PATH=/opt/libreqos/src/config.json bash scripts/lqosync-doctor.sh
 ```
@@ -715,7 +715,7 @@ LQoSync v2.64 improves the compact operator experience without changing engine b
 LQoSync v2.65 adds offline regression checks for route/template wiring, high-risk template context, preserved config migration, policy safety behavior, Operations Center compatibility, and documentation integrity. Before publishing or updating from GitHub, run:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/release_check.py
 python3 scripts/regression_check.py
 python3 scripts/config_migration_check.py
@@ -760,7 +760,7 @@ LQoSync v2.70.0-rc1 is a stable release candidate. The feature-freeze rule allow
 Before publishing or updating production, run:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/release_check.py
 python3 scripts/regression_check.py
 python3 scripts/config_migration_check.py

@@ -26,7 +26,7 @@ Not allowed during the stable candidate phase:
 Before publishing or updating a production install, run:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/release_check.py
 python3 scripts/regression_check.py
 python3 scripts/config_migration_check.py
@@ -37,7 +37,7 @@ python3 scripts/stable_release_check.py
 Or run the combined doctor:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo CONFIG_PATH=/opt/libreqos/src/config.json bash scripts/lqosync-doctor.sh
 ```
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-LQOSYNC_DIR="${LQOSYNC_DIR:-/opt/lqosync}"
+LQOSYNC_DIR="${LQOSYNC_DIR:-/opt/LQoSync}"
 CONFIG_PATH="${CONFIG_PATH:-/opt/libreqos/src/config.json}"
 
 echo "LQoSync Environment Doctor"

@@ -35,7 +35,7 @@ def _is_baremetal_mode() -> bool:
 def _apply_log_dir(config: dict) -> Path:
     path = config.get("paths", {}).get("libreqos_apply_log_dir")
     if not path:
-        path = "/opt/lqosync/logs/libreqos_apply"
+        path = "/opt/LQoSync/logs/libreqos_apply"
     p = Path(path)
     p.mkdir(parents=True, exist_ok=True)
     return p
@@ -76,7 +76,7 @@ def run_libreqos_update(config: dict):
     if mode == "host_nsenter" and _is_baremetal_mode():
         # Bare-metal/systemd installs must never use nsenter. It causes errors like:
         #   nsenter: cannot open /proc/1/ns/ipc: Permission denied
-        # Direct + sudo is the correct path for /opt/lqosync running beside /opt/libreqos.
+        # Direct + sudo is the correct path for /opt/LQoSync running beside /opt/libreqos.
         mode = "direct"
         use_sudo = True
         forced_direct_reason = "baremetal_forced_direct"

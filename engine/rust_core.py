@@ -802,7 +802,7 @@ def _python_transaction_journal(payload: dict[str, Any], *, started: float | Non
             "mode": "transaction_journal_preview",
             "authoritative": False,
             "journal_id": journal_id,
-            "journal_path": paths.get("transaction_journal", "/opt/lqosync/logs/transaction_journal.jsonl"),
+            "journal_path": paths.get("transaction_journal", "/opt/LQoSync/logs/transaction_journal.jsonl"),
             "append_required": bool(event["executed"]),
             "append_executed": False,
             "rollback_available": bool(event["rollback_available"]),
@@ -959,7 +959,7 @@ def rust_build_rollback_manifest(config: dict, *, rust_apply_manifest: dict | No
 
 def _python_read_transaction_journal(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
     started = started or time.perf_counter()
-    path = str(payload.get("path") or payload.get("journal_path") or "/opt/lqosync/logs/transaction_journal.jsonl")
+    path = str(payload.get("path") or payload.get("journal_path") or "/opt/LQoSync/logs/transaction_journal.jsonl")
     limit = min(int(payload.get("limit") or 50), 500)
     offset = max(int(payload.get("offset") or 0), 0)
     reverse = bool(payload.get("reverse", True))
@@ -1052,7 +1052,7 @@ def _python_read_transaction_journal(payload: dict[str, Any], *, started: float 
 def rust_read_transaction_journal(config: dict, *, limit: int = 50, offset: int = 0, journal_id: str = "", manifest_id: str = "", transaction_status: str = "", executed: bool | None = None, include_event: bool = True, reverse: bool = True) -> dict[str, Any]:
     paths = (config or {}).get("paths", {}) if isinstance(config, dict) else {}
     payload: dict[str, Any] = {
-        "path": paths.get("transaction_journal") or "/opt/lqosync/logs/transaction_journal.jsonl",
+        "path": paths.get("transaction_journal") or "/opt/LQoSync/logs/transaction_journal.jsonl",
         "limit": int(limit or 50),
         "offset": int(offset or 0),
         "journal_id": journal_id or "",
@@ -1092,7 +1092,7 @@ def _python_rollback_from_journal(payload: dict[str, Any], *, started: float | N
 def rust_build_rollback_from_journal(config: dict, *, journal_id: str = "", manifest_id: str = "") -> dict[str, Any]:
     paths = (config or {}).get("paths", {}) if isinstance(config, dict) else {}
     payload = {
-        "path": paths.get("transaction_journal") or "/opt/lqosync/logs/transaction_journal.jsonl",
+        "path": paths.get("transaction_journal") or "/opt/LQoSync/logs/transaction_journal.jsonl",
         "journal_id": journal_id or "",
         "manifest_id": manifest_id or "",
     }
@@ -1143,7 +1143,7 @@ def rust_execute_rollback(config: dict, *, journal_id: str = "", manifest_id: st
     paths = (config or {}).get("paths", {}) if isinstance(config, dict) else {}
     payload: dict[str, Any] = {
         "config": config or {},
-        "path": paths.get("transaction_journal") or "/opt/lqosync/logs/transaction_journal.jsonl",
+        "path": paths.get("transaction_journal") or "/opt/LQoSync/logs/transaction_journal.jsonl",
         "journal_id": journal_id or "",
         "manifest_id": manifest_id or "",
         "rollback_manifest": rollback_manifest or {},

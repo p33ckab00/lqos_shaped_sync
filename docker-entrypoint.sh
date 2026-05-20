@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP_DIR="/app"
-DATA_DIR="/opt/lqosync"
+DATA_DIR="/opt/LQoSync"
 LIBREQOS_SRC_DIR="/opt/libreqos/src"
 CONFIG_PATH="${CONFIG_PATH:-$LIBREQOS_SRC_DIR/config.json}"
 SHAPED_DEVICES_PATH="${SHAPED_DEVICES_PATH:-$LIBREQOS_SRC_DIR/ShapedDevices.csv}"

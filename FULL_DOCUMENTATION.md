@@ -9,7 +9,7 @@ The v2.2.1 package fixes a false-positive Rust unit test in `routeros_transport.
 
 # LQoSync Full Documentation
 
-> **Canonical path:** LQoSync installs and runs from `/opt/lqosync`. LibreQoS remains under `/opt/libreqos`. Do not use a user-home directory as the documented install base.
+> **Canonical path:** LQoSync installs and runs from `/opt/LQoSync`. LibreQoS remains under `/opt/libreqos`. Do not use a user-home directory as the documented install base.
 
 
 This is the consolidated single-file manual for LQoSync. It is compiled from the same topic files used by the WebUI Documentation Center and GitHub documentation index.
@@ -149,14 +149,14 @@ LQoSync uses this final path layout:
 /opt/libreqos/src/config.json      # LQoSync config consumed by the engine
 /opt/libreqos/src/ShapedDevices.csv# generated LibreQoS shaped devices output
 /opt/libreqos/src/network.json     # generated LibreQoS network topology output
-/opt/lqosync/                      # LQoSync app/runtime folder
-/opt/lqosync/users.json            # UI users with bcrypt password hashes
-/opt/lqosync/state/                # scheduler/runtime state and locks
-/opt/lqosync/logs/                 # audit and LibreQoS apply logs
-/opt/lqosync/backups/              # pre-apply and restore backups
+/opt/LQoSync/                      # LQoSync app/runtime folder
+/opt/LQoSync/users.json            # UI users with bcrypt password hashes
+/opt/LQoSync/state/                # scheduler/runtime state and locks
+/opt/LQoSync/logs/                 # audit and LibreQoS apply logs
+/opt/LQoSync/backups/              # pre-apply and restore backups
 ```
 
-The systemd service name and Docker container name remain `lqosync` for compatibility, but the application/runtime directory is now `/opt/lqosync`.
+The systemd service name and Docker container name remain `lqosync` for compatibility, but the application/runtime directory is now `/opt/LQoSync`.
 
 
 ---
@@ -243,7 +243,7 @@ sudo docker logs -f lqosync
 ```bash
 sudo apt update
 sudo apt install -y git
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo LQOSYNC_INIT_POLICY=preserve_existing bash install.sh
 sudo systemctl status lqosync
 ```
@@ -299,7 +299,7 @@ sudo systemctl disable lqosync
 Quick Docker stop:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo docker compose down
 ```
 
@@ -386,7 +386,7 @@ are added by `install.sh` or `docker-entrypoint.sh` even when using `LQOSYNC_INI
 
 ### Bare-metal LibreQoS runner policy
 
-Bare-metal/systemd installs must run LibreQoS directly, not through Docker `nsenter`. The installer now normalizes `/opt/libreqos/src/config.json` and `/opt/lqosync/.env` so these settings are present after every update:
+Bare-metal/systemd installs must run LibreQoS directly, not through Docker `nsenter`. The installer now normalizes `/opt/libreqos/src/config.json` and `/opt/LQoSync/.env` so these settings are present after every update:
 
 ```json
 "libreqos": {
@@ -404,8 +404,8 @@ Bare-metal/systemd installs must run LibreQoS directly, not through Docker `nsen
 If you see `nsenter: cannot open /proc/1/ns/ipc: Permission denied` on a bare-metal install, update and reinstall with preserve mode:
 
 ```bash
-cd /opt/lqosync
-sudo git pull origin main
+cd /opt/LQoSync
+sudo git pull origin lqosync-in-rust
 sudo systemctl stop lqosync
 sudo LQOSYNC_INIT_POLICY=preserve_existing bash install.sh
 sudo systemctl start lqosync
@@ -415,7 +415,7 @@ Then confirm:
 
 ```bash
 grep -A12 '"libreqos"' /opt/libreqos/src/config.json
-grep -E 'LQOSYNC_RUN_MODE|HOST_CONTROL_MODE|LQOSYNC_INSTALL_MODE|LQOSYNC_FORCE_DIRECT' /opt/lqosync/.env
+grep -E 'LQOSYNC_RUN_MODE|HOST_CONTROL_MODE|LQOSYNC_INSTALL_MODE|LQOSYNC_FORCE_DIRECT' /opt/LQoSync/.env
 ```
 
 
@@ -480,7 +480,7 @@ Bare-metal LQoSync adds ACL permissions so the `lqosync` service user can atomic
 Recommended managed restore:
 
 ```bash
-sudo bash /opt/lqosync/scripts/restore_libreqos_permissions.sh --managed
+sudo bash /opt/LQoSync/scripts/restore_libreqos_permissions.sh --managed
 ```
 
 This removes ACL entries for `lqosync` and restores root ownership on:
@@ -504,7 +504,7 @@ It also applies conservative permissions:
 Optional full restore, only if you intentionally want every file under LibreQoS src returned to root ownership:
 
 ```bash
-sudo bash /opt/lqosync/scripts/restore_libreqos_permissions.sh --full
+sudo bash /opt/LQoSync/scripts/restore_libreqos_permissions.sh --full
 ```
 
 The restore script saves an ACL backup in `/root/lqosync_libreqos_acl_backup_<timestamp>.acl` when `getfacl` is available.
@@ -512,17 +512,17 @@ The restore script saves an ACL backup in `/root/lqosync_libreqos_acl_backup_<ti
 
 ## Bare-metal Uninstall Helper
 
-From `/opt/lqosync`, you can use the bundled helper:
+From `/opt/LQoSync`, you can use the bundled helper:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash uninstall.sh
 ```
 
-To also remove `/opt/lqosync` after backup:
+To also remove `/opt/LQoSync` after backup:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo REMOVE_RUNTIME=true bash uninstall.sh
 ```
 
@@ -636,21 +636,21 @@ sudo apt update
 sudo apt install -y git
 cd /opt
 sudo git clone https://github.com/p33ckab00/LQoSync.git lqosync
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash install.sh
 ```
 
 One-command bootstrap:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo bash /tmp/install-lqosync.sh
 ```
 
 Production-safe update from GitHub:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash upgrade.sh
 ```
 
@@ -660,8 +660,8 @@ Default update policy is `preserve_and_migrate`, which preserves live operator f
 /opt/libreqos/src/config.json
 /opt/libreqos/src/ShapedDevices.csv
 /opt/libreqos/src/network.json
-/opt/lqosync/users.json
-/opt/lqosync/.env
+/opt/LQoSync/users.json
+/opt/LQoSync/.env
 ```
 
 Advanced update policies:
@@ -683,7 +683,7 @@ For systems that already have LQoSync installed from ZIP, manual copy, Git, Dock
 
 ```bash
 cd /opt
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo bash /tmp/install-lqosync.sh
 ```
 
@@ -693,7 +693,7 @@ For unattended production-safe adoption:
 sudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh
 ```
 
-This preserves operator-owned files by default: `/opt/libreqos/src/config.json`, `ShapedDevices.csv`, `network.json`, `/opt/lqosync/users.json`, `.env`, `state/`, `logs/`, and `backups/`.
+This preserves operator-owned files by default: `/opt/libreqos/src/config.json`, `ShapedDevices.csv`, `network.json`, `/opt/LQoSync/users.json`, `.env`, `state/`, `logs/`, and `backups/`.
 
 ---
 
@@ -749,10 +749,10 @@ GitHub is only the source-code delivery method. LQoSync still preserves producti
 /opt/libreqos/src/config.json
 /opt/libreqos/src/ShapedDevices.csv
 /opt/libreqos/src/network.json
-/opt/lqosync/users.json
-/opt/lqosync/.env
-/opt/lqosync/state/
-/opt/lqosync/logs/
+/opt/LQoSync/users.json
+/opt/LQoSync/.env
+/opt/LQoSync/state/
+/opt/LQoSync/logs/
 ```
 
 Those files are operator/runtime files and are not overwritten during normal Git updates.
@@ -766,7 +766,7 @@ sudo apt update
 sudo apt install -y git
 cd /opt
 sudo git clone https://github.com/p33ckab00/LQoSync.git lqosync
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash install.sh
 ```
 
@@ -782,7 +782,7 @@ Existing LibreQoS files found → ask/preserve by default
 If `install-from-github.sh` is available from the repository, use:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo bash /tmp/install-lqosync.sh
 ```
 
@@ -790,13 +790,13 @@ Optional variables:
 
 ```bash
 sudo LQOSYNC_REPO_URL=https://github.com/p33ckab00/LQoSync.git \
-     LQOSYNC_BRANCH=main \
-     LQOSYNC_INSTALL_DIR=/opt/lqosync \
+     LQOSYNC_BRANCH=lqosync-in-rust \
+     LQOSYNC_INSTALL_DIR=/opt/LQoSync \
      LQOSYNC_INIT_POLICY=smart_confirm \
      bash /tmp/install-lqosync.sh
 ```
 
-## If `/opt/lqosync` was installed from ZIP/manual copy
+## If `/opt/LQoSync` was installed from ZIP/manual copy
 
 The Git installer can convert it into a Git-managed install. It backs up and preserves:
 
@@ -811,10 +811,10 @@ Then it clones/syncs the GitHub source and runs the normal production-safe insta
 
 ## Smart Git update
 
-Once `/opt/lqosync` is Git-managed:
+Once `/opt/LQoSync` is Git-managed:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash upgrade.sh
 ```
 
@@ -842,7 +842,7 @@ run service health check
 ### Safe production update
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo UPDATE_POLICY=preserve_and_migrate bash upgrade.sh
 ```
 
@@ -935,14 +935,14 @@ LQoSync uses this final path layout:
 /opt/libreqos/src/config.json      # LQoSync config consumed by the engine
 /opt/libreqos/src/ShapedDevices.csv# generated LibreQoS shaped devices output
 /opt/libreqos/src/network.json     # generated LibreQoS network topology output
-/opt/lqosync/                      # LQoSync app/runtime folder
-/opt/lqosync/users.json            # UI users with bcrypt password hashes
-/opt/lqosync/state/                # scheduler/runtime state and locks
-/opt/lqosync/logs/                 # audit and LibreQoS apply logs
-/opt/lqosync/backups/              # pre-apply and restore backups
+/opt/LQoSync/                      # LQoSync app/runtime folder
+/opt/LQoSync/users.json            # UI users with bcrypt password hashes
+/opt/LQoSync/state/                # scheduler/runtime state and locks
+/opt/LQoSync/logs/                 # audit and LibreQoS apply logs
+/opt/LQoSync/backups/              # pre-apply and restore backups
 ```
 
-The systemd service name and Docker container name remain `lqosync` for compatibility, but the application/runtime directory is now `/opt/lqosync`.
+The systemd service name and Docker container name remain `lqosync` for compatibility, but the application/runtime directory is now `/opt/LQoSync`.
 
 3. read existing `/opt/libreqos/src/network.json`
 4. connect to MikroTik read-only API
@@ -958,7 +958,7 @@ The systemd service name and Docker container name remain `lqosync` for compatib
 LQoSync app files:
 
 ```text
-/opt/lqosync/
+/opt/LQoSync/
 ```
 
 LibreQoS-managed files:
@@ -972,10 +972,10 @@ LibreQoS-managed files:
 Runtime/log/backup files:
 
 ```text
-/opt/lqosync/users.json
-/opt/lqosync/state/runtime_state.json
-/opt/lqosync/backups/
-/opt/lqosync/logs/
+/opt/LQoSync/users.json
+/opt/LQoSync/state/runtime_state.json
+/opt/LQoSync/backups/
+/opt/LQoSync/logs/
 /var/log/lqosync.log
 ```
 
@@ -1029,7 +1029,7 @@ if missing                                    → create from template
 Backups are saved under:
 
 ```text
-/opt/lqosync/install_backups/<timestamp>/
+/opt/LQoSync/install_backups/<timestamp>/
 ```
 
 Available policies:
@@ -1100,7 +1100,7 @@ admin / adminpass
 Change password immediately:
 
 ```bash
-sudo USERS_PATH=/opt/lqosync/users.json /opt/lqosync/venv/bin/python /opt/lqosync/scripts/set_password.py admin 'new-strong-password' admin
+sudo USERS_PATH=/opt/LQoSync/users.json /opt/LQoSync/venv/bin/python /opt/LQoSync/scripts/set_password.py admin 'new-strong-password' admin
 ```
 
 ---
@@ -1140,7 +1140,7 @@ From UI: Config Center → Router → Test Current UI API
 or from shell:
 
 ```bash
-sudo /opt/lqosync/venv/bin/python /opt/lqosync/scripts/doctor.py --router-test
+sudo /opt/LQoSync/venv/bin/python /opt/LQoSync/scripts/doctor.py --router-test
 ```
 
 ### 3. Run dry-run first
@@ -1189,13 +1189,13 @@ sudo tail -f /var/log/lqosync.log
 Run doctor:
 
 ```bash
-sudo /opt/lqosync/venv/bin/python /opt/lqosync/scripts/doctor.py
+sudo /opt/LQoSync/venv/bin/python /opt/LQoSync/scripts/doctor.py
 ```
 
 Set admin password:
 
 ```bash
-sudo USERS_PATH=/opt/lqosync/users.json /opt/lqosync/venv/bin/python /opt/lqosync/scripts/set_password.py admin 'new-password' admin
+sudo USERS_PATH=/opt/LQoSync/users.json /opt/LQoSync/venv/bin/python /opt/LQoSync/scripts/set_password.py admin 'new-password' admin
 ```
 
 ---
@@ -1208,8 +1208,8 @@ sudo systemctl disable lqosync
 sudo rm -f /etc/systemd/system/lqosync.service
 sudo systemctl daemon-reload
 sudo rm -f /etc/sudoers.d/lqosync
-sudo tar -czf /root/lqosync_backup_$(date +%Y%m%d_%H%M%S).tar.gz /opt/lqosync 2>/dev/null || true
-sudo rm -rf /opt/lqosync
+sudo tar -czf /root/lqosync_backup_$(date +%Y%m%d_%H%M%S).tar.gz /opt/LQoSync 2>/dev/null || true
+sudo rm -rf /opt/LQoSync
 sudo rm -f /var/log/lqosync.log
 sudo userdel lqosync 2>/dev/null || true
 ```
@@ -1256,7 +1256,7 @@ Features:
 Storage remains file-based. Users are saved in:
 
 ```text
-/opt/lqosync/users.json
+/opt/LQoSync/users.json
 ```
 
 Passwords are saved as bcrypt hashes, never plain text. The UI prevents deleting the current logged-in user, deleting the last admin, or demoting the last admin.
@@ -1408,7 +1408,7 @@ are added by `install.sh` or `docker-entrypoint.sh` even when using `LQOSYNC_INI
 
 ### Bare-metal LibreQoS runner policy
 
-Bare-metal/systemd installs must run LibreQoS directly, not through Docker `nsenter`. The installer now normalizes `/opt/libreqos/src/config.json` and `/opt/lqosync/.env` so these settings are present after every update:
+Bare-metal/systemd installs must run LibreQoS directly, not through Docker `nsenter`. The installer now normalizes `/opt/libreqos/src/config.json` and `/opt/LQoSync/.env` so these settings are present after every update:
 
 ```json
 "libreqos": {
@@ -1426,8 +1426,8 @@ Bare-metal/systemd installs must run LibreQoS directly, not through Docker `nsen
 If you see `nsenter: cannot open /proc/1/ns/ipc: Permission denied` on a bare-metal install, update and reinstall with preserve mode:
 
 ```bash
-cd /opt/lqosync
-sudo git pull origin main
+cd /opt/LQoSync
+sudo git pull origin lqosync-in-rust
 sudo systemctl stop lqosync
 sudo LQOSYNC_INIT_POLICY=preserve_existing bash install.sh
 sudo systemctl start lqosync
@@ -1437,7 +1437,7 @@ Then confirm:
 
 ```bash
 grep -A12 '"libreqos"' /opt/libreqos/src/config.json
-grep -E 'LQOSYNC_RUN_MODE|HOST_CONTROL_MODE|LQOSYNC_INSTALL_MODE|LQOSYNC_FORCE_DIRECT' /opt/lqosync/.env
+grep -E 'LQOSYNC_RUN_MODE|HOST_CONTROL_MODE|LQOSYNC_INSTALL_MODE|LQOSYNC_FORCE_DIRECT' /opt/LQoSync/.env
 ```
 
 
@@ -1502,7 +1502,7 @@ Bare-metal LQoSync adds ACL permissions so the `lqosync` service user can atomic
 Recommended managed restore:
 
 ```bash
-sudo bash /opt/lqosync/scripts/restore_libreqos_permissions.sh --managed
+sudo bash /opt/LQoSync/scripts/restore_libreqos_permissions.sh --managed
 ```
 
 This removes ACL entries for `lqosync` and restores root ownership on:
@@ -1526,7 +1526,7 @@ It also applies conservative permissions:
 Optional full restore, only if you intentionally want every file under LibreQoS src returned to root ownership:
 
 ```bash
-sudo bash /opt/lqosync/scripts/restore_libreqos_permissions.sh --full
+sudo bash /opt/LQoSync/scripts/restore_libreqos_permissions.sh --full
 ```
 
 The restore script saves an ACL backup in `/root/lqosync_libreqos_acl_backup_<timestamp>.acl` when `getfacl` is available.
@@ -1534,17 +1534,17 @@ The restore script saves an ACL backup in `/root/lqosync_libreqos_acl_backup_<ti
 
 ## Bare-metal Uninstall Helper
 
-From `/opt/lqosync`, you can use the bundled helper:
+From `/opt/LQoSync`, you can use the bundled helper:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash uninstall.sh
 ```
 
-To also remove `/opt/lqosync` after backup:
+To also remove `/opt/LQoSync` after backup:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo REMOVE_RUNTIME=true bash uninstall.sh
 ```
 
@@ -1658,21 +1658,21 @@ sudo apt update
 sudo apt install -y git
 cd /opt
 sudo git clone https://github.com/p33ckab00/LQoSync.git lqosync
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash install.sh
 ```
 
 One-command bootstrap:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo bash /tmp/install-lqosync.sh
 ```
 
 Production-safe update from GitHub:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash upgrade.sh
 ```
 
@@ -1682,8 +1682,8 @@ Default update policy is `preserve_and_migrate`, which preserves live operator f
 /opt/libreqos/src/config.json
 /opt/libreqos/src/ShapedDevices.csv
 /opt/libreqos/src/network.json
-/opt/lqosync/users.json
-/opt/lqosync/.env
+/opt/LQoSync/users.json
+/opt/LQoSync/.env
 ```
 
 Advanced update policies:
@@ -1732,14 +1732,14 @@ LQoSync uses this final path layout:
 /opt/libreqos/src/config.json      # LQoSync config consumed by the engine
 /opt/libreqos/src/ShapedDevices.csv# generated LibreQoS shaped devices output
 /opt/libreqos/src/network.json     # generated LibreQoS network topology output
-/opt/lqosync/                      # LQoSync app/runtime folder
-/opt/lqosync/users.json            # UI users with bcrypt password hashes
-/opt/lqosync/state/                # scheduler/runtime state and locks
-/opt/lqosync/logs/                 # audit and LibreQoS apply logs
-/opt/lqosync/backups/              # pre-apply and restore backups
+/opt/LQoSync/                      # LQoSync app/runtime folder
+/opt/LQoSync/users.json            # UI users with bcrypt password hashes
+/opt/LQoSync/state/                # scheduler/runtime state and locks
+/opt/LQoSync/logs/                 # audit and LibreQoS apply logs
+/opt/LQoSync/backups/              # pre-apply and restore backups
 ```
 
-The systemd service name and Docker container name remain `lqosync` for compatibility, but the application/runtime directory is now `/opt/lqosync`.
+The systemd service name and Docker container name remain `lqosync` for compatibility, but the application/runtime directory is now `/opt/LQoSync`.
 
 The Compose file uses:
 
@@ -1765,11 +1765,11 @@ because the container needs to:
 /opt/libreqos/src/config.json          # LQoSync config
 /opt/libreqos/src/ShapedDevices.csv    # generated LibreQoS CSV
 /opt/libreqos/src/network.json         # generated LibreQoS topology
-/opt/lqosync/                 # LQoSync runtime data
-/opt/lqosync/users.json       # web login users
-/opt/lqosync/backups/         # backups
-/opt/lqosync/state/           # runtime state and lock
-/opt/lqosync/logs/            # audit/logs
+/opt/LQoSync/                 # LQoSync runtime data
+/opt/LQoSync/users.json       # web login users
+/opt/LQoSync/backups/         # backups
+/opt/LQoSync/state/           # runtime state and lock
+/opt/LQoSync/logs/            # audit/logs
 ```
 
 ---
@@ -1847,7 +1847,7 @@ if missing                                    → create from template
 Backups are saved under:
 
 ```text
-/opt/lqosync/install_backups/<timestamp>/
+/opt/LQoSync/install_backups/<timestamp>/
 ```
 
 For production servers with existing working files, use preserve mode:
@@ -1891,7 +1891,7 @@ admin / adminpass
 Change password:
 
 ```bash
-sudo docker exec -it lqosync sh -lc "USERS_PATH=/opt/lqosync/users.json python /app/scripts/set_password.py admin 'new-strong-password' admin"
+sudo docker exec -it lqosync sh -lc "USERS_PATH=/opt/LQoSync/users.json python /app/scripts/set_password.py admin 'new-strong-password' admin"
 ```
 
 ---
@@ -1965,8 +1965,8 @@ sudo docker image rm lqosync:2.4-docs-baremetal 2>/dev/null || true
 Remove runtime data, optional:
 
 ```bash
-sudo tar -czf /root/lqosync_backup_$(date +%Y%m%d_%H%M%S).tar.gz /opt/lqosync 2>/dev/null || true
-sudo rm -rf /opt/lqosync
+sudo tar -czf /root/lqosync_backup_$(date +%Y%m%d_%H%M%S).tar.gz /opt/LQoSync 2>/dev/null || true
+sudo rm -rf /opt/LQoSync
 ```
 
 Do not remove LibreQoS files unless you know you no longer need them:
@@ -2010,7 +2010,7 @@ Features:
 Storage remains file-based. Users are saved in:
 
 ```text
-/opt/lqosync/users.json
+/opt/LQoSync/users.json
 ```
 
 Passwords are saved as bcrypt hashes, never plain text. The UI prevents deleting the current logged-in user, deleting the last admin, or demoting the last admin.
@@ -2119,17 +2119,17 @@ This user can read the RouterOS API resources required by LQoSync while blocking
 If the Docker deployment source folder is Git-managed, update with:
 
 ```bash
-cd /opt/lqosync
-sudo git pull origin main
+cd /opt/LQoSync
+sudo git pull origin lqosync-in-rust
 sudo docker compose down
 sudo docker compose build --no-cache
 sudo docker compose up -d
 ```
 
-For bare-metal `/opt/lqosync` installs, use:
+For bare-metal `/opt/LQoSync` installs, use:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash upgrade.sh
 ```
 
@@ -2145,7 +2145,7 @@ It covers:
 1. Docker installation uninstall
 2. Bare-metal Ubuntu/systemd uninstall
 3. Git-based install cleanup
-4. Optional cleanup of `/opt/lqosync`
+4. Optional cleanup of `/opt/LQoSync`
 5. Optional cleanup of permissions/ACL
 6. Optional restore of old `updatecsv.service`
 
@@ -2168,7 +2168,7 @@ Before removing anything, create a backup:
 ```bash
 sudo mkdir -p /root/lqosync_uninstall_backup_$(date +%F_%H%M%S)
 BACKUP_DIR=$(ls -td /root/lqosync_uninstall_backup_* | head -1)
-sudo cp -a /opt/lqosync "$BACKUP_DIR/opt_lqosync" 2>/dev/null || true
+sudo cp -a /opt/LQoSync "$BACKUP_DIR/opt_lqosync" 2>/dev/null || true
 sudo cp -a /opt/libreqos/src/config.json "$BACKUP_DIR/config.json" 2>/dev/null || true
 sudo cp -a /opt/libreqos/src/ShapedDevices.csv "$BACKUP_DIR/ShapedDevices.csv" 2>/dev/null || true
 sudo cp -a /opt/libreqos/src/network.json "$BACKUP_DIR/network.json" 2>/dev/null || true
@@ -2190,7 +2190,7 @@ sudo docker compose up -d --build
 Common locations:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 ```
 
 or:
@@ -2243,14 +2243,14 @@ sudo docker image rm lqosync:2.17-opt-lqosync 2>/dev/null || true
 LQoSync runtime path:
 
 ```text
-/opt/lqosync
+/opt/LQoSync
 ```
 
 Backup then delete:
 
 ```bash
-sudo tar -czf /root/lqosync_runtime_backup_$(date +%F_%H%M%S).tar.gz /opt/lqosync 2>/dev/null || true
-sudo rm -rf /opt/lqosync
+sudo tar -czf /root/lqosync_runtime_backup_$(date +%F_%H%M%S).tar.gz /opt/LQoSync 2>/dev/null || true
+sudo rm -rf /opt/LQoSync
 ```
 
 ## 5. Optional: remove Git project folder
@@ -2258,7 +2258,7 @@ sudo rm -rf /opt/lqosync
 If installed from Git:
 
 ```bash
-rm -rf /opt/lqosync
+rm -rf /opt/LQoSync
 ```
 
 If using old local folder name:
@@ -2276,21 +2276,21 @@ Only do this after you no longer need local source files.
 Fast path using the bundled uninstall helper:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash uninstall.sh
 ```
 
-Remove `/opt/lqosync` too:
+Remove `/opt/LQoSync` too:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo REMOVE_RUNTIME=true bash uninstall.sh
 ```
 
 Restore the entire LibreQoS src tree to root ownership instead of only managed files:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo RESTORE_MODE=full bash uninstall.sh
 ```
 
@@ -2337,8 +2337,8 @@ sudo rm -f /etc/sudoers.d/lqosync
 ## 4. Backup and remove app/runtime folder
 
 ```bash
-sudo tar -czf /root/lqosync_runtime_backup_$(date +%F_%H%M%S).tar.gz /opt/lqosync 2>/dev/null || true
-sudo rm -rf /opt/lqosync
+sudo tar -czf /root/lqosync_runtime_backup_$(date +%F_%H%M%S).tar.gz /opt/LQoSync 2>/dev/null || true
+sudo rm -rf /opt/LQoSync
 ```
 
 ## 5. Remove log file, optional
@@ -2361,7 +2361,7 @@ Bare-metal LQoSync grants ACL write access to the `lqosync` user so it can creat
 Recommended managed restore:
 
 ```bash
-sudo bash /opt/lqosync/scripts/restore_libreqos_permissions.sh --managed
+sudo bash /opt/LQoSync/scripts/restore_libreqos_permissions.sh --managed
 ```
 
 This restores only the directory and files managed by LQoSync:
@@ -2385,7 +2385,7 @@ Expected result:
 Optional full restore if you intentionally want everything under `/opt/libreqos/src` returned to root ownership:
 
 ```bash
-sudo bash /opt/lqosync/scripts/restore_libreqos_permissions.sh --full
+sudo bash /opt/LQoSync/scripts/restore_libreqos_permissions.sh --full
 ```
 
 Manual fallback if the script is already gone:
@@ -2409,7 +2409,7 @@ sudo chmod 644 /opt/libreqos/src/ShapedDevices.csv /opt/libreqos/src/network.jso
 If installed from Git:
 
 ```bash
-rm -rf /opt/lqosync
+rm -rf /opt/LQoSync
 ```
 
 If using old extracted package folder:
@@ -2464,7 +2464,7 @@ Make sure LQoSync is stopped/removed first to avoid two writers touching `Shaped
 
 ```bash
 systemctl status lqosync
-ls -lah /opt/lqosync
+ls -lah /opt/LQoSync
 sudo docker ps -a | grep lqos || true
 ```
 
@@ -2472,7 +2472,7 @@ Expected after full uninstall:
 
 ```text
 Unit lqosync.service could not be found
-/opt/lqosync: No such file or directory
+/opt/LQoSync: No such file or directory
 no lqosync container
 ```
 
@@ -2542,13 +2542,13 @@ sudo docker compose up -d
 Use this explicit command so the script always writes to the mounted `users.json` path:
 
 ```bash
-sudo docker exec -it lqosync sh -lc "USERS_PATH=/opt/lqosync/users.json python /app/scripts/set_password.py admin 'new-strong-password' admin"
+sudo docker exec -it lqosync sh -lc "USERS_PATH=/opt/LQoSync/users.json python /app/scripts/set_password.py admin 'new-strong-password' admin"
 ```
 
 Create or update a viewer user:
 
 ```bash
-sudo docker exec -it lqosync sh -lc "USERS_PATH=/opt/lqosync/users.json python /app/scripts/set_password.py viewer 'viewer-password' viewer"
+sudo docker exec -it lqosync sh -lc "USERS_PATH=/opt/LQoSync/users.json python /app/scripts/set_password.py viewer 'viewer-password' viewer"
 ```
 
 ### Run doctor checks
@@ -2578,14 +2578,14 @@ sudo systemctl restart lqosync
 ### Change admin password
 
 ```bash
-sudo USERS_PATH=/opt/lqosync/users.json /opt/lqosync/venv/bin/python /opt/lqosync/scripts/set_password.py admin 'new-strong-password' admin
+sudo USERS_PATH=/opt/LQoSync/users.json /opt/LQoSync/venv/bin/python /opt/LQoSync/scripts/set_password.py admin 'new-strong-password' admin
 ```
 
 ### Run doctor checks
 
 ```bash
-sudo /opt/lqosync/venv/bin/python /opt/lqosync/scripts/doctor.py
-sudo /opt/lqosync/venv/bin/python /opt/lqosync/scripts/doctor.py --router-test
+sudo /opt/LQoSync/venv/bin/python /opt/LQoSync/scripts/doctor.py
+sudo /opt/LQoSync/venv/bin/python /opt/LQoSync/scripts/doctor.py --router-test
 ```
 
 ## LibreQoS related commands
@@ -2624,20 +2624,20 @@ From this page you can:
 - change password
 - delete user
 
-Passwords are stored in `/opt/lqosync/users.json` as bcrypt hashes. LQoSync does not use a database.
+Passwords are stored in `/opt/LQoSync/users.json` as bcrypt hashes. LQoSync does not use a database.
 
 ## User management via CLI
 
 Docker:
 
 ```bash
-sudo docker exec -it lqosync sh -lc "USERS_PATH=/opt/lqosync/users.json python /app/scripts/set_password.py admin 'new-strong-password' admin"
+sudo docker exec -it lqosync sh -lc "USERS_PATH=/opt/LQoSync/users.json python /app/scripts/set_password.py admin 'new-strong-password' admin"
 ```
 
 Bare-metal:
 
 ```bash
-sudo USERS_PATH=/opt/lqosync/users.json /opt/lqosync/venv/bin/python /opt/lqosync/scripts/set_password.py admin 'new-strong-password' admin
+sudo USERS_PATH=/opt/LQoSync/users.json /opt/LQoSync/venv/bin/python /opt/LQoSync/scripts/set_password.py admin 'new-strong-password' admin
 ```
 
 
@@ -2665,21 +2665,21 @@ UNINSTALLATION.md
 ### Docker uninstall
 
 ```bash
-cd /opt/lqosync 2>/dev/null || cd /opt/lqos_docker
+cd /opt/LQoSync 2>/dev/null || cd /opt/lqos_docker
 sudo docker compose down
 ```
 
 Optional remove runtime folder:
 
 ```bash
-sudo tar -czf /root/lqosync_runtime_backup_$(date +%F_%H%M%S).tar.gz /opt/lqosync 2>/dev/null || true
-sudo rm -rf /opt/lqosync
+sudo tar -czf /root/lqosync_runtime_backup_$(date +%F_%H%M%S).tar.gz /opt/LQoSync 2>/dev/null || true
+sudo rm -rf /opt/LQoSync
 ```
 
 If installed from Git and you want to remove the source clone:
 
 ```bash
-rm -rf /opt/lqosync
+rm -rf /opt/LQoSync
 ```
 
 ### Bare-metal uninstall
@@ -2692,8 +2692,8 @@ sudo systemctl daemon-reload
 sudo systemctl reset-failed
 sudo rm -f /etc/sudoers.d/lqosync
 sudo rm -f /etc/sudoers.d/lqosync
-sudo tar -czf /root/lqosync_runtime_backup_$(date +%F_%H%M%S).tar.gz /opt/lqosync 2>/dev/null || true
-sudo rm -rf /opt/lqosync
+sudo tar -czf /root/lqosync_runtime_backup_$(date +%F_%H%M%S).tar.gz /opt/LQoSync 2>/dev/null || true
+sudo rm -rf /opt/LQoSync
 sudo userdel lqosync 2>/dev/null || true
 ```
 
@@ -2816,14 +2816,14 @@ Expected important keys:
 Run migration manually after a Git update:
 
 ```bash
-cd /opt/lqosync
-sudo CONFIG_PATH=/opt/libreqos/src/config.json /opt/lqosync/venv/bin/python scripts/migrate_config.py
+cd /opt/LQoSync
+sudo CONFIG_PATH=/opt/libreqos/src/config.json /opt/LQoSync/venv/bin/python scripts/migrate_config.py
 ```
 
 
 ### Bare-metal LibreQoS runner policy
 
-Bare-metal/systemd installs must run LibreQoS directly, not through Docker `nsenter`. The installer now normalizes `/opt/libreqos/src/config.json` and `/opt/lqosync/.env` so these settings are present after every update:
+Bare-metal/systemd installs must run LibreQoS directly, not through Docker `nsenter`. The installer now normalizes `/opt/libreqos/src/config.json` and `/opt/LQoSync/.env` so these settings are present after every update:
 
 ```json
 "libreqos": {
@@ -2841,8 +2841,8 @@ Bare-metal/systemd installs must run LibreQoS directly, not through Docker `nsen
 If you see `nsenter: cannot open /proc/1/ns/ipc: Permission denied` on a bare-metal install, update and reinstall with preserve mode:
 
 ```bash
-cd /opt/lqosync
-sudo git pull origin main
+cd /opt/LQoSync
+sudo git pull origin lqosync-in-rust
 sudo systemctl stop lqosync
 sudo LQOSYNC_INIT_POLICY=preserve_existing bash install.sh
 sudo systemctl start lqosync
@@ -2852,7 +2852,7 @@ Then confirm:
 
 ```bash
 grep -A12 '"libreqos"' /opt/libreqos/src/config.json
-grep -E 'LQOSYNC_RUN_MODE|HOST_CONTROL_MODE|LQOSYNC_INSTALL_MODE|LQOSYNC_FORCE_DIRECT' /opt/lqosync/.env
+grep -E 'LQOSYNC_RUN_MODE|HOST_CONTROL_MODE|LQOSYNC_INSTALL_MODE|LQOSYNC_FORCE_DIRECT' /opt/LQoSync/.env
 ```
 
 
@@ -2917,7 +2917,7 @@ Bare-metal LQoSync adds ACL permissions so the `lqosync` service user can atomic
 Recommended managed restore:
 
 ```bash
-sudo bash /opt/lqosync/scripts/restore_libreqos_permissions.sh --managed
+sudo bash /opt/LQoSync/scripts/restore_libreqos_permissions.sh --managed
 ```
 
 This removes ACL entries for `lqosync` and restores root ownership on:
@@ -2941,7 +2941,7 @@ It also applies conservative permissions:
 Optional full restore, only if you intentionally want every file under LibreQoS src returned to root ownership:
 
 ```bash
-sudo bash /opt/lqosync/scripts/restore_libreqos_permissions.sh --full
+sudo bash /opt/LQoSync/scripts/restore_libreqos_permissions.sh --full
 ```
 
 The restore script saves an ACL backup in `/root/lqosync_libreqos_acl_backup_<timestamp>.acl` when `getfacl` is available.
@@ -2949,17 +2949,17 @@ The restore script saves an ACL backup in `/root/lqosync_libreqos_acl_backup_<ti
 
 ## Bare-metal Uninstall Helper
 
-From `/opt/lqosync`, you can use the bundled helper:
+From `/opt/LQoSync`, you can use the bundled helper:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash uninstall.sh
 ```
 
-To also remove `/opt/lqosync` after backup:
+To also remove `/opt/LQoSync` after backup:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo REMOVE_RUNTIME=true bash uninstall.sh
 ```
 
@@ -3083,21 +3083,21 @@ sudo apt update
 sudo apt install -y git
 cd /opt
 sudo git clone https://github.com/p33ckab00/LQoSync.git lqosync
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash install.sh
 ```
 
 One-command bootstrap:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo bash /tmp/install-lqosync.sh
 ```
 
 Production-safe update from GitHub:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash upgrade.sh
 ```
 
@@ -3107,8 +3107,8 @@ Default update policy is `preserve_and_migrate`, which preserves live operator f
 /opt/libreqos/src/config.json
 /opt/libreqos/src/ShapedDevices.csv
 /opt/libreqos/src/network.json
-/opt/lqosync/users.json
-/opt/lqosync/.env
+/opt/LQoSync/users.json
+/opt/LQoSync/.env
 ```
 
 Advanced update policies:
@@ -3129,7 +3129,7 @@ See `docs/GITHUB_INSTALL.md` for the full Git source install and update guide.
 Download the GitHub bootstrap installer:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/install-from-github.sh -o /tmp/install-lqosync.sh
 ```
 
 Interactive mode:
@@ -4698,7 +4698,7 @@ Possible state structure:
 If possible, store this under:
 
 ```text
-/opt/lqosync/state/policy_state.json
+/opt/LQoSync/state/policy_state.json
 ```
 
 or inside existing runtime state if project already centralizes state.
@@ -6737,14 +6737,14 @@ The release integrity checker verifies:
 Run full environment doctor:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo CONFIG_PATH=/opt/libreqos/src/config.json bash scripts/lqosync-doctor.sh
 ```
 
 Run package integrity check only:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/release_check.py
 ```
 
@@ -7324,7 +7324,7 @@ LQoSync v2.64 improves the compact operator experience without changing engine b
 LQoSync v2.65 adds offline regression checks for route/template wiring, high-risk template context, preserved config migration, policy safety behavior, Operations Center compatibility, and documentation integrity. Before publishing or updating from GitHub, run:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/release_check.py
 python3 scripts/regression_check.py
 python3 scripts/config_migration_check.py
@@ -7369,7 +7369,7 @@ LQoSync v2.70.0-rc1 is a stable release candidate. The feature-freeze rule allow
 Before publishing or updating production, run:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/release_check.py
 python3 scripts/regression_check.py
 python3 scripts/config_migration_check.py
@@ -7933,3 +7933,8 @@ Adds `build-full-rust-backend-production-drift-monitor`, a non-mutating post-ste
 ## v7.5 Full Rust Backend Production Audit Sentinel
 
 Adds `build-full-rust-backend-production-audit-sentinel`, a verification-only post-drift-monitor guard for audit trail readiness, transaction journal visibility, rollback preview readiness, WebUI/UX preservation, and no-Python-drift production authority. WebUI/UX remains unchanged and no service/file mutations are performed by the Rust core operation.
+
+## Rust Core v7.5.1 Installation Documentation and Installer Alignment
+
+See `docs/RUST_CORE_V751_INSTALLATION_DOCS_ALIGNMENT.md`. Primary install guides now prefer branch `lqosync-in-rust`, path `/opt/LQoSync`, and the Rust daemon install flow: `scripts/build-rust-core.sh`, `scripts/install-rust-core.sh`, `scripts/install-rust-core-daemon.sh`, and `lqosync-core` self-test.
+

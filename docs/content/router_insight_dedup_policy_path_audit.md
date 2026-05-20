@@ -28,7 +28,7 @@ Router settings and router insight should not be split into two pages. The opera
 Run:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/policy_path_audit.py
 ```
 

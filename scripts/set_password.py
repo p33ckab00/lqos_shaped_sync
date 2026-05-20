@@ -2,7 +2,7 @@
 """Set or create a local LQoSync user in users.json.
 
 Usage:
-  USERS_PATH=/opt/lqosync/users.json ./scripts/set_password.py admin newpass admin
+  USERS_PATH=/opt/LQoSync/users.json ./scripts/set_password.py admin newpass admin
   ./scripts/set_password.py viewer viewpass viewer
 """
 from __future__ import annotations

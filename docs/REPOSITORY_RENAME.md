@@ -25,7 +25,7 @@ Do not rename runtime compatibility names unless a future migration explicitly h
 Keep these as-is for now:
 
 ```text
-/opt/lqosync
+/opt/LQoSync
 lqosync.service
 lqosync log names
 existing Docker container names when already deployed
@@ -55,20 +55,20 @@ gh repo edit p33ckab00/LQoSync --name LQoSync
 On every server or development checkout:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 git remote set-url origin https://github.com/p33ckab00/LQoSync.git
 git remote -v
-git fetch origin main
+git fetch origin lqosync-in-rust
 git status
 ```
 
 For your development folder:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 git remote set-url origin https://github.com/p33ckab00/LQoSync.git
 git remote -v
-git fetch origin main
+git fetch origin lqosync-in-rust
 git status
 ```
 
@@ -78,7 +78,7 @@ After the repository rename, use:
 
 ```bash
 cd /opt
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh
 ```
 
@@ -103,7 +103,7 @@ Keep `lqosync` only when it refers to an existing compatibility name:
 ## Safe push flow after documentation changes
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 git status
 python3 -m py_compile app.py engine/policy_schema.py engine/regression.py
 python3 scripts/release_check.py

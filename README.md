@@ -4,7 +4,7 @@ The `lqosync-in-rust` branch now includes `run-routeros-authenticated-read-fixtu
 
 # LQoSync
 
-> **Canonical path:** LQoSync installs and runs from `/opt/lqosync`. LibreQoS remains under `/opt/libreqos`. Do not use a user-home directory as the documented install base.
+> **Canonical path:** LQoSync installs and runs from `/opt/LQoSync`. LibreQoS remains under `/opt/libreqos`. Do not use a user-home directory as the documented install base.
 
 
 LQoSync is a standalone WebUI and scheduler that syncs live MikroTik PPPoE, DHCP, and Hotspot data into LibreQoS input files.
@@ -86,18 +86,18 @@ A normal update should update app code and safe missing defaults only. These ope
 /opt/libreqos/src/config.json
 /opt/libreqos/src/ShapedDevices.csv
 /opt/libreqos/src/network.json
-/opt/lqosync/users.json
-/opt/lqosync/.env
-/opt/lqosync/state/
-/opt/lqosync/logs/
-/opt/lqosync/backups/
+/opt/LQoSync/users.json
+/opt/LQoSync/.env
+/opt/LQoSync/state/
+/opt/LQoSync/logs/
+/opt/LQoSync/backups/
 ```
 
 Recommended GitHub install/update command after repository rename:
 
 ```bash
 cd /opt
-curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/main/install-from-github.sh -o /tmp/install-lqosync.sh
+curl -fsSL https://raw.githubusercontent.com/p33ckab00/LQoSync/lqosync-in-rust/install-from-github.sh -o /tmp/install-lqosync.sh
 sudo EXISTING_INSTALL_ACTION=adopt bash /tmp/install-lqosync.sh
 ```
 
@@ -127,7 +127,7 @@ Then update every local checkout:
 ```bash
 git remote set-url origin https://github.com/p33ckab00/LQoSync.git
 git remote -v
-git fetch origin main
+git fetch origin lqosync-in-rust
 ```
 
 See [Repository Rename Guide](docs/REPOSITORY_RENAME.md).
@@ -139,10 +139,10 @@ See [Repository Rename Guide](docs/REPOSITORY_RENAME.md).
 /opt/libreqos/src/config.json       # LQoSync runtime config consumed by the engine
 /opt/libreqos/src/ShapedDevices.csv # generated LibreQoS shaped-device output
 /opt/libreqos/src/network.json      # generated LibreQoS topology output
-/opt/lqosync/                       # LQoSync app/runtime folder
-/opt/lqosync/state/                 # runtime, policy, lifecycle, notification state
-/opt/lqosync/logs/                  # audit and apply logs
-/opt/lqosync/backups/               # pre-apply and restore backups
+/opt/LQoSync/                       # LQoSync app/runtime folder
+/opt/LQoSync/state/                 # runtime, policy, lifecycle, notification state
+/opt/LQoSync/logs/                  # audit and apply logs
+/opt/LQoSync/backups/               # pre-apply and restore backups
 ```
 
 Compatibility note: the systemd service can remain `lqosync` even after the GitHub repository/product name is LQoSync.
@@ -317,7 +317,7 @@ Rust Core v1.2 adds `build-transaction-journal` and `build-rollback-manifest` op
 
 ### Rust Core v1.3 Transaction Journal Persistence
 
-The `lqosync-in-rust` branch now includes `append-transaction-journal`, an opt-in operation for persisting Rust apply transaction journal events to `/opt/lqosync/logs/transaction_journal.jsonl`. It is disabled by default and remains rehearsal-only unless explicitly enabled.
+The `lqosync-in-rust` branch now includes `append-transaction-journal`, an opt-in operation for persisting Rust apply transaction journal events to `/opt/LQoSync/logs/transaction_journal.jsonl`. It is disabled by default and remains rehearsal-only unless explicitly enabled.
 
 
 ## Rust Core v1.4 Transaction History and Rollback Plan Viewer
@@ -679,3 +679,21 @@ Adds `build-full-rust-backend-production-drift-monitor`, a non-mutating post-ste
 ## v7.5 Full Rust Backend Production Audit Sentinel
 
 Adds `build-full-rust-backend-production-audit-sentinel`, a verification-only post-drift-monitor guard for audit trail readiness, transaction journal visibility, rollback preview readiness, WebUI/UX preservation, and no-Python-drift production authority. WebUI/UX remains unchanged and no service/file mutations are performed by the Rust core operation.
+
+## Rust Core v7.5.1 Installation Documentation and Installer Alignment
+
+The install path and branch examples are now aligned with the production Rust line:
+
+```bash
+cd /opt/LQoSync
+git checkout lqosync-in-rust
+git pull --ff-only origin lqosync-in-rust
+bash scripts/repair-script-permissions.sh
+bash scripts/build-rust-core.sh
+sudo bash scripts/install-rust-core.sh
+sudo bash scripts/install-rust-core-daemon.sh
+printf '{"version":"1","op":"self-test","payload":{}}' | lqosync-core
+```
+
+Run `bash scripts/verify-installation-docs-alignment.sh` to confirm docs and installer defaults are aligned.
+

@@ -1,6 +1,6 @@
 # LQoSync Docker / Compose Installation Guide
 
-> **Canonical path:** LQoSync installs and runs from `/opt/lqosync`. LibreQoS remains under `/opt/libreqos`. Do not use a user-home directory as the documented install base.
+> **Canonical path:** LQoSync installs and runs from `/opt/LQoSync`. LibreQoS remains under `/opt/libreqos`. Do not use a user-home directory as the documented install base.
 
 
 This guide installs **LQoSync** using Docker Compose.
@@ -32,14 +32,14 @@ LQoSync uses this final path layout:
 /opt/libreqos/src/config.json      # LQoSync config consumed by the engine
 /opt/libreqos/src/ShapedDevices.csv# generated LibreQoS shaped devices output
 /opt/libreqos/src/network.json     # generated LibreQoS network topology output
-/opt/lqosync/                      # LQoSync app/runtime folder
-/opt/lqosync/users.json            # UI users with bcrypt password hashes
-/opt/lqosync/state/                # scheduler/runtime state and locks
-/opt/lqosync/logs/                 # audit and LibreQoS apply logs
-/opt/lqosync/backups/              # pre-apply and restore backups
+/opt/LQoSync/                      # LQoSync app/runtime folder
+/opt/LQoSync/users.json            # UI users with bcrypt password hashes
+/opt/LQoSync/state/                # scheduler/runtime state and locks
+/opt/LQoSync/logs/                 # audit and LibreQoS apply logs
+/opt/LQoSync/backups/              # pre-apply and restore backups
 ```
 
-The systemd service name and Docker container name remain `lqosync` for compatibility, but the application/runtime directory is now `/opt/lqosync`.
+The systemd service name and Docker container name remain `lqosync` for compatibility, but the application/runtime directory is now `/opt/LQoSync`.
 
 The Compose file uses:
 
@@ -65,11 +65,11 @@ because the container needs to:
 /opt/libreqos/src/config.json          # LQoSync config
 /opt/libreqos/src/ShapedDevices.csv    # generated LibreQoS CSV
 /opt/libreqos/src/network.json         # generated LibreQoS topology
-/opt/lqosync/                 # LQoSync runtime data
-/opt/lqosync/users.json       # web login users
-/opt/lqosync/backups/         # backups
-/opt/lqosync/state/           # runtime state and lock
-/opt/lqosync/logs/            # audit/logs
+/opt/LQoSync/                 # LQoSync runtime data
+/opt/LQoSync/users.json       # web login users
+/opt/LQoSync/backups/         # backups
+/opt/LQoSync/state/           # runtime state and lock
+/opt/LQoSync/logs/            # audit/logs
 ```
 
 ---
@@ -147,7 +147,7 @@ if missing                                    → create from template
 Backups are saved under:
 
 ```text
-/opt/lqosync/install_backups/<timestamp>/
+/opt/LQoSync/install_backups/<timestamp>/
 ```
 
 For production servers with existing working files, use preserve mode:
@@ -191,7 +191,7 @@ admin / adminpass
 Change password:
 
 ```bash
-sudo docker exec -it lqosync sh -lc "USERS_PATH=/opt/lqosync/users.json python /app/scripts/set_password.py admin 'new-strong-password' admin"
+sudo docker exec -it lqosync sh -lc "USERS_PATH=/opt/LQoSync/users.json python /app/scripts/set_password.py admin 'new-strong-password' admin"
 ```
 
 ---
@@ -265,8 +265,8 @@ sudo docker image rm lqosync:2.4-docs-baremetal 2>/dev/null || true
 Remove runtime data, optional:
 
 ```bash
-sudo tar -czf /root/lqosync_backup_$(date +%Y%m%d_%H%M%S).tar.gz /opt/lqosync 2>/dev/null || true
-sudo rm -rf /opt/lqosync
+sudo tar -czf /root/lqosync_backup_$(date +%Y%m%d_%H%M%S).tar.gz /opt/LQoSync 2>/dev/null || true
+sudo rm -rf /opt/LQoSync
 ```
 
 Do not remove LibreQoS files unless you know you no longer need them:
@@ -310,7 +310,7 @@ Features:
 Storage remains file-based. Users are saved in:
 
 ```text
-/opt/lqosync/users.json
+/opt/LQoSync/users.json
 ```
 
 Passwords are saved as bcrypt hashes, never plain text. The UI prevents deleting the current logged-in user, deleting the last admin, or demoting the last admin.
@@ -419,16 +419,36 @@ This user can read the RouterOS API resources required by LQoSync while blocking
 If the Docker deployment source folder is Git-managed, update with:
 
 ```bash
-cd /opt/lqosync
-sudo git pull origin main
+cd /opt/LQoSync
+sudo git pull origin lqosync-in-rust
 sudo docker compose down
 sudo docker compose build --no-cache
 sudo docker compose up -d
 ```
 
-For bare-metal `/opt/lqosync` installs, use:
+For bare-metal `/opt/LQoSync` installs, use:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 sudo bash upgrade.sh
 ```
+
+## Current Rust Branch Install / Update Flow
+
+For the `lqosync-in-rust` production series, use the canonical source path `/opt/LQoSync` and validate the Rust daemon before treating the install as production-ready.
+
+```bash
+cd /opt/LQoSync
+git fetch origin
+git checkout lqosync-in-rust
+git pull --ff-only origin lqosync-in-rust
+
+bash scripts/repair-script-permissions.sh
+bash scripts/build-rust-core.sh
+sudo bash scripts/install-rust-core.sh
+sudo bash scripts/install-rust-core-daemon.sh
+printf '{"version":"1","op":"self-test","payload":{}}' | lqosync-core
+```
+
+Do not install a newly built Rust binary if `scripts/build-rust-core.sh` fails. The build helper removes stale release binaries before testing, so a failed test cannot accidentally install an old binary.
+

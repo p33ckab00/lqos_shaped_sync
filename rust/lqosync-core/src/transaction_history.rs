@@ -42,7 +42,7 @@ fn journal_path(payload: &Value) -> String {
         .get("path")
         .or_else(|| payload.get("journal_path"))
         .and_then(Value::as_str)
-        .unwrap_or("/opt/lqosync/logs/transaction_journal.jsonl")
+        .unwrap_or("/opt/LQoSync/logs/transaction_journal.jsonl")
         .trim()
         .to_string()
 }

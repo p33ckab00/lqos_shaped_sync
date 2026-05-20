@@ -3,7 +3,7 @@
 
 Run before publishing a stable candidate or after update:
 
-    cd /opt/lqosync
+    cd /opt/LQoSync
     python3 scripts/stable_release_check.py
     python3 scripts/stable_release_check.py --json
 """

@@ -3,7 +3,7 @@
 
 Run this before publishing or after updating from GitHub:
 
-    cd /opt/lqosync
+    cd /opt/LQoSync
     python3 scripts/regression_check.py
     python3 scripts/regression_check.py --json
 

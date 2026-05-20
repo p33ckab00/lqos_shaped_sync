@@ -3,7 +3,7 @@
 
 Run before publishing a package or after GitHub update:
 
-    cd /opt/lqosync
+    cd /opt/LQoSync
     python3 scripts/release_check.py
 
 The checker is read-only. It verifies common packaging gaps such as missing

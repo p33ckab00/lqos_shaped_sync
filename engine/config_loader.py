@@ -27,15 +27,15 @@ DEFAULT_CONFIG = {
     "paths": {
         "shaped_devices_csv": "/opt/libreqos/src/ShapedDevices.csv",
         "network_json": "/opt/libreqos/src/network.json",
-        "backup_dir": "/opt/lqosync/backups",
-        "log_file": "/opt/lqosync/logs/lqosync.log",
-        "runtime_state": "/opt/lqosync/state/runtime_state.json",
-        "lock_file": "/opt/lqosync/state/lqosync.lock",
-        "audit_log": "/opt/lqosync/logs/audit.jsonl",
-        "libreqos_apply_log_dir": "/opt/lqosync/logs/libreqos_apply",
-        "collector_cache": "/opt/lqosync/state/collector_cache.json",
-        "policy_state": "/opt/lqosync/state/policy_state.json",
-        "transaction_journal": "/opt/lqosync/logs/transaction_journal.jsonl",
+        "backup_dir": "/opt/LQoSync/backups",
+        "log_file": "/opt/LQoSync/logs/lqosync.log",
+        "runtime_state": "/opt/LQoSync/state/runtime_state.json",
+        "lock_file": "/opt/LQoSync/state/lqosync.lock",
+        "audit_log": "/opt/LQoSync/logs/audit.jsonl",
+        "libreqos_apply_log_dir": "/opt/LQoSync/logs/libreqos_apply",
+        "collector_cache": "/opt/LQoSync/state/collector_cache.json",
+        "policy_state": "/opt/LQoSync/state/policy_state.json",
+        "transaction_journal": "/opt/LQoSync/logs/transaction_journal.jsonl",
     },
     "libreqos": {
         "cmd": "/opt/libreqos/src/LibreQoS.py",
@@ -539,7 +539,7 @@ DEFAULT_CONFIG = {
         "show_guided_setup": True,
         "show_repair_commands": True,
         "allow_policy_preset_apply": True,
-        "doctor_command": "sudo CONFIG_PATH=/opt/libreqos/src/config.json python3 /opt/lqosync/scripts/doctor.py",
+        "doctor_command": "sudo CONFIG_PATH=/opt/libreqos/src/config.json python3 /opt/LQoSync/scripts/doctor.py",
     },
     "setup_wizard": {
         "enabled": True,
@@ -564,14 +564,14 @@ DEFAULT_CONFIG = {
         "check_routes_templates": True,
         "check_config_defaults": True,
         "show_in_setup_repair": True,
-        "doctor_script": "/opt/lqosync/scripts/lqosync-doctor.sh",
-        "release_check_script": "/opt/lqosync/scripts/release_check.py",
-        "regression_check_script": "/opt/lqosync/scripts/regression_check.py",
-        "config_migration_check_script": "/opt/lqosync/scripts/config_migration_check.py",
-        "policy_path_audit_script": "/opt/lqosync/scripts/policy_path_audit.py",
-        "stable_release_check_script": "/opt/lqosync/scripts/stable_release_check.py",
-        "ui_wiring_audit_script": "/opt/lqosync/scripts/ui_wiring_audit.py",
-        "cleanup_stale_files_script": "/opt/lqosync/scripts/cleanup_stale_files.py"
+        "doctor_script": "/opt/LQoSync/scripts/lqosync-doctor.sh",
+        "release_check_script": "/opt/LQoSync/scripts/release_check.py",
+        "regression_check_script": "/opt/LQoSync/scripts/regression_check.py",
+        "config_migration_check_script": "/opt/LQoSync/scripts/config_migration_check.py",
+        "policy_path_audit_script": "/opt/LQoSync/scripts/policy_path_audit.py",
+        "stable_release_check_script": "/opt/LQoSync/scripts/stable_release_check.py",
+        "ui_wiring_audit_script": "/opt/LQoSync/scripts/ui_wiring_audit.py",
+        "cleanup_stale_files_script": "/opt/LQoSync/scripts/cleanup_stale_files.py"
     },
     "stable_release": {
         "target": "v2.70 Stable Release Candidate",
@@ -720,7 +720,7 @@ def normalize_config(cfg):
     cfg.clear(); cfg.update(migrated)
 
     paths = cfg.setdefault("paths", {})
-    paths.setdefault("transaction_journal", "/opt/lqosync/logs/transaction_journal.jsonl")
+    paths.setdefault("transaction_journal", "/opt/LQoSync/logs/transaction_journal.jsonl")
 
     # Network mode is the user-facing layout selector. Legacy flags are derived
     # automatically so old config.json files keep working.

@@ -42,7 +42,7 @@ backups/
 After update:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 python3 scripts/release_check.py
 python3 scripts/regression_check.py
 python3 scripts/config_migration_check.py

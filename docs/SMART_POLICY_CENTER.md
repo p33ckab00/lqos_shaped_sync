@@ -1431,7 +1431,7 @@ Possible state structure:
 If possible, store this under:
 
 ```text
-/opt/lqosync/state/policy_state.json
+/opt/LQoSync/state/policy_state.json
 ```
 
 or inside existing runtime state if project already centralizes state.

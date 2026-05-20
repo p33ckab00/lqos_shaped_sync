@@ -6,7 +6,7 @@ Safe migration goals:
 - Deep-merge missing defaults.
 - Ensure LibreQoS apply recovery keys exist.
 - For the live /opt/libreqos/src/config.json, normalize LQoSync runtime paths
-  to /opt/lqosync so the service does not depend on its current directory.
+  to /opt/LQoSync so the service does not depend on its current directory.
 """
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ from engine.config_loader import load_config, save_config  # noqa: E402
 
 def _normalize_live_paths(cfg: dict) -> None:
     paths = cfg.setdefault("paths", {})
-    runtime_base = Path(os.getenv("LQOSYNC_HOME") or "/opt/lqosync")
+    runtime_base = Path(os.getenv("LQOSYNC_HOME") or "/opt/LQoSync")
     libreqos_src = Path(os.getenv("LQOSYNC_LIBREQOS_SRC") or "/opt/libreqos/src")
     defaults = {
         "backup_dir": runtime_base / "backups",
@@ -68,7 +68,7 @@ def main() -> int:
     # save_config() performs canonical deep-merge + network-mode normalization + validation.
     save_config(cfg, config_path, backup_existing=True)
     print(f"[LQoSync] Config migration complete: {config_path}")
-    print("[LQoSync] Ensured libreqos.working_dir=/opt/libreqos/src, retry_if_last_apply_failed=true, and absolute /opt/lqosync runtime paths")
+    print("[LQoSync] Ensured libreqos.working_dir=/opt/libreqos/src, retry_if_last_apply_failed=true, and absolute /opt/LQoSync runtime paths")
     if (os.getenv("LQOSYNC_INSTALL_MODE") or "").strip().lower() in {"baremetal", "host", "systemd"}:
         print("[LQoSync] Bare-metal mode enforced: libreqos.run_mode=direct, libreqos.sudo=true")
     return 0

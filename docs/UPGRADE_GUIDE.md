@@ -7,8 +7,8 @@ LQoSync updates should refresh application code and safe missing defaults withou
 ## Safe GitHub update
 
 ```bash
-cd /opt/lqosync
-git fetch origin main
+cd /opt/LQoSync
+git fetch origin lqosync-in-rust
 python3 scripts/release_check.py
 python3 scripts/regression_check.py
 python3 scripts/config_migration_check.py
@@ -21,7 +21,7 @@ sudo CONFIG_PATH=/opt/libreqos/src/config.json bash scripts/lqosync-doctor.sh
 
 ## If Git has diverged
 
-Do not blindly pull. Create a backup first, then decide whether GitHub main is the app-code source of truth. Use the preserve-existing installer/adoption flow when converting a manual or ZIP install into a Git-managed install.
+Do not blindly pull. Create a backup first, then decide whether GitHub lqosync-in-rust is the app-code source of truth. Use the preserve-existing installer/adoption flow when converting a manual or ZIP install into a Git-managed install.
 
 ## Post-upgrade checks
 

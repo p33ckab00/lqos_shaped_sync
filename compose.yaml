@@ -18,7 +18,7 @@ services:
       HOST: "0.0.0.0"
       PORT: "9202"
       CONFIG_PATH: "/opt/libreqos/src/config.json"
-      USERS_PATH: "/opt/lqosync/users.json"
+      USERS_PATH: "/opt/LQoSync/users.json"
 
       # Docker host-integrated mode. Uses nsenter to execute host systemctl and host LibreQoS.py.
       LQOSYNC_RUN_MODE: "host_nsenter"
@@ -37,7 +37,7 @@ services:
       - /opt/libreqos/src:/opt/libreqos/src
 
       # Persistent LQoSync runtime data.
-      - /opt/lqosync:/opt/lqosync
+      - /opt/LQoSync:/opt/LQoSync
 
       # Optional but useful for reading host journal/system context when host-integrated.
       - /run/systemd:/run/systemd:ro

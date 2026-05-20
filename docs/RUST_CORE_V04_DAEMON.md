@@ -21,7 +21,7 @@ When `prefer_daemon=false`, Python continues to call the Rust core through subpr
 Build and install the Rust binary first:
 
 ```bash
-cd /opt/lqosync
+cd /opt/LQoSync
 scripts/build-rust-core.sh
 sudo scripts/install-rust-core.sh
 ```

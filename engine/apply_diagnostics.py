@@ -46,7 +46,7 @@ def _classify(stderr: str, stdout: str, meta: dict[str, Any]) -> dict[str, Any]:
             "resolution": "Open Setup / System Validation and Config Center paths. Set libreqos.working_dir to the directory that contains LibreQoS.py, usually /opt/libreqos/src.",
             "target": "/setup-repair",
             "commands": [
-                "cd /opt/lqosync",
+                "cd /opt/LQoSync",
                 "python3 scripts/doctor.py --config /opt/libreqos/src/config.json",
                 "ls -lah /opt/libreqos/src/LibreQoS.py /opt/libreqos/src/ShapedDevices.csv",
             ],
@@ -58,7 +58,7 @@ def _classify(stderr: str, stdout: str, meta: dict[str, Any]) -> dict[str, Any]:
             "resolution": "Use direct/bare-metal run mode or set LQOSYNC_INSTALL_MODE=baremetal / LQOSYNC_FORCE_DIRECT=true, then retry apply.",
             "target": "/setup-repair",
             "commands": [
-                "cd /opt/lqosync",
+                "cd /opt/LQoSync",
                 "sudo systemctl edit lqosync",
                 "# add Environment=LQOSYNC_INSTALL_MODE=baremetal if needed",
                 "sudo systemctl daemon-reload && sudo systemctl restart lqosync",
@@ -71,7 +71,7 @@ def _classify(stderr: str, stdout: str, meta: dict[str, Any]) -> dict[str, Any]:
             "resolution": "Restore LibreQoS/LQoSync file permissions and verify the service user can read/write generated files and execute LibreQoS.py.",
             "target": "/setup-repair",
             "commands": [
-                "cd /opt/lqosync",
+                "cd /opt/LQoSync",
                 "sudo bash scripts/restore_libreqos_permissions.sh",
                 "sudo systemctl restart lqosync",
             ],
@@ -83,7 +83,7 @@ def _classify(stderr: str, stdout: str, meta: dict[str, Any]) -> dict[str, Any]:
             "resolution": "Verify libreqos.cmd, libreqos.working_dir, ShapedDevices.csv, network.json, and Python path settings.",
             "target": "/config?tab=paths",
             "commands": [
-                "cd /opt/lqosync",
+                "cd /opt/LQoSync",
                 "python3 scripts/doctor.py --config /opt/libreqos/src/config.json",
                 "ls -lah /opt/libreqos/src/LibreQoS.py /opt/libreqos/src/ShapedDevices.csv /opt/libreqos/src/network.json",
             ],
@@ -117,7 +117,7 @@ def _classify(stderr: str, stdout: str, meta: dict[str, Any]) -> dict[str, Any]:
         "resolution": "Open the apply detail page, inspect stderr/stdout, validate paths and generated files, then retry apply after the root cause is fixed.",
         "target": "/operations?tab=apply",
         "commands": [
-            "cd /opt/lqosync",
+            "cd /opt/LQoSync",
             "python3 scripts/release_check.py",
             "python3 scripts/policy_path_audit.py",
             "cd /opt/libreqos/src && sudo python3 LibreQoS.py --updateonly",

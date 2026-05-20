@@ -2062,7 +2062,7 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     let (authority_readiness, authority_readiness_errors, _authority_readiness_warnings) = evaluate_authority_readiness_payload(&json!({
         "config": {
             "rust_core": {"enabled": true, "authority_mode": "shadow"},
-            "paths": {"shaped_devices_csv": "/opt/libreqos/src/ShapedDevices.csv", "network_json": "/opt/libreqos/src/network.json", "transaction_journal": "/opt/lqosync/logs/transaction_journal.jsonl"}
+            "paths": {"shaped_devices_csv": "/opt/libreqos/src/ShapedDevices.csv", "network_json": "/opt/libreqos/src/network.json", "transaction_journal": "/opt/LQoSync/logs/transaction_journal.jsonl"}
         },
         "rust_core_status": {"available": true, "ok": true},
         "self_test": {"ok": true, "result": {"status": "ok"}}
@@ -2077,7 +2077,7 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     let (full_readiness, full_readiness_errors, _full_readiness_warnings) = evaluate_full_rust_readiness_payload(&json!({
         "config": {
             "rust_core": {"enabled": true, "authority_mode": "shadow"},
-            "paths": {"shaped_devices_csv": "/opt/libreqos/src/ShapedDevices.csv", "network_json": "/opt/libreqos/src/network.json", "transaction_journal": "/opt/lqosync/logs/transaction_journal.jsonl"}
+            "paths": {"shaped_devices_csv": "/opt/libreqos/src/ShapedDevices.csv", "network_json": "/opt/libreqos/src/network.json", "transaction_journal": "/opt/LQoSync/logs/transaction_journal.jsonl"}
         },
         "rust_core_status": {"available": true, "ok": true},
         "self_test": {"ok": true, "result": {"status": "ok", "operations": operations}},

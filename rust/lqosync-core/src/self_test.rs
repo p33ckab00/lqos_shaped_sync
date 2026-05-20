@@ -58,6 +58,7 @@ use crate::rust_full_backend_production_cutover::build_full_rust_backend_product
 use crate::rust_full_backend_production_verifier::build_full_rust_backend_production_verifier_payload;
 use crate::rust_full_backend_post_retirement_verifier::build_full_rust_backend_post_retirement_verifier_payload;
 use crate::rust_full_backend_steady_state_guard::build_full_rust_backend_steady_state_guard_payload;
+use crate::rust_full_backend_production_drift_monitor::build_full_rust_backend_production_drift_monitor_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -129,6 +130,7 @@ pub const OP_BUILD_FULL_RUST_BACKEND_PRODUCTION_CUTOVER: &str = "build-full-rust
 pub const OP_BUILD_FULL_RUST_BACKEND_PRODUCTION_VERIFIER: &str = "build-full-rust-backend-production-verifier";
 pub const OP_BUILD_FULL_RUST_BACKEND_POST_RETIREMENT_VERIFIER: &str = "build-full-rust-backend-post-retirement-verifier";
 pub const OP_BUILD_FULL_RUST_BACKEND_STEADY_STATE_GUARD: &str = "build-full-rust-backend-steady-state-guard";
+pub const OP_BUILD_FULL_RUST_BACKEND_PRODUCTION_DRIFT_MONITOR: &str = "build-full-rust-backend-production-drift-monitor";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -214,6 +216,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_FULL_RUST_BACKEND_PRODUCTION_VERIFIER,
         OP_BUILD_FULL_RUST_BACKEND_POST_RETIREMENT_VERIFIER,
         OP_BUILD_FULL_RUST_BACKEND_STEADY_STATE_GUARD,
+        OP_BUILD_FULL_RUST_BACKEND_PRODUCTION_DRIFT_MONITOR,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -1836,6 +1839,45 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     })));
     if !steady_state_ok {
         errors.push(Diagnostic::error("self_test_full_rust_backend_steady_state_guard_failed", Some("build-full-rust-backend-steady-state-guard".to_string()), "Self-test steady-state guard should report full Rust backend steady-state verified only when Rust runtime, no-Python-drift, rollback, and WebUI gates pass."));
+    }
+
+
+    let mut drift_monitor_payload = steady_state_payload.clone();
+    if let Some(obj) = drift_monitor_payload.as_object_mut() {
+        obj.insert("confirmation".to_string(), json!("CONFIRM_FULL_RUST_BACKEND_PRODUCTION_DRIFT_MONITOR"));
+        obj.insert("full_rust_backend_steady_state_guard".to_string(), json!(steady_state.clone()));
+        obj.insert("drift_monitor_healthcheck_passed".to_string(), json!(true));
+        obj.insert("drift_check_count".to_string(), json!(1));
+        obj.insert("python_backend_process_count".to_string(), json!(0));
+        obj.insert("python_backend_service_reenabled".to_string(), json!(false));
+        obj.insert("operator_full_rust_backend_drift_monitor_ack".to_string(), json!(true));
+        if let Some(rc) = obj.get_mut("rust_core").and_then(Value::as_object_mut) {
+            rc.insert("full_rust_backend_production_drift_monitor_pilot".to_string(), json!(true));
+            rc.insert("allow_full_rust_backend_production_drift_monitor".to_string(), json!(true));
+            rc.insert("full_rust_backend_production_drift_monitor_mode".to_string(), json!("monitor_only"));
+            rc.insert("full_rust_backend_drift_monitor_require_steady_state_guard".to_string(), json!(true));
+            rc.insert("full_rust_backend_drift_monitor_require_runtime_health".to_string(), json!(true));
+            rc.insert("full_rust_backend_drift_monitor_require_no_python_drift".to_string(), json!(true));
+            rc.insert("full_rust_backend_drift_monitor_require_webui_unchanged".to_string(), json!(true));
+            rc.insert("full_rust_backend_drift_monitor_require_rollback_package".to_string(), json!(true));
+            rc.insert("full_rust_backend_drift_monitor_require_server_tests".to_string(), json!(true));
+            rc.insert("full_rust_backend_drift_monitor_require_manual_confirmation".to_string(), json!(true));
+            rc.insert("full_rust_backend_drift_monitor_require_operator_ack".to_string(), json!(true));
+            rc.insert("full_rust_backend_drift_monitor_max_shadow_age_seconds".to_string(), json!(900));
+        }
+    }
+    let (drift_monitor, drift_monitor_errors, _drift_monitor_warnings) = build_full_rust_backend_production_drift_monitor_payload(&drift_monitor_payload);
+    let drift_monitor_ok = drift_monitor_errors.is_empty()
+        && drift_monitor.get("status").and_then(Value::as_str) == Some("full_rust_backend_production_drift_monitor_healthy")
+        && drift_monitor.get("full_rust_backend").and_then(Value::as_bool) == Some(true)
+        && drift_monitor.get("python_drift_absent").and_then(Value::as_bool) == Some(true);
+    checks.push(check("full_rust_backend_production_drift_monitor", drift_monitor_ok, json!({
+        "status": drift_monitor.get("status"),
+        "full_rust_backend": drift_monitor.get("full_rust_backend"),
+        "python_drift_absent": drift_monitor.get("python_drift_absent")
+    })));
+    if !drift_monitor_ok {
+        errors.push(Diagnostic::error("self_test_full_rust_backend_production_drift_monitor_failed", Some("build-full-rust-backend-production-drift-monitor".to_string()), "Self-test production drift monitor should report full Rust backend healthy only when Rust runtime, no-Python-drift, rollback, WebUI, and drift checks pass."));
     }
 
     let collector_bundle_payload = json!({

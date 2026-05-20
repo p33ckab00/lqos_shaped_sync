@@ -912,5 +912,11 @@
     "file": "docs/RUST_CORE_V734_STEADY_STATE_GUARD_HOTFIX.md",
     "anchor": "rust-core-v734-steady-state-guard-hotfix",
     "summary": "Adds missing python_backend_rollback_package_ready to the aggregate steady-state guard self-test fixture."
+  },
+  "rust.core_v74_full_backend_production_drift_monitor": {
+    "title": "Rust Core v7.4 Full Rust Backend Production Drift Monitor",
+    "file": "docs/RUST_CORE_V74_FULL_RUST_BACKEND_PRODUCTION_DRIFT_MONITOR.md",
+    "anchor": "rust-core-v74-full-rust-backend-production-drift-monitor",
+    "summary": "Adds the post-steady-state production drift monitor that verifies Rust backend authority, no Python drift, WebUI/UX preservation, rollback readiness, and server healthchecks."
   }
 }

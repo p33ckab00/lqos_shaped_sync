@@ -5906,6 +5906,89 @@ def rust_build_full_rust_backend_steady_state_guard(config: dict, payload: dict[
     return response
 
 
+def _python_build_full_rust_backend_production_drift_monitor(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rc = dict(((payload.get("config") or {}).get("rust_core") or payload.get("rust_core") or {}) if isinstance(payload, dict) else {})
+    allow = bool(rc.get("allow_full_rust_backend_production_drift_monitor"))
+    pilot = bool(rc.get("full_rust_backend_production_drift_monitor_pilot"))
+    mode = str(rc.get("full_rust_backend_production_drift_monitor_mode") or "monitor_only")
+    require_steady = rc.get("full_rust_backend_drift_monitor_require_steady_state_guard", True) is not False
+    require_runtime = rc.get("full_rust_backend_drift_monitor_require_runtime_health", True) is not False
+    require_no_drift = rc.get("full_rust_backend_drift_monitor_require_no_python_drift", True) is not False
+    require_webui = rc.get("full_rust_backend_drift_monitor_require_webui_unchanged", True) is not False
+    require_rollback = rc.get("full_rust_backend_drift_monitor_require_rollback_package", True) is not False
+    require_tests = rc.get("full_rust_backend_drift_monitor_require_server_tests", True) is not False
+    require_confirm = rc.get("full_rust_backend_drift_monitor_require_manual_confirmation", True) is not False
+    require_ack = rc.get("full_rust_backend_drift_monitor_require_operator_ack", True) is not False
+    confirmation_ok = (not require_confirm) or payload.get("confirmation") == "CONFIRM_FULL_RUST_BACKEND_PRODUCTION_DRIFT_MONITOR"
+    steady = payload.get("full_rust_backend_steady_state_guard") or {}
+    if isinstance(steady, dict) and isinstance(steady.get("result"), dict):
+        steady = steady.get("result") or {}
+    steady_ready = isinstance(steady, dict) and steady.get("status") == "full_rust_backend_steady_state_verified" and steady.get("full_rust_backend") is True and steady.get("python_drift_absent") is True
+    runtime_ready = all(bool(payload.get(k)) for k in ["rust_service_active", "rust_api_healthcheck_passed", "api_traffic_switched_to_rust", "rust_service_runtime_authoritative"]) and (bool(payload.get("rust_unix_socket_active")) or bool(payload.get("rust_http_api_active")))
+    python_drift_absent = bool(payload.get("flask_routes_disabled")) and bool(payload.get("python_backend_stopped_or_disabled")) and (bool(payload.get("python_backend_service_masked_or_disabled")) or bool(payload.get("python_backend_service_removed"))) and not bool(payload.get("python_backend_unexpectedly_running")) and not bool(payload.get("flask_routes_reappeared")) and not bool(payload.get("api_traffic_routed_to_python")) and not bool(payload.get("python_backend_service_reenabled")) and int(payload.get("python_backend_process_count") or 0) == 0 and int(payload.get("drift_check_count") or 0) > 0
+    webui_unchanged = bool(payload.get("webui_ux_unchanged")) and bool(payload.get("webui_static_asset_paths_unchanged")) and bool(payload.get("webui_static_assets_preserved"))
+    rollback_ready = bool(payload.get("python_backend_rollback_package_ready")) and bool(payload.get("rollback_test_passed")) and bool(str(payload.get("rollback_path") or "").strip())
+    tests_passed = all(bool(payload.get(k)) for k in ["server_cargo_tests_passed", "self_test_passed", "production_healthcheck_passed", "post_retirement_healthcheck_passed", "steady_state_healthcheck_passed", "drift_monitor_healthcheck_passed"])
+    operator_ack = bool(payload.get("operator_full_rust_backend_drift_monitor_ack") or payload.get("operator_acknowledged"))
+    gates_ready = bool(allow and pilot and mode == "monitor_only")
+    errors: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if bool(payload.get("execute")) or str(payload.get("mode") or "").lower() in {"execute", "repair", "delete", "disable", "restart", "switch", "rollback"}:
+        errors.append({"code": "full_rust_backend_production_drift_monitor_execute_not_implemented", "severity": "error", "path": "full_rust_backend_production_drift_monitor", "message": "Production drift monitor is verification-only."})
+    for ok, required, code, path, msg in [
+        (steady_ready, require_steady, "full_rust_backend_drift_monitor_steady_state_not_ready", "full_rust_backend_steady_state_guard", "Steady-state guard has not verified."),
+        (runtime_ready, require_runtime, "full_rust_backend_drift_monitor_runtime_health_required", "rust_service_active", "Rust runtime health is incomplete."),
+        (python_drift_absent, require_no_drift, "full_rust_backend_drift_monitor_python_drift_detected", "python_backend_unexpectedly_running", "Python/Flask drift detected or drift checks missing."),
+        (webui_unchanged, require_webui, "full_rust_backend_drift_monitor_webui_unchanged_required", "webui_ux_unchanged", "WebUI/UX/static assets must remain unchanged."),
+        (rollback_ready, require_rollback, "full_rust_backend_drift_monitor_rollback_required", "python_backend_rollback_package_ready", "Rollback package and rollback test are required."),
+        (tests_passed, require_tests, "full_rust_backend_drift_monitor_tests_required", "server_cargo_tests_passed", "Server tests and healthchecks are required."),
+        (confirmation_ok, require_confirm, "full_rust_backend_drift_monitor_confirmation_required", "confirmation", "Confirmation token is required."),
+        (operator_ack, require_ack, "full_rust_backend_drift_monitor_operator_ack_required", "operator_full_rust_backend_drift_monitor_ack", "Operator acknowledgement is required."),
+        (gates_ready, True, "full_rust_backend_drift_monitor_gates_not_enabled", "rust_core", "Drift monitor gates are not fully enabled."),
+    ]:
+        if required and not ok:
+            warnings.append({"code": code, "severity": "warning", "path": path, "message": msg})
+    ready = not errors and gates_ready and (steady_ready or not require_steady) and (runtime_ready or not require_runtime) and (python_drift_absent or not require_no_drift) and (webui_unchanged or not require_webui) and (rollback_ready or not require_rollback) and (tests_passed or not require_tests) and confirmation_ok and (operator_ack or not require_ack)
+    status = "blocked" if errors else ("full_rust_backend_production_drift_monitor_healthy" if ready else ("full_rust_backend_production_drift_monitor_review" if steady_ready and runtime_ready else "full_rust_backend_production_drift_monitor_blocked"))
+    return {
+        "version": "1",
+        "op": "build-full-rust-backend-production-drift-monitor",
+        "ok": not errors,
+        "result": {
+            "mode": "full_rust_backend_production_drift_monitor",
+            "status": status,
+            "full_rust_backend": ready,
+            "full_rust_backend_production_enabled": ready,
+            "rust_service_runtime_authoritative": ready and runtime_ready,
+            "python_backend_removed": ready and python_drift_absent,
+            "python_backend_retired": ready and python_drift_absent,
+            "python_drift_absent": python_drift_absent,
+            "python_backend_drift_detected": not python_drift_absent,
+            "webui_ux_unchanged": webui_unchanged,
+            "rollback_ready": rollback_ready,
+            "server_tests_passed": tests_passed,
+            "steady_state_guard_ready": steady_ready,
+            "drift_check_count": int(payload.get("drift_check_count") or 0),
+            "side_effects_allowed": False,
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "full_rust_backend_production_drift_monitor_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_full_rust_backend_production_drift_monitor(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-full-rust-backend-production-drift-monitor", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_full_rust_backend_production_drift_monitor(req_payload, started=started)
+    return response
+
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

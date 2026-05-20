@@ -92,6 +92,7 @@ from engine.rust_core import (
     rust_build_full_rust_backend_production_verifier,
     rust_build_full_rust_backend_post_retirement_verifier,
     rust_build_full_rust_backend_steady_state_guard,
+    rust_build_full_rust_backend_production_drift_monitor,
     rust_validate_routeros_read_results,
     rust_build_collector_circuit_bundle,
     rust_compare_collector_bundle_parity,
@@ -3251,6 +3252,50 @@ def api_rust_core_full_rust_backend_steady_state_guard():
             "full_rust_backend_post_retirement_verifier_confirmation": request.args.get("full_rust_backend_post_retirement_verifier_confirmation") or "CONFIRM_FULL_RUST_BACKEND_POST_RETIREMENT_VERIFIER",
         }
     return jsonify(rust_build_full_rust_backend_steady_state_guard(cfg, payload))
+
+@app.route("/api/rust-core/full-rust-backend-production-drift-monitor", methods=["GET", "POST"])
+@login_required
+def api_rust_core_full_rust_backend_production_drift_monitor():
+    cfg = load_config(CONFIG_PATH)
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or {}
+    else:
+        payload = {
+            "mode": request.args.get("mode") or "monitor",
+            "confirmation": request.args.get("confirmation") or "",
+            "shadow_age_seconds": int(request.args.get("shadow_age_seconds") or 0),
+            "webui_ux_unchanged": str(request.args.get("webui_ux_unchanged") or "").lower() in {"1", "true", "yes", "on"},
+            "webui_static_asset_paths_unchanged": str(request.args.get("webui_static_asset_paths_unchanged") or "").lower() in {"1", "true", "yes", "on"},
+            "webui_static_assets_preserved": str(request.args.get("webui_static_assets_preserved") or "").lower() in {"1", "true", "yes", "on"},
+            "rust_service_active": str(request.args.get("rust_service_active") or "").lower() in {"1", "true", "yes", "on"},
+            "rust_api_healthcheck_passed": str(request.args.get("rust_api_healthcheck_passed") or "").lower() in {"1", "true", "yes", "on"},
+            "rust_unix_socket_active": str(request.args.get("rust_unix_socket_active") or "").lower() in {"1", "true", "yes", "on"},
+            "rust_http_api_active": str(request.args.get("rust_http_api_active") or "").lower() in {"1", "true", "yes", "on"},
+            "api_traffic_switched_to_rust": str(request.args.get("api_traffic_switched_to_rust") or "").lower() in {"1", "true", "yes", "on"},
+            "rust_service_runtime_authoritative": str(request.args.get("rust_service_runtime_authoritative") or "").lower() in {"1", "true", "yes", "on"},
+            "flask_routes_disabled": str(request.args.get("flask_routes_disabled") or "").lower() in {"1", "true", "yes", "on"},
+            "python_backend_stopped_or_disabled": str(request.args.get("python_backend_stopped_or_disabled") or "").lower() in {"1", "true", "yes", "on"},
+            "python_backend_service_masked_or_disabled": str(request.args.get("python_backend_service_masked_or_disabled") or "").lower() in {"1", "true", "yes", "on"},
+            "python_backend_unexpectedly_running": str(request.args.get("python_backend_unexpectedly_running") or "").lower() in {"1", "true", "yes", "on"},
+            "flask_routes_reappeared": str(request.args.get("flask_routes_reappeared") or "").lower() in {"1", "true", "yes", "on"},
+            "api_traffic_routed_to_python": str(request.args.get("api_traffic_routed_to_python") or "").lower() in {"1", "true", "yes", "on"},
+            "python_backend_service_reenabled": str(request.args.get("python_backend_service_reenabled") or "").lower() in {"1", "true", "yes", "on"},
+            "python_backend_process_count": int(request.args.get("python_backend_process_count") or 0),
+            "drift_check_count": int(request.args.get("drift_check_count") or 0),
+            "python_backend_rollback_package_ready": str(request.args.get("python_backend_rollback_package_ready") or "").lower() in {"1", "true", "yes", "on"},
+            "rollback_path": request.args.get("rollback_path") or "restore_python_backend_and_flask_routes",
+            "rollback_test_passed": str(request.args.get("rollback_test_passed") or "").lower() in {"1", "true", "yes", "on"},
+            "server_cargo_tests_passed": str(request.args.get("server_cargo_tests_passed") or "").lower() in {"1", "true", "yes", "on"},
+            "self_test_passed": str(request.args.get("self_test_passed") or "").lower() in {"1", "true", "yes", "on"},
+            "production_healthcheck_passed": str(request.args.get("production_healthcheck_passed") or "").lower() in {"1", "true", "yes", "on"},
+            "post_retirement_healthcheck_passed": str(request.args.get("post_retirement_healthcheck_passed") or "").lower() in {"1", "true", "yes", "on"},
+            "steady_state_healthcheck_passed": str(request.args.get("steady_state_healthcheck_passed") or "").lower() in {"1", "true", "yes", "on"},
+            "drift_monitor_healthcheck_passed": str(request.args.get("drift_monitor_healthcheck_passed") or "").lower() in {"1", "true", "yes", "on"},
+            "operator_full_rust_backend_drift_monitor_ack": str(request.args.get("operator_full_rust_backend_drift_monitor_ack") or "").lower() in {"1", "true", "yes", "on"},
+            "full_rust_backend_steady_state_guard_confirmation": request.args.get("full_rust_backend_steady_state_guard_confirmation") or "CONFIRM_FULL_RUST_BACKEND_STEADY_STATE_GUARD",
+        }
+    return jsonify(rust_build_full_rust_backend_production_drift_monitor(cfg, payload))
+
 
 @app.route("/api/rust-core/routeros-read-results", methods=["POST"])
 @login_required

@@ -972,3 +972,8 @@ git push -u origin lqosync-in-rust
 
 Fixes the aggregate full Rust backend steady-state guard self-test fixture by adding the missing top-level `python_backend_rollback_package_ready` gate. This keeps rollback safety explicit while preserving WebUI/UX/static assets and does not perform any service/file mutation.
 
+
+
+## Rust Core v7.4 Full Rust Backend Production Drift Monitor
+
+Adds `build-full-rust-backend-production-drift-monitor`, a non-mutating post-steady-state monitor that verifies Rust backend authority, no Python/Flask drift, WebUI/UX/static asset preservation, rollback readiness, and server healthchecks after Python backend retirement.

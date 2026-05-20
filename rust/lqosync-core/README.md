@@ -317,3 +317,7 @@ Fixes collector authority pilot execution readiness by separating switch-rehears
 ## v4.4 operation
 
 `evaluate-collector-authority-pilot-result` evaluates a future collector authority pilot result without allowing Rust to drive cleanup, writes, apply, or production collector authority.
+
+## v4.5 Collector Authority Promotion Readiness
+
+Adds `build-collector-authority-promotion-readiness`, a non-mutating readiness report after `evaluate-collector-authority-pilot-result`. It requires explicit gates and `CONFIRM_COLLECTOR_AUTHORITY_PROMOTION_READINESS` before reporting ready, but it does not promote Rust collectors or transfer cleanup/apply/write authority.

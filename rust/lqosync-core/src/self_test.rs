@@ -32,6 +32,7 @@ use crate::collector_authority_runtime::build_collector_authority_runtime_contra
 use crate::collector_authority_switch::build_collector_authority_switch_rehearsal_payload;
 use crate::collector_authority_pilot_execution::build_collector_authority_pilot_execution_contract_payload;
 use crate::collector_authority_pilot_result::evaluate_collector_authority_pilot_result_payload;
+use crate::collector_authority_promotion::build_collector_authority_promotion_readiness_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -77,6 +78,7 @@ pub const OP_BUILD_COLLECTOR_AUTHORITY_RUNTIME_CONTRACT: &str = "build-collector
 pub const OP_BUILD_COLLECTOR_AUTHORITY_SWITCH_REHEARSAL: &str = "build-collector-authority-switch-rehearsal";
 pub const OP_BUILD_COLLECTOR_AUTHORITY_PILOT_EXECUTION_CONTRACT: &str = "build-collector-authority-pilot-execution-contract";
 pub const OP_EVALUATE_COLLECTOR_AUTHORITY_PILOT_RESULT: &str = "evaluate-collector-authority-pilot-result";
+pub const OP_BUILD_COLLECTOR_AUTHORITY_PROMOTION_READINESS: &str = "build-collector-authority-promotion-readiness";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -136,6 +138,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_COLLECTOR_AUTHORITY_SWITCH_REHEARSAL,
         OP_BUILD_COLLECTOR_AUTHORITY_PILOT_EXECUTION_CONTRACT,
         OP_EVALUATE_COLLECTOR_AUTHORITY_PILOT_RESULT,
+        OP_BUILD_COLLECTOR_AUTHORITY_PROMOTION_READINESS,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -797,6 +800,35 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
         errors.push(Diagnostic::error("self_test_collector_authority_pilot_result_failed", Some("evaluate-collector-authority-pilot-result".to_string()), "Self-test collector authority pilot result evaluation should pass only as a non-mutating review result."));
     }
 
+    let mut promotion_payload = pilot_result_payload.clone();
+    if let Some(obj) = promotion_payload.as_object_mut() {
+        obj.insert("confirmation".to_string(), json!("CONFIRM_COLLECTOR_AUTHORITY_PROMOTION_READINESS"));
+        obj.insert("collector_authority_pilot_result_evaluation".to_string(), json!(pilot_result.clone()));
+        if let Some(rc) = obj.get_mut("rust_core").and_then(Value::as_object_mut) {
+            rc.insert("collector_authority_promotion_readiness_pilot".to_string(), json!(true));
+            rc.insert("allow_collector_authority_promotion_readiness".to_string(), json!(true));
+            rc.insert("collector_authority_promotion_readiness_mode".to_string(), json!("rust_collector_authority_promotion_readiness"));
+            rc.insert("collector_authority_promotion_require_pilot_result".to_string(), json!(true));
+            rc.insert("collector_authority_promotion_require_python_fallback".to_string(), json!(true));
+            rc.insert("collector_authority_promotion_require_manual_confirmation".to_string(), json!(true));
+            rc.insert("collector_authority_promotion_require_no_cleanup_apply".to_string(), json!(true));
+            rc.insert("collector_authority_promotion_max_shadow_age_seconds".to_string(), json!(900));
+        }
+    }
+    let (promotion_readiness, promotion_errors, _promotion_warnings) = build_collector_authority_promotion_readiness_payload(&promotion_payload);
+    let promotion_ok = promotion_errors.is_empty()
+        && promotion_readiness.get("status").and_then(Value::as_str) == Some("collector_authority_promotion_readiness_ready")
+        && promotion_readiness.get("production_collector_authority_switched").and_then(Value::as_bool) == Some(false)
+        && promotion_readiness.get("rust_can_drive_cleanup").and_then(Value::as_bool) == Some(false);
+    checks.push(check("collector_authority_promotion_readiness", promotion_ok, json!({
+        "status": promotion_readiness.get("status"),
+        "collector_authority": promotion_readiness.get("collector_authority"),
+        "promotion_ready": promotion_readiness.get("promotion_ready")
+    })));
+    if !promotion_ok {
+        errors.push(Diagnostic::error("self_test_collector_authority_promotion_readiness_failed", Some("build-collector-authority-promotion-readiness".to_string()), "Self-test collector authority promotion readiness should report ready only as a non-mutating review result."));
+    }
+
 
     let collector_bundle_payload = json!({
         "router": {"name":"RB5009", "pppoe":{"per_plan_node":true, "plan_node_name":"{profile}-{router}"}},
@@ -1018,6 +1050,7 @@ mod tests {
         assert!(ops.contains(&OP_BUILD_ROUTEROS_AUTH_PLAN));
         assert!(ops.contains(&OP_BUILD_RUN_CYCLE_RUST_SHADOW_REPORT));
         assert!(ops.contains(&OP_BUILD_COLLECTOR_AUTHORITY_SWITCH_REHEARSAL));
+        assert!(ops.contains(&OP_BUILD_COLLECTOR_AUTHORITY_PROMOTION_READINESS));
         assert!(ops.contains(&OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE));
         assert!(ops.contains(&OP_COMPARE_COLLECTOR_BUNDLE_PARITY));
         assert!(ops.contains(&OP_EVALUATE_AUTHORITY_READINESS));

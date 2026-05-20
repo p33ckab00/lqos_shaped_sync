@@ -243,3 +243,5 @@ Adds `build-collector-authority-pilot-execution-contract`, a non-mutating contra
 Adds `evaluate-collector-authority-pilot-result`, a fail-safe evaluator for future Rust collector authority pilot results. It checks pilot execution contract readiness, parity, shadow freshness, observed errors, and forbidden side effects while keeping Python collectors authoritative. See `docs/RUST_CORE_V44_COLLECTOR_AUTHORITY_PILOT_RESULT.md`.
 
 - [Rust Core v4.4.1 — Pilot Result Recursion Hotfix](RUST_CORE_V441_PILOT_RESULT_RECURSION_HOTFIX.md)
+
+- [Rust Core v4.5 Collector Authority Promotion Readiness](RUST_CORE_V45_COLLECTOR_AUTHORITY_PROMOTION_READINESS.md) — non-mutating promotion-readiness bridge after pilot result evaluation.

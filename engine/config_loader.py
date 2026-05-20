@@ -141,6 +141,29 @@ DEFAULT_CONFIG = {
         "collector_authority_switch_require_runtime_contract": True,
         "collector_authority_switch_require_python_fallback": True,
         "collector_authority_switch_require_manual_confirmation": True,
+        "collector_authority_pilot_execution_pilot": False,
+        "allow_collector_authority_pilot_execution_contract": False,
+        "collector_authority_pilot_execution_mode": "contract_only",
+        "collector_authority_pilot_execution_require_switch_rehearsal": True,
+        "collector_authority_pilot_execution_require_python_fallback": True,
+        "collector_authority_pilot_execution_require_manual_confirmation": True,
+        "collector_authority_pilot_execution_max_shadow_age_seconds": 900,
+        "collector_authority_pilot_result_evaluator_pilot": False,
+        "allow_collector_authority_pilot_result_evaluation": False,
+        "collector_authority_pilot_result_mode": "evaluate_only",
+        "collector_authority_pilot_result_require_execution_contract": True,
+        "collector_authority_pilot_result_require_python_fallback": True,
+        "collector_authority_pilot_result_require_no_cleanup_apply": True,
+        "collector_authority_pilot_result_require_parity": True,
+        "collector_authority_pilot_result_max_shadow_age_seconds": 900,
+        "collector_authority_promotion_readiness_pilot": False,
+        "allow_collector_authority_promotion_readiness": False,
+        "collector_authority_promotion_readiness_mode": "readiness_only",
+        "collector_authority_promotion_require_pilot_result": True,
+        "collector_authority_promotion_require_python_fallback": True,
+        "collector_authority_promotion_require_manual_confirmation": True,
+        "collector_authority_promotion_require_no_cleanup_apply": True,
+        "collector_authority_promotion_max_shadow_age_seconds": 900,
     },
     "collector": {
         "selective_fields": True,
@@ -603,6 +626,20 @@ def validate_config(cfg: dict):
     rust_core.setdefault("routeros_live_read_timeout_seconds", 5)
     rust_core.setdefault("routeros_read_pilot_adapter", "fixture")
     rust_core.setdefault("allow_rust_routeros_fixture_reads", True)
+    rust_core.setdefault("collector_authority_pilot_execution_pilot", False)
+    rust_core.setdefault("allow_collector_authority_pilot_execution_contract", False)
+    rust_core.setdefault("collector_authority_pilot_execution_mode", "contract_only")
+    rust_core.setdefault("collector_authority_pilot_result_evaluator_pilot", False)
+    rust_core.setdefault("allow_collector_authority_pilot_result_evaluation", False)
+    rust_core.setdefault("collector_authority_pilot_result_mode", "evaluate_only")
+    rust_core.setdefault("collector_authority_promotion_readiness_pilot", False)
+    rust_core.setdefault("allow_collector_authority_promotion_readiness", False)
+    rust_core.setdefault("collector_authority_promotion_readiness_mode", "readiness_only")
+    rust_core.setdefault("collector_authority_promotion_require_pilot_result", True)
+    rust_core.setdefault("collector_authority_promotion_require_python_fallback", True)
+    rust_core.setdefault("collector_authority_promotion_require_manual_confirmation", True)
+    rust_core.setdefault("collector_authority_promotion_require_no_cleanup_apply", True)
+    rust_core.setdefault("collector_authority_promotion_max_shadow_age_seconds", 900)
     if rust_core.get("authority_mode") not in ("shadow", "enforce_blockers"):
         errors.append(f"rust_core.authority_mode invalid: {rust_core.get('authority_mode')}")
     if rust_core.get("routeros_read_pilot_adapter") not in ("fixture", "disabled"):

@@ -52,3 +52,4 @@ pub mod collector_authority_runtime;
 pub mod collector_authority_switch;
 pub mod collector_authority_pilot_execution;
 pub mod collector_authority_pilot_result;
+pub mod collector_authority_promotion;

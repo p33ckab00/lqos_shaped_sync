@@ -7775,3 +7775,7 @@ Adds `evaluate-collector-authority-pilot-result`, a fail-safe evaluator for futu
 ### Rust Core v4.4.1 — Pilot Result Recursion Hotfix
 
 Fixes the v4.4 Rust test compile failure caused by a large nested `serde_json::json!` test payload in the collector authority pilot result evaluator. Runtime safety behavior is unchanged.
+
+## Rust Core v4.5 Collector Authority Promotion Readiness
+
+`build-collector-authority-promotion-readiness` is a non-mutating bridge after pilot result evaluation. It reviews the collector authority pilot result, promotion-readiness gates, confirmation token, shadow freshness, and side-effect-free status. It never promotes Rust collectors or transfers cleanup/apply/write authority. See `docs/RUST_CORE_V45_COLLECTOR_AUTHORITY_PROMOTION_READINESS.md`.

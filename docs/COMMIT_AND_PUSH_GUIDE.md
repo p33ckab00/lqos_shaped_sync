@@ -688,3 +688,12 @@ git commit -m "rust(core): add collector authority pilot result evaluator" \
   -m "Add evaluate-collector-authority-pilot-result, a non-mutating evaluator for pilot result readiness, parity, freshness, and forbidden side effects while keeping Python collectors authoritative."
 git push -u origin lqosync-in-rust
 ```
+
+## Rust Core v4.5 Collector Authority Promotion Readiness
+
+```bash
+git add .
+git commit -m "rust(core): add collector authority promotion readiness" \
+  -m "Add build-collector-authority-promotion-readiness, a non-mutating readiness bridge after pilot result evaluation that requires explicit gates, manual confirmation, fresh Rust-shadow data, and Python fallback before any future collector authority promotion."
+git push -u origin lqosync-in-rust
+```

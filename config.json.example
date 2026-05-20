@@ -627,6 +627,14 @@
     "collector_authority_pilot_result_require_python_fallback": true,
     "collector_authority_pilot_result_require_no_cleanup_apply": true,
     "collector_authority_pilot_result_require_parity": true,
-    "collector_authority_pilot_result_max_shadow_age_seconds": 900
+    "collector_authority_pilot_result_max_shadow_age_seconds": 900,
+    "collector_authority_promotion_readiness_pilot": false,
+    "allow_collector_authority_promotion_readiness": false,
+    "collector_authority_promotion_readiness_mode": "readiness_only",
+    "collector_authority_promotion_require_pilot_result": true,
+    "collector_authority_promotion_require_python_fallback": true,
+    "collector_authority_promotion_require_manual_confirmation": true,
+    "collector_authority_promotion_require_no_cleanup_apply": true,
+    "collector_authority_promotion_max_shadow_age_seconds": 900
   }
 }

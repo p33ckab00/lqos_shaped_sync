@@ -2059,3 +2059,10 @@ Fixes the v4.3.1 pilot execution readiness regression where one root confirmatio
 ## 2.114.0-rc1 / Rust Core v4.4
 
 Adds `evaluate-collector-authority-pilot-result`, a non-mutating collector authority pilot result evaluator. It validates pilot execution contract readiness, parity, shadow freshness, and that no cleanup/apply/write/authority side effects occurred. Python collectors remain authoritative.
+
+## 2.115.0-rc1 — Rust Core v4.5 Collector Authority Promotion Readiness
+
+- Added `build-collector-authority-promotion-readiness`.
+- Adds a non-mutating promotion-readiness report after the collector authority pilot result evaluator.
+- Requires explicit gates, `CONFIRM_COLLECTOR_AUTHORITY_PROMOTION_READINESS`, fresh Rust-shadow data, and Python fallback before it can report ready.
+- Does not promote Rust collectors, transfer cleanup/apply authority, write generated files, or claim full Rust backend production.

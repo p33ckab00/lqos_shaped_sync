@@ -727,5 +727,11 @@
     "path": "docs/RUST_CORE_V44_COLLECTOR_AUTHORITY_PILOT_RESULT.md",
     "category": "rust-core",
     "summary": "Adds a non-mutating evaluator for future Rust collector authority pilot results, checking contract readiness, parity, side effects, and freshness while keeping Python authoritative."
+  },
+  "rust.core_v45_collector_authority_promotion_readiness": {
+    "title": "Rust Core v4.5 Collector Authority Promotion Readiness",
+    "path": "docs/RUST_CORE_V45_COLLECTOR_AUTHORITY_PROMOTION_READINESS.md",
+    "category": "rust-core",
+    "summary": "Adds a non-mutating promotion readiness report after pilot result evaluation, requiring explicit gates, manual confirmation, fresh Rust-shadow data, and Python fallback while keeping Python collectors authoritative."
   }
 }

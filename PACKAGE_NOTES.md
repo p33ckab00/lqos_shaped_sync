@@ -365,3 +365,7 @@ This package adds the collector authority pilot result evaluator and documentati
 ### Rust Core v4.4.1 — Pilot Result Recursion Hotfix
 
 Fixes the v4.4 Rust test compile failure caused by a large nested `serde_json::json!` test payload in the collector authority pilot result evaluator. Runtime safety behavior is unchanged.
+
+## Rust Core v4.5 Collector Authority Promotion Readiness
+
+This package adds `build-collector-authority-promotion-readiness` and updates API/config/docs. It remains fail-safe and Python-authoritative by default.

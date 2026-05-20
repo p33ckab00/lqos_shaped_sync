@@ -41,7 +41,7 @@ from engine.config_schema import migrate_config_schema, validate_schema, CONFIG_
 from engine.release_integrity import compute_release_integrity, repair_config_defaults
 from engine.lifecycle import lifecycle_summary, client_event_timeline
 from engine.lifecycle_report import compute_lifecycle_report, lifecycle_report_to_csv, lifecycle_report_to_markdown
-from engine.rust_core import rust_build_routeros_collector_plan, rust_build_routeros_transport_session, rust_build_routeros_live_read_pilot, rust_run_routeros_read_pilot, rust_build_routeros_api_sentence, rust_decode_routeros_api_reply, rust_codec_routeros_api_frame, rust_run_routeros_offline_session, rust_run_routeros_tcp_connectivity_pilot, rust_build_routeros_auth_plan, rust_run_routeros_auth_handshake, rust_build_routeros_auth_session_contract, rust_run_routeros_authenticated_read_fixture, rust_run_routeros_live_read_adapter_pilot, rust_evaluate_collector_authority_pilot, rust_build_collector_authority_manifest, rust_build_collector_authority_selection, rust_build_collector_authority_dry_run_bundle, rust_build_run_cycle_rust_shadow_report, rust_build_collector_authority_activation_plan, rust_build_collector_authority_runtime_contract, rust_build_collector_authority_switch_rehearsal, rust_build_collector_authority_pilot_execution_contract, rust_evaluate_collector_authority_pilot_result, rust_validate_routeros_read_results, rust_build_collector_circuit_bundle, rust_compare_collector_bundle_parity, rust_core_status, rust_core_self_test, rust_read_transaction_journal, rust_build_rollback_from_journal, rust_execute_rollback, rust_authority_readiness, rust_full_backend_readiness, rust_authority_pilot_plan
+from engine.rust_core import rust_build_routeros_collector_plan, rust_build_routeros_transport_session, rust_build_routeros_live_read_pilot, rust_run_routeros_read_pilot, rust_build_routeros_api_sentence, rust_decode_routeros_api_reply, rust_codec_routeros_api_frame, rust_run_routeros_offline_session, rust_run_routeros_tcp_connectivity_pilot, rust_build_routeros_auth_plan, rust_run_routeros_auth_handshake, rust_build_routeros_auth_session_contract, rust_run_routeros_authenticated_read_fixture, rust_run_routeros_live_read_adapter_pilot, rust_evaluate_collector_authority_pilot, rust_build_collector_authority_manifest, rust_build_collector_authority_selection, rust_build_collector_authority_dry_run_bundle, rust_build_run_cycle_rust_shadow_report, rust_build_collector_authority_activation_plan, rust_build_collector_authority_runtime_contract, rust_build_collector_authority_switch_rehearsal, rust_build_collector_authority_pilot_execution_contract, rust_evaluate_collector_authority_pilot_result, rust_build_collector_authority_promotion_readiness, rust_validate_routeros_read_results, rust_build_collector_circuit_bundle, rust_compare_collector_bundle_parity, rust_core_status, rust_core_self_test, rust_read_transaction_journal, rust_build_rollback_from_journal, rust_execute_rollback, rust_authority_readiness, rust_full_backend_readiness, rust_authority_pilot_plan
 from applier.atomic_writer import atomic_write_text
 from monitoring.service_monitor import (
     all_service_status, service_status, restart_service as monitor_restart_service,
@@ -2459,6 +2459,33 @@ def api_rust_core_collector_authority_pilot_result():
             "collector_parity": {"parity_score": float(request.args.get("parity_score") or 0), "verdict": request.args.get("parity_verdict") or "not_available"},
         }
     return jsonify(rust_evaluate_collector_authority_pilot_result(cfg, payload))
+
+@app.route("/api/rust-core/collector-authority-promotion-readiness", methods=["GET", "POST"])
+@login_required
+def api_rust_core_collector_authority_promotion_readiness():
+    cfg = load_config(CONFIG_PATH)
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or {}
+    else:
+        raw_sources = request.args.get("sources") or request.args.get("source") or "pppoe"
+        payload = {
+            "router": request.args.get("router") or "",
+            "sources": [s.strip() for s in str(raw_sources).split(",") if s.strip()],
+            "mode": request.args.get("mode") or "readiness",
+            "execute": str(request.args.get("execute") or "").lower() in {"1", "true", "yes", "on"},
+            "confirmation": request.args.get("confirmation") or "",
+            "successful_shadow_cycles": int(request.args.get("successful_shadow_cycles") or 0),
+            "shadow_age_seconds": int(request.args.get("shadow_age_seconds") or 0),
+            "collector_parity": {"parity_score": float(request.args.get("parity_score") or 0), "verdict": request.args.get("parity_verdict") or "not_available"},
+            "pilot_result": {
+                "status": request.args.get("pilot_status") or "pilot_result_not_supplied",
+                "error_count": int(request.args.get("pilot_error_count") or 0),
+                "cleanup_attempted": str(request.args.get("cleanup_attempted") or "").lower() in {"1", "true", "yes", "on"},
+                "apply_attempted": str(request.args.get("apply_attempted") or "").lower() in {"1", "true", "yes", "on"},
+                "write_attempted": str(request.args.get("write_attempted") or "").lower() in {"1", "true", "yes", "on"},
+            },
+        }
+    return jsonify(rust_build_collector_authority_promotion_readiness(cfg, payload))
 
 @app.route("/api/rust-core/routeros-read-results", methods=["POST"])
 @login_required

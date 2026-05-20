@@ -5989,6 +5989,32 @@ def rust_build_full_rust_backend_production_drift_monitor(config: dict, payload:
     return response
 
 
+
+
+def rust_build_full_rust_backend_production_audit_sentinel(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-full-rust-backend-production-audit-sentinel", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return {
+            "version": "1",
+            "op": "build-full-rust-backend-production-audit-sentinel",
+            "ok": False,
+            "result": {
+                "mode": "full_rust_backend_production_audit_sentinel",
+                "status": "full_rust_backend_production_audit_sentinel_unavailable",
+                "full_rust_backend": False,
+                "side_effects_allowed": False,
+            },
+            "errors": [{"code": "rust_core_operation_unavailable", "severity": "error", "path": "build-full-rust-backend-production-audit-sentinel", "message": "Installed Rust core does not advertise the production audit sentinel operation."}],
+            "warnings": [],
+            "meta": {"engine": "python-wrapper", "mode": "audit_sentinel_unavailable", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+        }
+    return response
+
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

@@ -917,6 +917,18 @@
     "full_rust_backend_drift_monitor_require_server_tests": true,
     "full_rust_backend_drift_monitor_require_manual_confirmation": true,
     "full_rust_backend_drift_monitor_require_operator_ack": true,
-    "full_rust_backend_drift_monitor_max_shadow_age_seconds": 900
+    "full_rust_backend_drift_monitor_max_shadow_age_seconds": 900,
+    "full_rust_backend_production_audit_sentinel_pilot": false,
+    "allow_full_rust_backend_production_audit_sentinel": false,
+    "full_rust_backend_production_audit_sentinel_mode": "sentinel_only",
+    "full_rust_backend_audit_sentinel_require_drift_monitor": true,
+    "full_rust_backend_audit_sentinel_require_audit_trail": true,
+    "full_rust_backend_audit_sentinel_require_journal_visibility": true,
+    "full_rust_backend_audit_sentinel_require_rollback_visibility": true,
+    "full_rust_backend_audit_sentinel_require_webui_unchanged": true,
+    "full_rust_backend_audit_sentinel_require_server_tests": true,
+    "full_rust_backend_audit_sentinel_require_manual_confirmation": true,
+    "full_rust_backend_audit_sentinel_require_operator_ack": true,
+    "full_rust_backend_audit_sentinel_max_shadow_age_seconds": 900
   }
 }

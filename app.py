@@ -93,6 +93,7 @@ from engine.rust_core import (
     rust_build_full_rust_backend_post_retirement_verifier,
     rust_build_full_rust_backend_steady_state_guard,
     rust_build_full_rust_backend_production_drift_monitor,
+    rust_build_full_rust_backend_production_audit_sentinel,
     rust_validate_routeros_read_results,
     rust_build_collector_circuit_bundle,
     rust_compare_collector_bundle_parity,
@@ -3295,6 +3296,47 @@ def api_rust_core_full_rust_backend_production_drift_monitor():
             "full_rust_backend_steady_state_guard_confirmation": request.args.get("full_rust_backend_steady_state_guard_confirmation") or "CONFIRM_FULL_RUST_BACKEND_STEADY_STATE_GUARD",
         }
     return jsonify(rust_build_full_rust_backend_production_drift_monitor(cfg, payload))
+
+
+@app.route("/api/rust-core/full-rust-backend-production-audit-sentinel", methods=["GET", "POST"])
+@login_required
+def api_rust_core_full_rust_backend_production_audit_sentinel():
+    cfg = load_config(CONFIG_PATH)
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or {}
+    else:
+        true_values = {"1", "true", "yes", "on"}
+        payload = {
+            "mode": request.args.get("mode") or "sentinel",
+            "confirmation": request.args.get("confirmation") or "",
+            "shadow_age_seconds": int(request.args.get("shadow_age_seconds") or 0),
+            "audit_log_available": str(request.args.get("audit_log_available") or "").lower() in true_values,
+            "audit_log_readable": str(request.args.get("audit_log_readable") or "").lower() in true_values,
+            "audit_log_redaction_verified": str(request.args.get("audit_log_redaction_verified") or "").lower() in true_values,
+            "audit_append_rehearsal_passed": str(request.args.get("audit_append_rehearsal_passed") or "").lower() in true_values,
+            "audit_event_count": int(request.args.get("audit_event_count") or 0),
+            "transaction_journal_readable": str(request.args.get("transaction_journal_readable") or "").lower() in true_values,
+            "transaction_journal_preview_passed": str(request.args.get("transaction_journal_preview_passed") or "").lower() in true_values,
+            "transaction_journal_redaction_verified": str(request.args.get("transaction_journal_redaction_verified") or "").lower() in true_values,
+            "transaction_journal_entry_count": int(request.args.get("transaction_journal_entry_count") or 0),
+            "rollback_manifest_preview_available": str(request.args.get("rollback_manifest_preview_available") or "").lower() in true_values,
+            "rollback_from_journal_preview_available": str(request.args.get("rollback_from_journal_preview_available") or "").lower() in true_values,
+            "python_backend_rollback_package_ready": str(request.args.get("python_backend_rollback_package_ready") or "").lower() in true_values,
+            "rollback_path": request.args.get("rollback_path") or "restore_python_backend_and_flask_routes",
+            "rollback_test_passed": str(request.args.get("rollback_test_passed") or "").lower() in true_values,
+            "webui_ux_unchanged": str(request.args.get("webui_ux_unchanged") or "").lower() in true_values,
+            "webui_static_asset_paths_unchanged": str(request.args.get("webui_static_asset_paths_unchanged") or "").lower() in true_values,
+            "webui_static_assets_preserved": str(request.args.get("webui_static_assets_preserved") or "").lower() in true_values,
+            "server_cargo_tests_passed": str(request.args.get("server_cargo_tests_passed") or "").lower() in true_values,
+            "self_test_passed": str(request.args.get("self_test_passed") or "").lower() in true_values,
+            "production_healthcheck_passed": str(request.args.get("production_healthcheck_passed") or "").lower() in true_values,
+            "post_retirement_healthcheck_passed": str(request.args.get("post_retirement_healthcheck_passed") or "").lower() in true_values,
+            "steady_state_healthcheck_passed": str(request.args.get("steady_state_healthcheck_passed") or "").lower() in true_values,
+            "drift_monitor_healthcheck_passed": str(request.args.get("drift_monitor_healthcheck_passed") or "").lower() in true_values,
+            "audit_sentinel_healthcheck_passed": str(request.args.get("audit_sentinel_healthcheck_passed") or "").lower() in true_values,
+            "operator_full_rust_backend_audit_sentinel_ack": str(request.args.get("operator_full_rust_backend_audit_sentinel_ack") or "").lower() in true_values,
+        }
+    return jsonify(rust_build_full_rust_backend_production_audit_sentinel(cfg, payload))
 
 
 @app.route("/api/rust-core/routeros-read-results", methods=["POST"])

@@ -2216,3 +2216,7 @@ Fixes the aggregate full Rust backend steady-state guard self-test fixture by ad
 ## Rust Core v7.4 Full Rust Backend Production Drift Monitor
 
 Adds `build-full-rust-backend-production-drift-monitor`, a non-mutating post-steady-state monitor that verifies Rust backend authority, no Python/Flask drift, WebUI/UX/static asset preservation, rollback readiness, and server healthchecks after Python backend retirement.
+
+## v7.5 Full Rust Backend Production Audit Sentinel
+
+Adds `build-full-rust-backend-production-audit-sentinel`, a verification-only post-drift-monitor guard for audit trail readiness, transaction journal visibility, rollback preview readiness, WebUI/UX preservation, and no-Python-drift production authority. WebUI/UX remains unchanged and no service/file mutations are performed by the Rust core operation.

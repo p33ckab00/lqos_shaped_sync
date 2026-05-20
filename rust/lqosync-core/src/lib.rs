@@ -79,3 +79,4 @@ pub mod rust_full_backend_production_verifier;
 pub mod rust_full_backend_post_retirement_verifier;
 pub mod rust_full_backend_steady_state_guard;
 pub mod rust_full_backend_production_drift_monitor;
+pub mod rust_full_backend_production_audit_sentinel;

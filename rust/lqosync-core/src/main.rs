@@ -66,6 +66,7 @@ use lqosync_core::rust_full_backend_production_verifier::build_full_rust_backend
 use lqosync_core::rust_full_backend_post_retirement_verifier::build_full_rust_backend_post_retirement_verifier_payload;
 use lqosync_core::rust_full_backend_steady_state_guard::build_full_rust_backend_steady_state_guard_payload;
 use lqosync_core::rust_full_backend_production_drift_monitor::build_full_rust_backend_production_drift_monitor_payload;
+use lqosync_core::rust_full_backend_production_audit_sentinel::build_full_rust_backend_production_audit_sentinel_payload;
 use lqosync_core::self_test::{advertised_operations, self_test_payload};
 use lqosync_core::shaped_devices::{parse_csv_text, render_csv_text, validate_rows};
 use lqosync_core::sync_plan::evaluate_sync_plan_payload;
@@ -460,6 +461,10 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
         }
         "build-full-rust-backend-production-drift-monitor" => {
             let (result, errors, warnings) = build_full_rust_backend_production_drift_monitor_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "build-full-rust-backend-production-audit-sentinel" => {
+            let (result, errors, warnings) = build_full_rust_backend_production_audit_sentinel_payload(&req.payload);
             Ok(CoreResponse::validation(req, result, errors, warnings, started))
         }
         "build-collector-circuit-bundle" => {

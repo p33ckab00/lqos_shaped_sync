@@ -991,3 +991,13 @@ git commit -m "docs(install): align Rust branch installation guides" \
 git push -u origin lqosync-in-rust
 ```
 
+
+## v7.5.2 commit
+
+```bash
+git add .
+git commit -m "ops(cleanup): add stale codebase cleanup guard" \
+  -m "Add inventory, dry-run, and guarded archive scripts for stale LQoSync codebases while preserving /opt/LQoSync, Rust daemon, WebUI assets, LibreQoS, and rollback safety."
+git push -u origin lqosync-in-rust
+```
+

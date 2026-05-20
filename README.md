@@ -697,3 +697,8 @@ printf '{"version":"1","op":"self-test","payload":{}}' | lqosync-core
 
 Run `bash scripts/verify-installation-docs-alignment.sh` to confirm docs and installer defaults are aligned.
 
+
+## v7.5.2 Stale Codebase Cleanup Guard
+
+The production series now includes safe stale-codebase cleanup helpers. Use `scripts/stale-codebase-inventory.sh` and `scripts/stale-codebase-cleanup-dry-run.sh` before archiving duplicate working trees. The guarded archive executor never touches `/opt/LQoSync`, `/opt/libreqos`, the Rust daemon binary, or WebUI/static assets.
+

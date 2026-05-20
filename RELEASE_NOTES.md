@@ -2229,3 +2229,10 @@ Aligns primary installation guides, GitHub install examples, and installer defau
 ### v2.145.1-rc1 additional alignment note
 
 Also aligns codebase/runtime path defaults and operator-facing repair/update commands to `/opt/LQoSync`, including Python helper defaults, templates, config examples, and Rust fixture/default path examples.
+
+## 2.145.2-rc1 / Rust Core 7.5.2
+
+- Added stale codebase inventory, dry-run cleanup, and guarded archive executor scripts.
+- Added cleanup policy documentation for canonical `/opt/LQoSync`, Rust daemon, WebUI/static assets, rollback paths, and duplicate working trees.
+- No service restarts, Python deletions, WebUI mutations, or LibreQoS writes are performed by default.
+

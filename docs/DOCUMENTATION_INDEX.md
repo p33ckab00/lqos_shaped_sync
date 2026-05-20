@@ -305,3 +305,9 @@ Adds `evaluate-collector-authority-pilot-result`, a fail-safe evaluator for futu
 - [Rust Core v7.5.1 Installation Documentation and Installer Alignment](RUST_CORE_V751_INSTALLATION_DOCS_ALIGNMENT.md)
 - Aligns install docs with `/opt/LQoSync`, branch `lqosync-in-rust`, and Rust daemon install/self-test flow.
 
+
+## v7.5.2 Stale Codebase Cleanup Guard
+
+- [Rust Core v7.5.2 — Stale Codebase Cleanup Guard](RUST_CORE_V752_STALE_CODEBASE_CLEANUP_GUARD.md)
+- [Stale Codebase Cleanup Policy](STALE_CODEBASE_CLEANUP_POLICY.md)
+

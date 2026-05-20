@@ -532,3 +532,8 @@ This package aligns install docs and installer defaults with the current Rust pr
 ### v7.5.1 codebase path alignment
 
 Runtime/default path examples in docs, installer scripts, Python helper defaults, templates, config examples, and Rust fixture paths are aligned to `/opt/LQoSync`. The branch default is `lqosync-in-rust` for GitHub install/update helpers.
+
+## v7.5.2 package notes
+
+This package adds safe stale-codebase cleanup tooling. It is archive-first and confirmation-gated. It is intended to clean duplicate working directories and stale install remnants only after Rust production verification passes.
+

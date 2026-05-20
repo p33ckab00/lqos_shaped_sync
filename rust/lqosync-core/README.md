@@ -480,3 +480,8 @@ Adds `build-full-rust-backend-production-audit-sentinel`, a verification-only po
 
 The Rust core remains installed through `scripts/build-rust-core.sh`, `scripts/install-rust-core.sh`, and `scripts/install-rust-core-daemon.sh`. The canonical source path used by the current documentation is `/opt/LQoSync`, and the active development/production branch is `lqosync-in-rust`.
 
+
+## v7.5.2 operational cleanup
+
+The stale-codebase cleanup guard is an operational layer outside Rust core protocol operations. It does not add a new Rust core op; it helps operators safely identify duplicate working trees and legacy Python remnants while preserving Rust daemon and rollback safety.
+

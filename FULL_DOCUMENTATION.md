@@ -7938,3 +7938,17 @@ Adds `build-full-rust-backend-production-audit-sentinel`, a verification-only po
 
 See `docs/RUST_CORE_V751_INSTALLATION_DOCS_ALIGNMENT.md`. Primary install guides now prefer branch `lqosync-in-rust`, path `/opt/LQoSync`, and the Rust daemon install flow: `scripts/build-rust-core.sh`, `scripts/install-rust-core.sh`, `scripts/install-rust-core-daemon.sh`, and `lqosync-core` self-test.
 
+
+## v7.5.2 Stale Codebase Cleanup Guard
+
+v7.5.2 adds verification-first stale codebase cleanup workflows. It classifies duplicate working trees, old install directories, legacy Python services, Docker containers, and WebUI/rollback-sensitive paths. Cleanup is archive-first and requires explicit confirmation.
+
+Commands:
+
+```bash
+bash scripts/stale-codebase-inventory.sh
+bash scripts/stale-codebase-cleanup-dry-run.sh
+export CONFIRM_STALE_CODEBASE_ARCHIVE=CONFIRM_STALE_CODEBASE_ARCHIVE
+sudo -E bash scripts/stale-codebase-archive-executor-guard.sh --execute
+```
+

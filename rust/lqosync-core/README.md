@@ -426,3 +426,8 @@ Adds `build-python-backend-removal-execution-contract`, the first explicit Pytho
 ## Rust Core v6.6 Full Rust Backend Removal Rehearsal
 
 Adds `build-full-rust-backend-removal-rehearsal`, the final non-mutating rehearsal before a future v7.0 actual full Rust backend cutover / Python backend removal package. WebUI/UX remains unchanged and Python backend fallback remains mandatory.
+
+
+## Rust Core v7.0 Full Rust Backend Production Cutover
+
+Adds `build-full-rust-backend-production-cutover`, the first full-Rust-backend production cutover package. It can mark cutover as allowed only after v6.6 rehearsal, WebUI/static asset preservation, server cargo/self/rollback tests, rollback backup, and explicit operator confirmation pass. WebUI/UX remains as-is; OS-level service switching/removal is done only by supervised scripts.

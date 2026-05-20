@@ -310,7 +310,7 @@
     },
     {
       "path": "docs/RUST_CORE_V441_PILOT_RESULT_RECURSION_HOTFIX.md",
-      "title": "Rust Core v4.4.1 — Pilot Result Recursion Hotfix",
+      "title": "Rust Core v4.4.1 \u2014 Pilot Result Recursion Hotfix",
       "tags": [
         "rust",
         "collector-authority",
@@ -430,7 +430,7 @@
     "title": "Custom Policy Mode Persistence Hotfix",
     "file": "docs/content/custom_policy_mode_persistence.md",
     "anchor": "custom-policy-mode-persistence-hotfix",
-    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center → Policies."
+    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center \u2192 Policies."
   },
   "policy_overview_custom_wiring_hotfix": {
     "title": "Policy Overview Custom Wiring Hotfix",
@@ -865,5 +865,11 @@
     "file": "docs/RUST_CORE_V66_FULL_RUST_BACKEND_REMOVAL_REHEARSAL.md",
     "anchor": "rust-core-v66-full-rust-backend-removal-rehearsal",
     "summary": "Final non-mutating rehearsal before a future v7.0 actual full Rust backend cutover / Python backend removal package."
+  },
+  "rust.core_v70_full_backend_production_cutover": {
+    "title": "Rust Core v7.0 Full Rust Backend Production Cutover",
+    "file": "docs/RUST_CORE_V70_FULL_RUST_BACKEND_PRODUCTION_CUTOVER.md",
+    "anchor": "rust-core-v70-full-rust-backend-production-cutover",
+    "summary": "First actual full-Rust-backend production cutover package, preserving WebUI/UX and requiring final server/rollback gates before Python backend removal is allowed."
   }
 }

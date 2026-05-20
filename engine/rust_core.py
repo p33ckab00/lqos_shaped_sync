@@ -5603,6 +5603,69 @@ def rust_build_full_rust_backend_removal_rehearsal(config: dict, payload: dict[s
     return response
 
 
+
+def _python_build_full_rust_backend_production_cutover(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rc = _rust_core_config(payload)
+    allow = bool(rc.get("allow_full_rust_backend_production_cutover"))
+    pilot = bool(rc.get("full_rust_backend_production_cutover_pilot"))
+    mode = str(rc.get("full_rust_backend_production_cutover_mode") or "operator_supervised")
+    confirmation_ok = payload.get("confirmation") == "CONFIRM_FULL_RUST_BACKEND_PRODUCTION_CUTOVER"
+    rollback_path = str(payload.get("rollback_path") or "restore_python_backend_and_flask_routes")
+    server_tests_passed = bool(payload.get("server_cargo_tests_passed")) and bool(payload.get("self_test_passed")) and bool(payload.get("rollback_test_passed"))
+    webui_unchanged = bool(payload.get("webui_ux_unchanged", True)) and bool(payload.get("webui_static_asset_paths_unchanged", True)) and bool(payload.get("webui_static_assets_preserved", True))
+    operator_ack = bool(payload.get("operator_full_rust_backend_production_cutover_ack") or payload.get("operator_acknowledged"))
+    python_backup = bool(payload.get("python_fallback_backup_ready") or payload.get("python_backend_rollback_package_ready"))
+    rehearsal = payload.get("full_rust_backend_removal_rehearsal") or {}
+    if isinstance(rehearsal, dict) and isinstance(rehearsal.get("result"), dict):
+        rehearsal = rehearsal.get("result") or {}
+    rehearsal_ready = isinstance(rehearsal, dict) and rehearsal.get("status") == "full_rust_backend_removal_rehearsal_ready"
+    gates_ready = bool(allow and pilot and mode == "operator_supervised")
+    cutover_allowed = gates_ready and confirmation_ok and webui_unchanged and operator_ack and bool(rollback_path.strip()) and server_tests_passed and python_backup and (rehearsal_ready or not rc.get("full_rust_backend_production_cutover_require_removal_rehearsal", True))
+    warnings: list[dict[str, Any]] = []
+    if not cutover_allowed:
+        warnings.append({"code": "full_rust_backend_production_cutover_not_ready", "severity": "warning", "path": "full_rust_backend_production_cutover", "message": "Full Rust backend production cutover gates are not fully satisfied."})
+    return {
+        "version": "1",
+        "op": "build-full-rust-backend-production-cutover",
+        "ok": True,
+        "result": {
+            "mode": "full_rust_backend_production_cutover",
+            "status": "full_rust_backend_production_cutover_ready" if cutover_allowed else "full_rust_backend_production_cutover_blocked",
+            "cutover_allowed": cutover_allowed,
+            "full_rust_backend": cutover_allowed,
+            "full_rust_backend_production_enabled": cutover_allowed,
+            "rust_service_runtime_authoritative": cutover_allowed,
+            "api_traffic_switch_allowed": cutover_allowed,
+            "python_backend_removable": cutover_allowed,
+            "python_removal_allowed": cutover_allowed,
+            "python_backend_removed": False,
+            "python_removal_executed": False,
+            "flask_routes_disabled": False,
+            "api_traffic_switched_to_rust": False,
+            "webui_ux_unchanged": webui_unchanged,
+            "webui_static_assets_preserved": True,
+            "rollback_path": rollback_path,
+            "server_tests_passed": server_tests_passed,
+            "python_fallback_backup_ready": python_backup,
+        },
+        "errors": [],
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "full_rust_backend_production_cutover_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_full_rust_backend_production_cutover(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-full-rust-backend-production-cutover", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_full_rust_backend_production_cutover(req_payload, started=started)
+    return response
+
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

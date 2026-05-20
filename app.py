@@ -88,6 +88,7 @@ from engine.rust_core import (
     rust_build_rust_backend_production_enablement_contract,
     rust_build_python_backend_removal_execution_contract,
     rust_build_full_rust_backend_removal_rehearsal,
+    rust_build_full_rust_backend_production_cutover,
     rust_validate_routeros_read_results,
     rust_build_collector_circuit_bundle,
     rust_compare_collector_bundle_parity,
@@ -3112,6 +3113,31 @@ def api_rust_core_full_rust_backend_removal_rehearsal():
             "rust_backend_production_enablement_confirmation": request.args.get("rust_backend_production_enablement_confirmation") or "CONFIRM_RUST_BACKEND_PRODUCTION_ENABLEMENT_CONTRACT",
         }
     return jsonify(rust_build_full_rust_backend_removal_rehearsal(cfg, payload))
+
+
+@app.route("/api/rust-core/full-rust-backend-production-cutover", methods=["GET", "POST"])
+@login_required
+def api_rust_core_full_rust_backend_production_cutover():
+    cfg = load_config(CONFIG_PATH)
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or {}
+    else:
+        payload = {
+            "mode": request.args.get("mode") or "cutover",
+            "confirmation": request.args.get("confirmation") or "",
+            "shadow_age_seconds": int(request.args.get("shadow_age_seconds") or 0),
+            "webui_ux_unchanged": str(request.args.get("webui_ux_unchanged") or "").lower() in {"1", "true", "yes", "on"},
+            "webui_static_asset_paths_unchanged": str(request.args.get("webui_static_asset_paths_unchanged") or "").lower() in {"1", "true", "yes", "on"},
+            "webui_static_assets_preserved": str(request.args.get("webui_static_assets_preserved") or "").lower() in {"1", "true", "yes", "on"},
+            "operator_full_rust_backend_production_cutover_ack": str(request.args.get("operator_full_rust_backend_production_cutover_ack") or "").lower() in {"1", "true", "yes", "on"},
+            "rollback_path": request.args.get("rollback_path") or "restore_python_backend_and_flask_routes",
+            "server_cargo_tests_passed": str(request.args.get("server_cargo_tests_passed") or "").lower() in {"1", "true", "yes", "on"},
+            "self_test_passed": str(request.args.get("self_test_passed") or "").lower() in {"1", "true", "yes", "on"},
+            "rollback_test_passed": str(request.args.get("rollback_test_passed") or "").lower() in {"1", "true", "yes", "on"},
+            "python_fallback_backup_ready": str(request.args.get("python_fallback_backup_ready") or "").lower() in {"1", "true", "yes", "on"},
+            "full_rust_backend_removal_rehearsal_confirmation": request.args.get("full_rust_backend_removal_rehearsal_confirmation") or "CONFIRM_FULL_RUST_BACKEND_REMOVAL_REHEARSAL",
+        }
+    return jsonify(rust_build_full_rust_backend_production_cutover(cfg, payload))
 
 @app.route("/api/rust-core/routeros-read-results", methods=["POST"])
 @login_required

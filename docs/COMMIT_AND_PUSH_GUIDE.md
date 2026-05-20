@@ -897,3 +897,13 @@ git commit -m "rust(core): add full Rust backend removal rehearsal" \
   -m "Add build-full-rust-backend-removal-rehearsal, the final non-mutating rehearsal before v7 actual full Rust backend cutover and Python backend removal while preserving WebUI/UX and Python fallback."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Rust Core v7.0 full backend production cutover
+
+```bash
+git add .
+git commit -m "rust(core): add full Rust backend production cutover" \
+  -m "Add build-full-rust-backend-production-cutover, the first full-Rust-backend production cutover package with WebUI/UX preserved and rollback-first Python backend removal gates."
+git push -u origin lqosync-in-rust
+```

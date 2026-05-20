@@ -859,6 +859,17 @@
     "full_rust_backend_removal_rehearsal_require_rollback_path": true,
     "full_rust_backend_removal_rehearsal_require_operator_ack": true,
     "full_rust_backend_removal_rehearsal_require_no_side_effects": true,
-    "full_rust_backend_removal_rehearsal_max_shadow_age_seconds": 900
+    "full_rust_backend_removal_rehearsal_max_shadow_age_seconds": 900,
+    "full_rust_backend_production_cutover_pilot": false,
+    "allow_full_rust_backend_production_cutover": false,
+    "full_rust_backend_production_cutover_mode": "operator_supervised",
+    "full_rust_backend_production_cutover_require_removal_rehearsal": true,
+    "full_rust_backend_production_cutover_require_manual_confirmation": true,
+    "full_rust_backend_production_cutover_require_webui_unchanged": true,
+    "full_rust_backend_production_cutover_require_rollback_path": true,
+    "full_rust_backend_production_cutover_require_operator_ack": true,
+    "full_rust_backend_production_cutover_require_server_tests": true,
+    "full_rust_backend_production_cutover_require_python_fallback_backup": true,
+    "full_rust_backend_production_cutover_max_shadow_age_seconds": 900
   }
 }

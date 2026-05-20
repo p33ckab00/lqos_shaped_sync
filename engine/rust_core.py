@@ -5083,6 +5083,103 @@ def rust_build_full_rust_backend_cutover_plan(config: dict, payload: dict[str, A
     return response
 
 
+
+
+def _python_build_full_rust_backend_cutover_execution_contract(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rc = _rust_core_config(payload)
+    allow = bool(rc.get("allow_full_rust_backend_cutover_execution_contract"))
+    pilot = bool(rc.get("full_rust_backend_cutover_execution_contract_pilot"))
+    mode = str(rc.get("full_rust_backend_cutover_execution_mode") or "contract_only")
+    require_plan = rc.get("full_rust_backend_cutover_execution_require_cutover_plan", True) is not False
+    require_fallback = rc.get("full_rust_backend_cutover_execution_require_python_fallback", True) is not False
+    require_confirmation = rc.get("full_rust_backend_cutover_execution_require_manual_confirmation", True) is not False
+    require_webui = rc.get("full_rust_backend_cutover_execution_require_webui_unchanged", True) is not False
+    require_rollback = rc.get("full_rust_backend_cutover_execution_require_rollback_path", True) is not False
+    require_operator = rc.get("full_rust_backend_cutover_execution_require_operator_ack", True) is not False
+    require_no_side_effects = rc.get("full_rust_backend_cutover_execution_require_no_side_effects", True) is not False
+    max_shadow_age = int(rc.get("full_rust_backend_cutover_execution_max_shadow_age_seconds") or 900)
+    shadow_age = int(payload.get("shadow_age_seconds") or 0)
+    confirmation_ok = (not require_confirmation) or payload.get("confirmation") == "CONFIRM_FULL_RUST_BACKEND_CUTOVER_EXECUTION_CONTRACT"
+    plan = payload.get("full_rust_backend_cutover_plan") or payload.get("full_backend_cutover_plan") or {}
+    if isinstance(plan, dict) and isinstance(plan.get("result"), dict):
+        plan = plan.get("result") or {}
+    plan_ready = isinstance(plan, dict) and plan.get("status") == "full_rust_backend_cutover_plan_ready" and plan.get("full_rust_backend_cutover_plan_ready") is True and plan.get("python_backend_removed") is False and plan.get("api_traffic_switched_to_rust") is False
+    webui_ok = bool(payload.get("webui_ux_unchanged", True)) and bool(payload.get("webui_static_asset_paths_unchanged", True)) and (not isinstance(plan, dict) or plan.get("webui_ux_unchanged", True) is not False)
+    rollback_path = str(payload.get("rollback_path") or "python_backend_reenable_and_flask_route_restore")
+    rollback_ready = (not require_rollback) or bool(rollback_path.strip())
+    operator_ok = (not require_operator) or bool(payload.get("operator_cutover_execution_ack")) or payload.get("operator_ack") == "FULL_RUST_BACKEND_CUTOVER_EXECUTION_REVIEWED"
+    side_effects = any([payload.get("python_backend_removed"), payload.get("flask_routes_disabled"), payload.get("api_traffic_switched_to_rust"), payload.get("rust_service_runtime_authoritative"), payload.get("full_rust_backend_production_enabled"), payload.get("generated_files_written"), payload.get("libreqos_apply_executed"), payload.get("cleanup_authority_transferred"), payload.get("remove_python")])
+    gates_ready = bool(allow and pilot and mode == "contract_only")
+    errors: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if bool(payload.get("execute")) or str(payload.get("mode") or "").lower() in {"execute", "remove-python", "replace-flask", "bind-live-api", "switch", "authoritative", "production", "cutover-now", "enable"}:
+        errors.append({"code": "full_rust_backend_cutover_execution_not_implemented", "severity": "error", "path": "full_rust_backend_cutover_execution_contract", "message": "Python fallback cannot execute full Rust backend cutover or remove Python."})
+    if require_plan and not plan_ready:
+        warnings.append({"code": "full_rust_backend_cutover_execution_plan_not_ready", "severity": "warning", "path": "full_rust_backend_cutover_plan", "message": "Full Rust backend cutover plan has not passed."})
+    if require_confirmation and not confirmation_ok:
+        warnings.append({"code": "full_rust_backend_cutover_execution_confirmation_required", "severity": "warning", "path": "confirmation", "message": "Full Rust backend cutover execution confirmation is required."})
+    if not require_fallback:
+        errors.append({"code": "full_rust_backend_cutover_execution_requires_python_fallback", "severity": "error", "path": "rust_core.full_rust_backend_cutover_execution_require_python_fallback", "message": "v6.2 still requires Python backend fallback."})
+    if require_webui and not webui_ok:
+        warnings.append({"code": "full_rust_backend_cutover_execution_webui_changed", "severity": "warning", "path": "webui_ux_unchanged", "message": "WebUI/UX must remain unchanged."})
+    if require_rollback and not rollback_ready:
+        warnings.append({"code": "full_rust_backend_cutover_execution_rollback_path_required", "severity": "warning", "path": "rollback_path", "message": "Python backend rollback path is required."})
+    if require_operator and not operator_ok:
+        warnings.append({"code": "full_rust_backend_cutover_execution_operator_ack_required", "severity": "warning", "path": "operator_cutover_execution_ack", "message": "Operator execution acknowledgment is required."})
+    if require_no_side_effects and side_effects:
+        errors.append({"code": "full_rust_backend_cutover_execution_side_effect_detected", "severity": "error", "path": "full_rust_backend_cutover_execution_contract", "message": "Side effects are forbidden in this package."})
+    if shadow_age > max_shadow_age:
+        warnings.append({"code": "full_rust_backend_cutover_execution_shadow_stale", "severity": "warning", "path": "shadow_age_seconds", "message": "Rust-shadow data is stale."})
+    if not gates_ready:
+        warnings.append({"code": "full_rust_backend_cutover_execution_gates_not_enabled", "severity": "warning", "path": "rust_core", "message": "Full Rust backend cutover execution gates are not fully enabled."})
+    ready = not errors and gates_ready and confirmation_ok and (plan_ready or not require_plan) and shadow_age <= max_shadow_age and webui_ok and rollback_ready and operator_ok and require_fallback and not side_effects
+    review = not errors and plan_ready and webui_ok and rollback_ready and not side_effects
+    status = "blocked" if errors else ("full_rust_backend_cutover_execution_contract_ready" if ready else ("full_rust_backend_cutover_execution_contract_review" if review else "full_rust_backend_cutover_execution_contract_shadow_only"))
+    return {
+        "version": "1",
+        "op": "build-full-rust-backend-cutover-execution-contract",
+        "ok": not errors,
+        "result": {
+            "mode": "full_rust_backend_cutover_execution_contract",
+            "status": status,
+            "full_rust_backend_cutover_execution_contract_ready": ready,
+            "full_rust_backend_candidate": ready,
+            "python_backend_retirement_candidate": ready,
+            "python_backend_fallback_required": True,
+            "webui_ux_unchanged": webui_ok,
+            "rollback_path": rollback_path,
+            "rollback_ready": rollback_ready,
+            "operator_cutover_execution_ack": operator_ok,
+            "full_rust_backend": False,
+            "full_rust_backend_production_enabled": False,
+            "python_backend_removed": False,
+            "python_backend_removable": False,
+            "python_removal_allowed": False,
+            "flask_routes_disabled": False,
+            "api_traffic_switched_to_rust": False,
+            "rust_service_runtime_authoritative": False,
+            "generated_files_written": False,
+            "libreqos_apply_executed": False,
+            "next_stage": "full_rust_backend_enablement_and_python_retirement_preflight",
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_full_rust_backend_cutover_execution_contract_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_full_rust_backend_cutover_execution_contract(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-full-rust-backend-cutover-execution-contract", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_full_rust_backend_cutover_execution_contract(req_payload, started=started)
+    return response
+
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

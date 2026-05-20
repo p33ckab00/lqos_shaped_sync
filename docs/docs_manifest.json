@@ -835,5 +835,11 @@
     "file": "docs/RUST_CORE_V61_FULL_RUST_BACKEND_CUTOVER_PLAN.md",
     "anchor": "rust-core-v61-full-rust-backend-cutover-plan",
     "summary": "Adds the non-mutating full Rust backend cutover plan after production-readiness while preserving WebUI/UX and requiring Python fallback."
+  },
+  "rust.core_v62_full_backend_cutover_execution": {
+    "title": "Rust Core v6.2 Full Rust Backend Cutover Execution Contract",
+    "file": "docs/RUST_CORE_V62_FULL_RUST_BACKEND_CUTOVER_EXECUTION.md",
+    "anchor": "rust-core-v62-full-rust-backend-cutover-execution-contract",
+    "summary": "Adds the non-mutating full Rust backend cutover execution contract after v6.1 cutover planning while preserving WebUI/UX and Python fallback."
   }
 }

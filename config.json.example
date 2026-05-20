@@ -804,6 +804,17 @@
     "full_rust_backend_cutover_require_rollback_path": true,
     "full_rust_backend_cutover_require_operator_approval": true,
     "full_rust_backend_cutover_require_no_side_effects": true,
-    "full_rust_backend_cutover_max_shadow_age_seconds": 900
+    "full_rust_backend_cutover_max_shadow_age_seconds": 900,
+    "full_rust_backend_cutover_execution_contract_pilot": false,
+    "allow_full_rust_backend_cutover_execution_contract": false,
+    "full_rust_backend_cutover_execution_mode": "contract_only",
+    "full_rust_backend_cutover_execution_require_cutover_plan": true,
+    "full_rust_backend_cutover_execution_require_python_fallback": true,
+    "full_rust_backend_cutover_execution_require_manual_confirmation": true,
+    "full_rust_backend_cutover_execution_require_webui_unchanged": true,
+    "full_rust_backend_cutover_execution_require_rollback_path": true,
+    "full_rust_backend_cutover_execution_require_operator_ack": true,
+    "full_rust_backend_cutover_execution_require_no_side_effects": true,
+    "full_rust_backend_cutover_execution_max_shadow_age_seconds": 900
   }
 }

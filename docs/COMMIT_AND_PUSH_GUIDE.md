@@ -847,3 +847,13 @@ git commit -m "rust(core): add full Rust backend cutover plan" \
   -m "Add build-full-rust-backend-cutover-plan, a non-mutating cutover planning gate after full backend production-readiness while keeping Python fallback and WebUI/UX unchanged."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Rust Core v6.2 commit suggestion
+
+```bash
+git add .
+git commit -m "rust(core): add full Rust backend cutover execution contract" \
+  -m "Add build-full-rust-backend-cutover-execution-contract, the near-final non-mutating execution contract after full backend cutover planning while preserving WebUI/UX and Python fallback."
+git push -u origin lqosync-in-rust
+```

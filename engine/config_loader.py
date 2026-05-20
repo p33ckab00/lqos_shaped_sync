@@ -333,6 +333,17 @@ DEFAULT_CONFIG = {
         "full_rust_backend_cutover_require_operator_approval": True,
         "full_rust_backend_cutover_require_no_side_effects": True,
         "full_rust_backend_cutover_max_shadow_age_seconds": 900,
+        "full_rust_backend_cutover_execution_contract_pilot": False,
+        "allow_full_rust_backend_cutover_execution_contract": False,
+        "full_rust_backend_cutover_execution_mode": "contract_only",
+        "full_rust_backend_cutover_execution_require_cutover_plan": True,
+        "full_rust_backend_cutover_execution_require_python_fallback": True,
+        "full_rust_backend_cutover_execution_require_manual_confirmation": True,
+        "full_rust_backend_cutover_execution_require_webui_unchanged": True,
+        "full_rust_backend_cutover_execution_require_rollback_path": True,
+        "full_rust_backend_cutover_execution_require_operator_ack": True,
+        "full_rust_backend_cutover_execution_require_no_side_effects": True,
+        "full_rust_backend_cutover_execution_max_shadow_age_seconds": 900,
     },
     "collector": {
         "selective_fields": True,
@@ -978,6 +989,17 @@ def validate_config(cfg: dict):
     rust_core.setdefault("full_rust_backend_cutover_require_operator_approval", True)
     rust_core.setdefault("full_rust_backend_cutover_require_no_side_effects", True)
     rust_core.setdefault("full_rust_backend_cutover_max_shadow_age_seconds", 900)
+    rust_core.setdefault("full_rust_backend_cutover_execution_contract_pilot", False)
+    rust_core.setdefault("allow_full_rust_backend_cutover_execution_contract", False)
+    rust_core.setdefault("full_rust_backend_cutover_execution_mode", "contract_only")
+    rust_core.setdefault("full_rust_backend_cutover_execution_require_cutover_plan", True)
+    rust_core.setdefault("full_rust_backend_cutover_execution_require_python_fallback", True)
+    rust_core.setdefault("full_rust_backend_cutover_execution_require_manual_confirmation", True)
+    rust_core.setdefault("full_rust_backend_cutover_execution_require_webui_unchanged", True)
+    rust_core.setdefault("full_rust_backend_cutover_execution_require_rollback_path", True)
+    rust_core.setdefault("full_rust_backend_cutover_execution_require_operator_ack", True)
+    rust_core.setdefault("full_rust_backend_cutover_execution_require_no_side_effects", True)
+    rust_core.setdefault("full_rust_backend_cutover_execution_max_shadow_age_seconds", 900)
     if rust_core.get("authority_mode") not in ("shadow", "enforce_blockers"):
         errors.append(f"rust_core.authority_mode invalid: {rust_core.get('authority_mode')}")
     if rust_core.get("routeros_read_pilot_adapter") not in ("fixture", "disabled"):

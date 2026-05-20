@@ -2146,3 +2146,8 @@ Adds `build-full-rust-backend-production-readiness-contract`, the first full Rus
 ## Rust Core v6.1 Full Rust Backend Cutover Plan
 
 Adds `build-full-rust-backend-cutover-plan`, a non-mutating full Rust backend cutover plan after v6.0 production-readiness. It keeps WebUI/UX unchanged and requires Python backend fallback, rollback path, and operator approval. It does not remove Python, disable Flask routes, or switch API traffic to Rust.
+
+
+## Rust Core v6.2 Full Rust Backend Cutover Execution Contract
+
+Adds `build-full-rust-backend-cutover-execution-contract`, the near-final cutover execution contract after v6.1 planning. It verifies cutover execution gates while preserving WebUI/UX and keeping Python backend fallback required. It still does not remove Python, disable Flask, switch API traffic, or enable Rust production authority.

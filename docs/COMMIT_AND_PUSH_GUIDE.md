@@ -877,3 +877,13 @@ git commit -m "rust(core): add Rust backend production enablement contract" \
   -m "Add build-rust-backend-production-enablement-contract, the bridge after Python backend retirement planning while keeping Python fallback and WebUI/UX unchanged until an explicit removal execution package."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Rust Core v6.5 Python Backend Removal Execution Contract
+
+```bash
+git add .
+git commit -m "rust(core): add Python backend removal execution contract" \
+  -m "Add build-python-backend-removal-execution-contract, the first explicit Python backend removal execution contract after Rust backend production enablement while keeping Python fallback and WebUI/UX unchanged."
+git push -u origin lqosync-in-rust
+```

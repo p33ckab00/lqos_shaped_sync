@@ -853,5 +853,11 @@
     "file": "docs/RUST_CORE_V64_RUST_BACKEND_PRODUCTION_ENABLEMENT.md",
     "anchor": "rust-core-v64-rust-backend-production-enablement-contract",
     "summary": "Adds a non-mutating Rust backend production enablement contract after Python backend retirement planning while keeping Python fallback and WebUI/UX unchanged."
+  },
+  "rust.core_v65_python_backend_removal_execution": {
+    "title": "Rust Core v6.5 Python Backend Removal Execution Contract",
+    "file": "docs/RUST_CORE_V65_PYTHON_BACKEND_REMOVAL_EXECUTION.md",
+    "anchor": "rust-core-v65-python-backend-removal-execution-contract",
+    "summary": "Adds the first explicit Python backend removal execution contract while keeping Python fallback, WebUI/UX, and all mutation guards in place."
   }
 }

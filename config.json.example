@@ -837,6 +837,17 @@
     "rust_backend_production_enablement_require_rollback_path": true,
     "rust_backend_production_enablement_require_operator_ack": true,
     "rust_backend_production_enablement_require_no_side_effects": true,
-    "rust_backend_production_enablement_max_shadow_age_seconds": 900
+    "rust_backend_production_enablement_max_shadow_age_seconds": 900,
+    "python_backend_removal_execution_contract_pilot": false,
+    "allow_python_backend_removal_execution_contract": false,
+    "python_backend_removal_execution_mode": "contract_only",
+    "python_backend_removal_execution_require_rust_enablement_contract": true,
+    "python_backend_removal_execution_require_python_fallback": true,
+    "python_backend_removal_execution_require_manual_confirmation": true,
+    "python_backend_removal_execution_require_webui_unchanged": true,
+    "python_backend_removal_execution_require_rollback_path": true,
+    "python_backend_removal_execution_require_operator_ack": true,
+    "python_backend_removal_execution_require_no_side_effects": true,
+    "python_backend_removal_execution_max_shadow_age_seconds": 900
   }
 }

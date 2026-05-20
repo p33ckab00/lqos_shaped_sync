@@ -5386,6 +5386,111 @@ def rust_build_rust_backend_production_enablement_contract(config: dict, payload
     return response
 
 
+
+
+def _python_build_python_backend_removal_execution_contract(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rust_core = _rust_core_config(payload)
+    allow = bool(rust_core.get("allow_python_backend_removal_execution_contract"))
+    pilot = bool(rust_core.get("python_backend_removal_execution_contract_pilot"))
+    mode = str(rust_core.get("python_backend_removal_execution_mode") or "contract_only")
+    require_enablement = rust_core.get("python_backend_removal_execution_require_rust_enablement_contract", True) is not False
+    require_fallback = rust_core.get("python_backend_removal_execution_require_python_fallback", True) is not False
+    require_confirmation = rust_core.get("python_backend_removal_execution_require_manual_confirmation", True) is not False
+    require_webui = rust_core.get("python_backend_removal_execution_require_webui_unchanged", True) is not False
+    require_rollback = rust_core.get("python_backend_removal_execution_require_rollback_path", True) is not False
+    require_ack = rust_core.get("python_backend_removal_execution_require_operator_ack", True) is not False
+    require_no_side_effects = rust_core.get("python_backend_removal_execution_require_no_side_effects", True) is not False
+    max_shadow_age = int(rust_core.get("python_backend_removal_execution_max_shadow_age_seconds") or 900)
+    shadow_age = int(payload.get("shadow_age_seconds") or 0)
+    confirmation_ok = (not require_confirmation) or payload.get("confirmation") == "CONFIRM_PYTHON_BACKEND_REMOVAL_EXECUTION_CONTRACT"
+    enablement = payload.get("rust_backend_production_enablement_contract") or payload.get("rust_backend_enablement_contract") or {}
+    if isinstance(enablement, dict) and isinstance(enablement.get("result"), dict):
+        enablement = enablement.get("result") or {}
+    enablement_ready = isinstance(enablement, dict) and enablement.get("status") == "rust_backend_production_enablement_contract_ready" and enablement.get("rust_backend_production_enablement_contract_ready") is True and enablement.get("full_rust_backend_candidate") is True and enablement.get("python_backend_removed") is False and enablement.get("api_traffic_switched_to_rust") is False
+    webui_unchanged = bool(payload.get("webui_ux_unchanged", True)) and bool(payload.get("webui_static_asset_paths_unchanged", True)) and (not isinstance(enablement, dict) or enablement.get("webui_ux_unchanged", True) is not False)
+    rollback_path = str(payload.get("rollback_path") or "restore_python_backend_and_flask_routes")
+    rollback_ready = (not require_rollback) or bool(rollback_path.strip())
+    operator_ack = bool(payload.get("operator_python_backend_removal_execution_ack") or payload.get("operator_acknowledged"))
+    side_effects = any([
+        payload.get("python_backend_removed"), payload.get("flask_routes_disabled"), payload.get("api_traffic_switched_to_rust"),
+        payload.get("rust_service_runtime_authoritative"), payload.get("full_rust_backend_production_enabled"), payload.get("remove_python"), payload.get("disable_flask"), payload.get("switch_api"), payload.get("execute_removal"),
+        isinstance(enablement, dict) and enablement.get("python_backend_removed"), isinstance(enablement, dict) and enablement.get("api_traffic_switched_to_rust"), isinstance(enablement, dict) and enablement.get("full_rust_backend_production_enabled"), isinstance(enablement, dict) and enablement.get("rust_backend_production_enablement_allowed"),
+    ])
+    gates_ready = bool(allow and pilot and mode == "contract_only")
+    errors: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if bool(payload.get("execute")) or str(payload.get("mode") or "").lower() in {"execute", "remove-python", "disable-flask", "replace-flask", "switch-api", "authoritative", "production", "cutover-now", "delete-python"}:
+        errors.append({"code": "python_backend_removal_execution_not_implemented", "severity": "error", "path": "python_backend_removal_execution_contract", "message": "Python fallback cannot remove Python, disable Flask, or switch API traffic."})
+    if require_enablement and not enablement_ready:
+        warnings.append({"code": "python_backend_removal_execution_enablement_not_ready", "severity": "warning", "path": "rust_backend_production_enablement_contract", "message": "Rust backend production enablement contract has not passed."})
+    if require_confirmation and not confirmation_ok:
+        warnings.append({"code": "python_backend_removal_execution_confirmation_required", "severity": "warning", "path": "confirmation", "message": "Python backend removal execution confirmation is required."})
+    if require_webui and not webui_unchanged:
+        warnings.append({"code": "python_backend_removal_execution_webui_changed", "severity": "warning", "path": "webui_ux_unchanged", "message": "WebUI/UX must remain unchanged."})
+    if require_rollback and not rollback_ready:
+        warnings.append({"code": "python_backend_removal_execution_rollback_path_required", "severity": "warning", "path": "rollback_path", "message": "Rollback path is required."})
+    if require_ack and not operator_ack:
+        warnings.append({"code": "python_backend_removal_execution_operator_ack_required", "severity": "warning", "path": "operator_python_backend_removal_execution_ack", "message": "Operator acknowledgment is required."})
+    if not require_fallback:
+        errors.append({"code": "python_backend_removal_execution_requires_python_fallback", "severity": "error", "path": "rust_core.python_backend_removal_execution_require_python_fallback", "message": "v6.5 still requires Python backend fallback."})
+    if require_no_side_effects and side_effects:
+        errors.append({"code": "python_backend_removal_execution_side_effect_detected", "severity": "error", "path": "python_backend_removal_execution_contract", "message": "Python backend removal execution detected mutation side effects."})
+    if shadow_age > max_shadow_age:
+        warnings.append({"code": "python_backend_removal_execution_shadow_stale", "severity": "warning", "path": "shadow_age_seconds", "message": "Rust-shadow data is stale."})
+    if not gates_ready:
+        warnings.append({"code": "python_backend_removal_execution_gates_not_enabled", "severity": "warning", "path": "rust_core", "message": "Python backend removal execution gates are not fully enabled."})
+    ready = not errors and gates_ready and confirmation_ok and (enablement_ready or not require_enablement) and webui_unchanged and rollback_ready and operator_ack and require_fallback and not side_effects and shadow_age <= max_shadow_age
+    review = not errors and enablement_ready and webui_unchanged and rollback_ready and not side_effects
+    status = "blocked" if errors else ("python_backend_removal_execution_contract_ready" if ready else ("python_backend_removal_execution_contract_review" if review else "python_backend_removal_execution_contract_shadow_only"))
+    return {
+        "version": "1",
+        "op": "build-python-backend-removal-execution-contract",
+        "ok": not errors,
+        "result": {
+            "mode": "python_backend_removal_execution_contract",
+            "status": status,
+            "python_backend_removal_execution_contract_ready": ready,
+            "full_rust_backend_candidate": ready,
+            "python_backend_retirement_candidate": ready,
+            "python_backend_removal_candidate": ready,
+            "rust_backend_production_enablement_status": enablement.get("status") if isinstance(enablement, dict) else None,
+            "rust_backend_production_enablement_ready": enablement_ready,
+            "webui_ux_unchanged": webui_unchanged,
+            "rollback_path": rollback_path,
+            "rollback_ready": rollback_ready,
+            "operator_python_backend_removal_execution_ack": operator_ack,
+            "python_backend_fallback_required": True,
+            "full_rust_backend": False,
+            "full_rust_backend_production_enabled": False,
+            "rust_backend_production_enablement_allowed": False,
+            "python_backend_removed": False,
+            "python_backend_removable": False,
+            "python_removal_allowed": False,
+            "python_removal_executed": False,
+            "flask_routes_disabled": False,
+            "api_traffic_switched_to_rust": False,
+            "rust_service_runtime_authoritative": False,
+            "generated_files_written": False,
+            "libreqos_apply_executed": False,
+            "next_stage": "full_rust_backend_removal_rehearsal",
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_backend_removal_execution_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_python_backend_removal_execution_contract(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-python-backend-removal-execution-contract", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_python_backend_removal_execution_contract(req_payload, started=started)
+    return response
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

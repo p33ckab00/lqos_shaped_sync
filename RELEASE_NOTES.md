@@ -2161,3 +2161,8 @@ Adds `build-python-backend-retirement-plan`, the first explicit Python backend r
 ## Rust Core v6.4 Rust Backend Production Enablement Contract
 
 Adds `build-rust-backend-production-enablement-contract`, the bridge after Python backend retirement planning. It can mark the system as a Rust backend production enablement candidate while keeping Python fallback, WebUI/UX unchanged, and all destructive actions disabled. It does not remove Python, disable Flask routes, switch API traffic, or enable Rust production authority.
+
+
+## Rust Core v6.5 Python Backend Removal Execution Contract
+
+Adds `build-python-backend-removal-execution-contract`, the first explicit Python backend removal execution contract after Rust backend production enablement. It is still non-mutating: it can mark a Python-removal candidate but does not remove Python, disable Flask, switch API traffic, or enable Rust service authority. WebUI/UX remains unchanged and Python fallback remains mandatory.

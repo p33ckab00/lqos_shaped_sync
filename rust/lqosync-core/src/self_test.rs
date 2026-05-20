@@ -52,6 +52,7 @@ use crate::rust_full_backend_cutover_plan::build_full_rust_backend_cutover_plan_
 use crate::rust_full_backend_cutover_execution::build_full_rust_backend_cutover_execution_contract_payload;
 use crate::rust_python_backend_retirement_plan::build_python_backend_retirement_plan_payload;
 use crate::rust_backend_production_enablement::build_rust_backend_production_enablement_contract_payload;
+use crate::rust_python_backend_removal_execution::build_python_backend_removal_execution_contract_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -117,6 +118,7 @@ pub const OP_BUILD_FULL_RUST_BACKEND_CUTOVER_PLAN: &str = "build-full-rust-backe
 pub const OP_BUILD_FULL_RUST_BACKEND_CUTOVER_EXECUTION_CONTRACT: &str = "build-full-rust-backend-cutover-execution-contract";
 pub const OP_BUILD_PYTHON_BACKEND_RETIREMENT_PLAN: &str = "build-python-backend-retirement-plan";
 pub const OP_BUILD_RUST_BACKEND_PRODUCTION_ENABLEMENT_CONTRACT: &str = "build-rust-backend-production-enablement-contract";
+pub const OP_BUILD_PYTHON_BACKEND_REMOVAL_EXECUTION_CONTRACT: &str = "build-python-backend-removal-execution-contract";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -196,6 +198,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_FULL_RUST_BACKEND_CUTOVER_EXECUTION_CONTRACT,
         OP_BUILD_PYTHON_BACKEND_RETIREMENT_PLAN,
         OP_BUILD_RUST_BACKEND_PRODUCTION_ENABLEMENT_CONTRACT,
+        OP_BUILD_PYTHON_BACKEND_REMOVAL_EXECUTION_CONTRACT,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -1589,6 +1592,41 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     })));
     if !rust_backend_enablement_ok {
         errors.push(Diagnostic::error("self_test_rust_backend_production_enablement_failed", Some("build-rust-backend-production-enablement-contract".to_string()), "Self-test Rust backend production enablement contract should report ready without removing Python or switching API traffic."));
+    }
+
+    let mut python_removal_payload = rust_backend_enablement_payload.clone();
+    if let Some(obj) = python_removal_payload.as_object_mut() {
+        obj.insert("confirmation".to_string(), json!("CONFIRM_PYTHON_BACKEND_REMOVAL_EXECUTION_CONTRACT"));
+        obj.insert("rust_backend_production_enablement_contract".to_string(), json!(rust_backend_enablement.clone()));
+        obj.insert("operator_python_backend_removal_execution_ack".to_string(), json!(true));
+        obj.insert("rollback_path".to_string(), json!("restore_python_backend_and_flask_routes"));
+        if let Some(rc) = obj.get_mut("rust_core").and_then(Value::as_object_mut) {
+            rc.insert("python_backend_removal_execution_contract_pilot".to_string(), json!(true));
+            rc.insert("allow_python_backend_removal_execution_contract".to_string(), json!(true));
+            rc.insert("python_backend_removal_execution_mode".to_string(), json!("contract_only"));
+            rc.insert("python_backend_removal_execution_require_rust_enablement_contract".to_string(), json!(true));
+            rc.insert("python_backend_removal_execution_require_python_fallback".to_string(), json!(true));
+            rc.insert("python_backend_removal_execution_require_manual_confirmation".to_string(), json!(true));
+            rc.insert("python_backend_removal_execution_require_webui_unchanged".to_string(), json!(true));
+            rc.insert("python_backend_removal_execution_require_rollback_path".to_string(), json!(true));
+            rc.insert("python_backend_removal_execution_require_operator_ack".to_string(), json!(true));
+            rc.insert("python_backend_removal_execution_require_no_side_effects".to_string(), json!(true));
+            rc.insert("python_backend_removal_execution_max_shadow_age_seconds".to_string(), json!(900));
+        }
+    }
+    let (python_removal, python_removal_errors, _python_removal_warnings) = build_python_backend_removal_execution_contract_payload(&python_removal_payload);
+    let python_removal_ok = python_removal_errors.is_empty()
+        && python_removal.get("status").and_then(Value::as_str) == Some("python_backend_removal_execution_contract_ready")
+        && python_removal.get("python_backend_removal_candidate").and_then(Value::as_bool) == Some(true)
+        && python_removal.get("python_backend_removed").and_then(Value::as_bool) == Some(false)
+        && python_removal.get("api_traffic_switched_to_rust").and_then(Value::as_bool) == Some(false);
+    checks.push(check("python_backend_removal_execution_contract", python_removal_ok, json!({
+        "status": python_removal.get("status"),
+        "python_backend_removal_candidate": python_removal.get("python_backend_removal_candidate"),
+        "python_backend_removed": python_removal.get("python_backend_removed")
+    })));
+    if !python_removal_ok {
+        errors.push(Diagnostic::error("self_test_python_backend_removal_execution_failed", Some("build-python-backend-removal-execution-contract".to_string()), "Self-test Python backend removal execution contract should report ready without removing Python or switching API traffic."));
     }
 
     let collector_bundle_payload = json!({

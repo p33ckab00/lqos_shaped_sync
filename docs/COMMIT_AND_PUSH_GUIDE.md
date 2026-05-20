@@ -678,3 +678,13 @@ git commit -m "rust(core): fix pilot execution confirmation gating" \
   -m "Fix collector authority pilot execution readiness by separating switch rehearsal confirmation from pilot execution confirmation while preserving non-mutating fail-safe behavior."
 git push -u origin lqosync-in-rust
 ```
+
+
+## v4.4 Commit Example
+
+```bash
+git add .
+git commit -m "rust(core): add collector authority pilot result evaluator" \
+  -m "Add evaluate-collector-authority-pilot-result, a non-mutating evaluator for pilot result readiness, parity, freshness, and forbidden side effects while keeping Python collectors authoritative."
+git push -u origin lqosync-in-rust
+```

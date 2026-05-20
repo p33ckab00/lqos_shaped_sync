@@ -7766,3 +7766,8 @@ The v4.3 collector authority pilot execution contract used one large nested `ser
 ## Rust Core v4.3.2 Pilot Execution Confirmation Hotfix
 
 Fixes the v4.3.1 pilot execution readiness regression where one root confirmation token could not satisfy both the prerequisite switch rehearsal and the pilot execution contract. The Rust core now accepts `collector_authority_switch_confirmation` for the prerequisite check while keeping the pilot execution contract non-mutating and Python-authoritative by default.
+
+
+## Rust Core v4.4 Collector Authority Pilot Result Evaluator
+
+Adds `evaluate-collector-authority-pilot-result`, a fail-safe evaluator for future Rust collector authority pilot results. It checks pilot execution contract readiness, parity, shadow freshness, observed errors, and forbidden side effects while keeping Python collectors authoritative. See `docs/RUST_CORE_V44_COLLECTOR_AUTHORITY_PILOT_RESULT.md`.

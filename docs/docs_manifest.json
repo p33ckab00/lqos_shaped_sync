@@ -712,5 +712,11 @@
     "path": "docs/RUST_CORE_V432_PILOT_EXECUTION_CONFIRMATION_HOTFIX.md",
     "category": "rust-core",
     "summary": "Fixes collector authority pilot execution readiness by separating switch rehearsal and pilot execution confirmation tokens while preserving non-mutating fail-safe behavior."
+  },
+  "rust.core_v44_collector_authority_pilot_result": {
+    "title": "Rust Core v4.4 Collector Authority Pilot Result Evaluator",
+    "path": "docs/RUST_CORE_V44_COLLECTOR_AUTHORITY_PILOT_RESULT.md",
+    "category": "rust-core",
+    "summary": "Adds a non-mutating evaluator for future Rust collector authority pilot results, checking contract readiness, parity, side effects, and freshness while keeping Python authoritative."
   }
 }

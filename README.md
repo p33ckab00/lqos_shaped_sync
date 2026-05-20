@@ -512,3 +512,8 @@ Fixes a compile-time macro recursion issue in the collector authority pilot exec
 ### v4.3.2
 
 Fixes collector authority pilot execution readiness by separating switch-rehearsal confirmation from pilot-execution confirmation. This remains a non-mutating contract-only bridge.
+
+
+## Rust Core v4.4 Collector Authority Pilot Result Evaluator
+
+Adds `evaluate-collector-authority-pilot-result`, a fail-safe evaluator for future Rust collector authority pilot results. It checks pilot execution contract readiness, parity, shadow freshness, observed errors, and forbidden side effects while keeping Python collectors authoritative. See `docs/RUST_CORE_V44_COLLECTOR_AUTHORITY_PILOT_RESULT.md`.

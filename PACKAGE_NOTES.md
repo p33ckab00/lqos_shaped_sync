@@ -356,3 +356,8 @@ This package fixes the v4.3 Rust compile failure caused by a large nested `serde
 ## v2.113.2-rc1 Package Notes - Rust Core v4.3.2 Confirmation Hotfix
 
 Fixes the v4.3.1 pilot execution readiness regression where one root confirmation token could not satisfy both the prerequisite switch rehearsal and the pilot execution contract. The Rust core now accepts `collector_authority_switch_confirmation` for the prerequisite check while keeping the pilot execution contract non-mutating and Python-authoritative by default.
+
+
+## Package note: Rust Core v4.4
+
+This package adds the collector authority pilot result evaluator and documentation. It remains a bridge release; no production collector authority is switched to Rust.

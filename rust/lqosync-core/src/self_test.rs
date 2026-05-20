@@ -31,6 +31,7 @@ use crate::collector_authority_activation::build_collector_authority_activation_
 use crate::collector_authority_runtime::build_collector_authority_runtime_contract_payload;
 use crate::collector_authority_switch::build_collector_authority_switch_rehearsal_payload;
 use crate::collector_authority_pilot_execution::build_collector_authority_pilot_execution_contract_payload;
+use crate::collector_authority_pilot_result::evaluate_collector_authority_pilot_result_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -75,6 +76,7 @@ pub const OP_BUILD_COLLECTOR_AUTHORITY_ACTIVATION_PLAN: &str = "build-collector-
 pub const OP_BUILD_COLLECTOR_AUTHORITY_RUNTIME_CONTRACT: &str = "build-collector-authority-runtime-contract";
 pub const OP_BUILD_COLLECTOR_AUTHORITY_SWITCH_REHEARSAL: &str = "build-collector-authority-switch-rehearsal";
 pub const OP_BUILD_COLLECTOR_AUTHORITY_PILOT_EXECUTION_CONTRACT: &str = "build-collector-authority-pilot-execution-contract";
+pub const OP_EVALUATE_COLLECTOR_AUTHORITY_PILOT_RESULT: &str = "evaluate-collector-authority-pilot-result";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -133,6 +135,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_COLLECTOR_AUTHORITY_RUNTIME_CONTRACT,
         OP_BUILD_COLLECTOR_AUTHORITY_SWITCH_REHEARSAL,
         OP_BUILD_COLLECTOR_AUTHORITY_PILOT_EXECUTION_CONTRACT,
+        OP_EVALUATE_COLLECTOR_AUTHORITY_PILOT_RESULT,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -754,6 +757,44 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     })));
     if !pilot_execution_ok {
         errors.push(Diagnostic::error("self_test_collector_authority_pilot_execution_failed", Some("build-collector-authority-pilot-execution-contract".to_string()), "Self-test collector authority pilot execution contract should be ready but non-mutating."));
+    }
+
+    let mut pilot_result_payload = pilot_execution_payload.clone();
+    if let Some(obj) = pilot_result_payload.as_object_mut() {
+        let pilot_python_rows = obj.get("python_rows").cloned().unwrap_or_else(|| json!([]));
+        obj.insert("pilot_result".to_string(), json!({
+            "status":"pilot_shadow_complete",
+            "rust_rows": pilot_python_rows.clone(),
+            "python_rows": pilot_python_rows.clone(),
+            "cleanup_attempted": false,
+            "apply_attempted": false,
+            "write_attempted": false,
+            "error_count": 0
+        }));
+        obj.insert("rust_rows".to_string(), pilot_python_rows);
+        if let Some(rc) = obj.get_mut("rust_core").and_then(Value::as_object_mut) {
+            rc.insert("collector_authority_pilot_result_evaluator_pilot".to_string(), json!(true));
+            rc.insert("allow_collector_authority_pilot_result_evaluation".to_string(), json!(true));
+            rc.insert("collector_authority_pilot_result_mode".to_string(), json!("rust_collector_authority_pilot_result_evaluation"));
+            rc.insert("collector_authority_pilot_result_require_execution_contract".to_string(), json!(true));
+            rc.insert("collector_authority_pilot_result_require_python_fallback".to_string(), json!(true));
+            rc.insert("collector_authority_pilot_result_require_no_cleanup_apply".to_string(), json!(true));
+            rc.insert("collector_authority_pilot_result_require_parity".to_string(), json!(true));
+            rc.insert("collector_authority_pilot_result_max_shadow_age_seconds".to_string(), json!(900));
+        }
+    }
+    let (pilot_result, pilot_result_errors, _pilot_result_warnings) = evaluate_collector_authority_pilot_result_payload(&pilot_result_payload);
+    let pilot_result_ok = pilot_result_errors.is_empty()
+        && pilot_result.get("status").and_then(Value::as_str) == Some("collector_authority_pilot_result_pass")
+        && pilot_result.get("production_collector_authority_switched").and_then(Value::as_bool) == Some(false)
+        && pilot_result.get("rust_can_drive_cleanup").and_then(Value::as_bool) == Some(false);
+    checks.push(check("collector_authority_pilot_result_evaluation", pilot_result_ok, json!({
+        "status": pilot_result.get("status"),
+        "collector_authority": pilot_result.get("collector_authority"),
+        "pilot_result_evaluated": pilot_result.get("collector_authority_pilot_result_evaluated")
+    })));
+    if !pilot_result_ok {
+        errors.push(Diagnostic::error("self_test_collector_authority_pilot_result_failed", Some("evaluate-collector-authority-pilot-result".to_string()), "Self-test collector authority pilot result evaluation should pass only as a non-mutating review result."));
     }
 
 

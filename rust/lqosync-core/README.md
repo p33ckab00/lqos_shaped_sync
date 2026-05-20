@@ -312,3 +312,8 @@ Fixes a compile-time recursion limit issue in the collector authority pilot exec
 ### v4.3.2
 
 Fixes collector authority pilot execution readiness by separating switch-rehearsal confirmation from pilot-execution confirmation. This remains a non-mutating contract-only bridge.
+
+
+## v4.4 operation
+
+`evaluate-collector-authority-pilot-result` evaluates a future collector authority pilot result without allowing Rust to drive cleanup, writes, apply, or production collector authority.

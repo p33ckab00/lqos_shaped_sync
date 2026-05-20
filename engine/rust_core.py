@@ -3246,6 +3246,113 @@ def rust_build_collector_authority_pilot_execution_contract(config: dict, payloa
     return response
 
 
+def _rows_for_pilot_result(value: Any) -> list[dict[str, Any]]:
+    if isinstance(value, list):
+        return [r for r in value if isinstance(r, dict)]
+    if isinstance(value, dict):
+        return [r for r in value.values() if isinstance(r, dict)]
+    return []
+
+
+def _python_evaluate_collector_authority_pilot_result(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rust_core = _rust_core_config(payload)
+    allow = bool(rust_core.get("allow_collector_authority_pilot_result_evaluation"))
+    pilot = bool(rust_core.get("collector_authority_pilot_result_evaluator_pilot"))
+    mode = str(rust_core.get("collector_authority_pilot_result_mode") or "evaluate_only")
+    require_contract = rust_core.get("collector_authority_pilot_result_require_execution_contract", True) is not False
+    require_fallback = rust_core.get("collector_authority_pilot_result_require_python_fallback", True) is not False
+    require_no_side_effects = rust_core.get("collector_authority_pilot_result_require_no_cleanup_apply", True) is not False
+    require_parity = rust_core.get("collector_authority_pilot_result_require_parity", True) is not False
+    max_shadow_age = int(rust_core.get("collector_authority_pilot_result_max_shadow_age_seconds") or 900)
+    shadow_age = int(payload.get("shadow_age_seconds") or 0)
+    contract = payload.get("collector_authority_pilot_execution_contract") or payload.get("pilot_execution_contract") or {}
+    if isinstance(contract, dict) and isinstance(contract.get("result"), dict):
+        contract = contract.get("result") or {}
+    if not isinstance(contract, dict) or not contract:
+        contract = rust_build_collector_authority_pilot_execution_contract(payload.get("config") or {}, payload).get("result") or {}
+    contract_ready = contract.get("status") == "collector_authority_pilot_execution_contract_ready" and contract.get("production_collector_authority_switched") is False and contract.get("python_collector_fallback_required") is True
+    observed = payload.get("pilot_result") or payload.get("pilot_observation") or {}
+    observed = observed if isinstance(observed, dict) else {}
+    cleanup_attempted = bool(observed.get("cleanup_attempted") or payload.get("cleanup_attempted"))
+    apply_attempted = bool(observed.get("apply_attempted") or payload.get("apply_attempted"))
+    write_attempted = bool(observed.get("write_attempted") or payload.get("write_attempted"))
+    authority_switched = bool(observed.get("production_collector_authority_switched") or payload.get("production_collector_authority_switched"))
+    side_effect_free = not any([cleanup_attempted, apply_attempted, write_attempted, authority_switched])
+    rust_rows = _rows_for_pilot_result(observed.get("rust_rows")) or _rows_for_pilot_result(payload.get("rust_rows"))
+    python_rows = _rows_for_pilot_result(observed.get("python_rows")) or _rows_for_pilot_result(payload.get("python_rows"))
+    parity = payload.get("collector_parity") if isinstance(payload.get("collector_parity"), dict) else {}
+    if rust_rows or python_rows:
+        parity = _python_compare_collector_bundle_parity({"python_rows": python_rows, "rust_rows": rust_rows}).get("result") or {}
+    parity_pass = parity.get("verdict") == "parity_pass"
+    observed_status = str(observed.get("status") or "pilot_result_not_supplied")
+    observed_error_count = int(observed.get("error_count") or payload.get("pilot_error_count") or 0)
+    observed_ok = observed_error_count == 0 and observed_status in {"pilot_shadow_complete", "pilot_result_pass", "collector_authority_pilot_result_pass", "pilot_completed", "ok", "pilot_result_not_supplied"}
+    requested = bool(allow and pilot and mode == "rust_collector_authority_pilot_result_evaluation")
+    errors: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if bool(payload.get("execute")) or str(payload.get("mode") or "").lower() in {"execute", "switch", "promote", "authority", "apply", "production"}:
+        errors.append({"code": "collector_authority_pilot_result_execute_not_implemented", "severity": "error", "path": "collector_authority_pilot_result", "message": "Python fallback cannot execute collector authority pilot result actions."})
+    if require_contract and not contract_ready:
+        warnings.append({"code": "collector_authority_pilot_result_execution_contract_not_ready", "severity": "warning", "path": "collector_authority_pilot_execution_contract", "message": "Collector authority pilot execution contract is not ready."})
+    if not require_fallback:
+        errors.append({"code": "collector_authority_pilot_result_requires_python_fallback", "severity": "error", "path": "rust_core.collector_authority_pilot_result_require_python_fallback", "message": "Collector authority pilot result evaluation requires Python collector fallback."})
+    if require_no_side_effects and not side_effect_free:
+        errors.append({"code": "collector_authority_pilot_result_side_effect_detected", "severity": "error", "path": "collector_authority_pilot_result", "message": "Collector authority pilot result contains forbidden cleanup/apply/write/authority side effects."})
+    if require_parity and not parity_pass:
+        warnings.append({"code": "collector_authority_pilot_result_parity_not_passed", "severity": "warning", "path": "collector_parity", "message": "Collector authority pilot result parity has not passed."})
+    if shadow_age > max_shadow_age:
+        warnings.append({"code": "collector_authority_pilot_result_shadow_stale", "severity": "warning", "path": "shadow_age_seconds", "message": "Rust-shadow collector result is stale."})
+    passed = (not errors and requested and (contract_ready or not require_contract) and require_fallback and side_effect_free and observed_ok and shadow_age <= max_shadow_age and (parity_pass or not require_parity))
+    status = "blocked" if errors else ("collector_authority_pilot_result_pass" if passed else ("collector_authority_pilot_result_review" if contract_ready else "collector_authority_pilot_result_shadow_only"))
+    return {
+        "version": "1",
+        "op": "evaluate-collector-authority-pilot-result",
+        "ok": not errors,
+        "result": {
+            "mode": "collector_authority_pilot_result_evaluation",
+            "status": status,
+            "collector_authority": "python_authoritative",
+            "target_authority": "rust_collector_authority_pilot_candidate_validated" if passed else "python_authoritative",
+            "evaluation_requested": requested,
+            "execution_contract_ready": contract_ready,
+            "observed_status": observed_status,
+            "observed_error_count": observed_error_count,
+            "side_effect_free": side_effect_free,
+            "parity": parity,
+            "parity_pass": parity_pass,
+            "shadow_age_seconds": shadow_age,
+            "max_shadow_age_seconds": max_shadow_age,
+            "full_rust_backend": False,
+            "production_collector_authority_switched": False,
+            "collector_authority_switch_executed": False,
+            "collector_authority_pilot_result_evaluated": passed,
+            "python_collector_fallback_required": True,
+            "rust_can_drive_cleanup": False,
+            "rust_can_drive_apply": False,
+            "rust_can_write_generated_files": False,
+            "safe_for_cleanup": False,
+            "write_allowed": False,
+            "apply_allowed": False,
+            "next_stage": "rust_collector_authority_pilot_handoff_manifest",
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_collector_authority_pilot_result_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_evaluate_collector_authority_pilot_result(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("evaluate-collector-authority-pilot-result", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_evaluate_collector_authority_pilot_result(req_payload, started=started)
+    return response
+
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

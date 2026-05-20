@@ -2050,3 +2050,8 @@ Fixes the v4.3 compile-time `serde_json::json!` macro recursion error in `collec
 ## Rust Core v4.3.2 Collector Authority Pilot Execution Confirmation Hotfix
 
 Fixes the v4.3.1 pilot execution readiness regression where one root confirmation token could not satisfy both the prerequisite switch rehearsal and the pilot execution contract. The Rust core now accepts `collector_authority_switch_confirmation` for the prerequisite check while keeping the pilot execution contract non-mutating and Python-authoritative by default.
+
+
+## 2.114.0-rc1 / Rust Core v4.4
+
+Adds `evaluate-collector-authority-pilot-result`, a non-mutating collector authority pilot result evaluator. It validates pilot execution contract readiness, parity, shadow freshness, and that no cleanup/apply/write/authority side effects occurred. Python collectors remain authoritative.

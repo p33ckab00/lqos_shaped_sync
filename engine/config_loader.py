@@ -211,6 +211,16 @@ DEFAULT_CONFIG = {
         "collector_authority_production_switch_require_maintenance_window": True,
         "collector_authority_production_switch_require_operator_ack": True,
         "collector_authority_production_switch_max_shadow_age_seconds": 900,
+        "rust_backend_api_handoff_plan_pilot": False,
+        "allow_rust_backend_api_handoff_plan": False,
+        "rust_backend_api_handoff_mode": "plan_only",
+        "rust_backend_api_handoff_require_production_switch_contract": True,
+        "rust_backend_api_handoff_require_python_backend_fallback": True,
+        "rust_backend_api_handoff_require_manual_confirmation": True,
+        "rust_backend_api_handoff_require_webui_compatibility": True,
+        "rust_backend_api_handoff_require_route_parity": True,
+        "rust_backend_api_handoff_require_no_side_effects": True,
+        "rust_backend_api_handoff_max_shadow_age_seconds": 900,
     },
     "collector": {
         "selective_fields": True,
@@ -734,6 +744,16 @@ def validate_config(cfg: dict):
     rust_core.setdefault("collector_authority_production_switch_require_maintenance_window", True)
     rust_core.setdefault("collector_authority_production_switch_require_operator_ack", True)
     rust_core.setdefault("collector_authority_production_switch_max_shadow_age_seconds", 900)
+    rust_core.setdefault("rust_backend_api_handoff_plan_pilot", False)
+    rust_core.setdefault("allow_rust_backend_api_handoff_plan", False)
+    rust_core.setdefault("rust_backend_api_handoff_mode", "plan_only")
+    rust_core.setdefault("rust_backend_api_handoff_require_production_switch_contract", True)
+    rust_core.setdefault("rust_backend_api_handoff_require_python_backend_fallback", True)
+    rust_core.setdefault("rust_backend_api_handoff_require_manual_confirmation", True)
+    rust_core.setdefault("rust_backend_api_handoff_require_webui_compatibility", True)
+    rust_core.setdefault("rust_backend_api_handoff_require_route_parity", True)
+    rust_core.setdefault("rust_backend_api_handoff_require_no_side_effects", True)
+    rust_core.setdefault("rust_backend_api_handoff_max_shadow_age_seconds", 900)
     if rust_core.get("authority_mode") not in ("shadow", "enforce_blockers"):
         errors.append(f"rust_core.authority_mode invalid: {rust_core.get('authority_mode')}")
     if rust_core.get("routeros_read_pilot_adapter") not in ("fixture", "disabled"):

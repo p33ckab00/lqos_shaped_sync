@@ -45,6 +45,7 @@ use lqosync_core::collector_authority_promotion_commit::build_collector_authorit
 use lqosync_core::collector_authority_promotion_cutover::build_collector_authority_promotion_cutover_ledger_payload;
 use lqosync_core::collector_authority_production_freeze::build_collector_authority_production_freeze_gate_payload;
 use lqosync_core::collector_authority_production_switch::build_collector_authority_production_switch_contract_payload;
+use lqosync_core::rust_backend_api_handoff::build_rust_backend_api_handoff_plan_payload;
 use lqosync_core::self_test::{advertised_operations, self_test_payload};
 use lqosync_core::shaped_devices::{parse_csv_text, render_csv_text, validate_rows};
 use lqosync_core::sync_plan::evaluate_sync_plan_payload;
@@ -355,6 +356,10 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
         }
         "build-collector-authority-production-switch-contract" => {
             let (result, errors, warnings) = build_collector_authority_production_switch_contract_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "build-rust-backend-api-handoff-plan" => {
+            let (result, errors, warnings) = build_rust_backend_api_handoff_plan_payload(&req.payload);
             Ok(CoreResponse::validation(req, result, errors, warnings, started))
         }
         "build-collector-circuit-bundle" => {

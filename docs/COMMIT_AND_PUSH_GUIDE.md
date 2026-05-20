@@ -737,3 +737,13 @@ git commit -m "rust(core): add collector authority production switch contract" \
   -m "Add build-collector-authority-production-switch-contract, the first non-mutating production switch contract after the freeze gate while keeping Python backend and fallback required."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Rust Core v5.1 commit suggestion
+
+```bash
+git add .
+git commit -m "rust(core): add Rust backend API handoff plan" \
+  -m "Add build-rust-backend-api-handoff-plan, the first full-Rust-backend-track bridge after collector authority production switch contract, preserving WebUI/UX and requiring Python backend fallback while route parity is prepared."
+git push -u origin lqosync-in-rust
+```

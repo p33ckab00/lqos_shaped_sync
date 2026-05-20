@@ -310,7 +310,7 @@
     },
     {
       "path": "docs/RUST_CORE_V441_PILOT_RESULT_RECURSION_HOTFIX.md",
-      "title": "Rust Core v4.4.1 \u2014 Pilot Result Recursion Hotfix",
+      "title": "Rust Core v4.4.1 — Pilot Result Recursion Hotfix",
       "tags": [
         "rust",
         "collector-authority",
@@ -430,7 +430,7 @@
     "title": "Custom Policy Mode Persistence Hotfix",
     "file": "docs/content/custom_policy_mode_persistence.md",
     "anchor": "custom-policy-mode-persistence-hotfix",
-    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center \u2192 Policies."
+    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center → Policies."
   },
   "policy_overview_custom_wiring_hotfix": {
     "title": "Policy Overview Custom Wiring Hotfix",
@@ -769,5 +769,11 @@
     "file": "docs/RUST_CORE_V50_COLLECTOR_AUTHORITY_PRODUCTION_SWITCH.md",
     "anchor": "rust-core-v50-collector-authority-production-switch-contract",
     "summary": "Adds the first non-mutating production collector-authority switch contract after the v4.9 freeze gate while keeping Python backend and fallback required."
+  },
+  "rust.core_v51_rust_backend_api_handoff": {
+    "title": "Rust Core v5.1 Rust Backend API Handoff Plan",
+    "file": "docs/RUST_CORE_V51_RUST_BACKEND_API_HANDOFF.md",
+    "anchor": "rust-core-v51-rust-backend-api-handoff-plan",
+    "summary": "Starts the full Rust backend track with a non-mutating API handoff plan while preserving existing WebUI/UX and keeping Python backend fallback required."
   }
 }

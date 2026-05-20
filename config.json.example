@@ -682,6 +682,16 @@
     "collector_authority_production_switch_require_rollback_path": true,
     "collector_authority_production_switch_require_maintenance_window": true,
     "collector_authority_production_switch_require_operator_ack": true,
-    "collector_authority_production_switch_max_shadow_age_seconds": 900
+    "collector_authority_production_switch_max_shadow_age_seconds": 900,
+    "rust_backend_api_handoff_plan_pilot": false,
+    "allow_rust_backend_api_handoff_plan": false,
+    "rust_backend_api_handoff_mode": "plan_only",
+    "rust_backend_api_handoff_require_production_switch_contract": true,
+    "rust_backend_api_handoff_require_python_backend_fallback": true,
+    "rust_backend_api_handoff_require_manual_confirmation": true,
+    "rust_backend_api_handoff_require_webui_compatibility": true,
+    "rust_backend_api_handoff_require_route_parity": true,
+    "rust_backend_api_handoff_require_no_side_effects": true,
+    "rust_backend_api_handoff_max_shadow_age_seconds": 900
   }
 }

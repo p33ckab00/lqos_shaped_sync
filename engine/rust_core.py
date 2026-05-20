@@ -3957,6 +3957,112 @@ def rust_build_collector_authority_production_switch_contract(config: dict, payl
     return response
 
 
+
+def _python_build_rust_backend_api_handoff_plan(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rc = dict(((payload.get("config") or {}).get("rust_core") or payload.get("rust_core") or {}) if isinstance(payload, dict) else {})
+    allow = bool(rc.get("allow_rust_backend_api_handoff_plan"))
+    pilot = bool(rc.get("rust_backend_api_handoff_plan_pilot"))
+    mode = str(rc.get("rust_backend_api_handoff_mode") or "plan_only")
+    require_switch = rc.get("rust_backend_api_handoff_require_production_switch_contract", True) is not False
+    require_fallback = rc.get("rust_backend_api_handoff_require_python_backend_fallback", True) is not False
+    require_confirmation = rc.get("rust_backend_api_handoff_require_manual_confirmation", True) is not False
+    require_webui = rc.get("rust_backend_api_handoff_require_webui_compatibility", True) is not False
+    require_routes = rc.get("rust_backend_api_handoff_require_route_parity", True) is not False
+    require_no_side_effects = rc.get("rust_backend_api_handoff_require_no_side_effects", True) is not False
+    max_shadow_age = int(rc.get("rust_backend_api_handoff_max_shadow_age_seconds") or 900)
+    shadow_age = int(payload.get("shadow_age_seconds") or 0)
+    confirmation_ok = (not require_confirmation) or str(payload.get("confirmation") or "") == "CONFIRM_RUST_BACKEND_API_HANDOFF_PLAN"
+
+    switch = payload.get("collector_authority_production_switch_contract") or payload.get("production_switch_contract") or {}
+    if isinstance(switch, dict) and isinstance(switch.get("result"), dict):
+        switch = switch.get("result") or {}
+    if not isinstance(switch, dict) or not switch:
+        nested = dict(payload)
+        nested["confirmation"] = payload.get("collector_authority_production_switch_confirmation") or "CONFIRM_COLLECTOR_AUTHORITY_PRODUCTION_SWITCH_CONTRACT"
+        switch = rust_build_collector_authority_production_switch_contract(payload.get("config") or {}, nested).get("result") or {}
+
+    switch_ready = (
+        isinstance(switch, dict)
+        and switch.get("status") == "collector_authority_production_switch_contract_ready"
+        and switch.get("production_switch_contract_ready") is True
+        and switch.get("production_collector_authority_switched") is False
+        and switch.get("python_backend_removable") is False
+        and switch.get("python_backend_required", True) is True
+    )
+    webui_ux_unchanged = bool(payload.get("webui_ux_unchanged"))
+    static_unchanged = bool(payload.get("webui_static_assets_unchanged", webui_ux_unchanged))
+    webui_ready = (not require_webui) or (webui_ux_unchanged and static_unchanged)
+    api_route_parity = bool(payload.get("api_route_parity"))
+    api_route_count = int(payload.get("api_route_count") or 0)
+    route_ready = (not require_routes) or (api_route_parity and api_route_count > 0)
+    side_effect_free = not any([payload.get("cleanup_attempted"), payload.get("apply_attempted"), payload.get("write_attempted"), payload.get("python_backend_removed"), payload.get("api_traffic_switched_to_rust")])
+    gates_ready = bool(allow and pilot and mode == "plan_only")
+    errors: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if bool(payload.get("execute")) or str(payload.get("mode") or "").lower() in {"execute", "commit", "switch", "remove-python", "replace-flask", "production", "cutover"}:
+        errors.append({"code": "rust_backend_api_handoff_execute_not_implemented", "severity": "error", "path": "rust_backend_api_handoff_plan", "message": "Python fallback cannot execute API handoff or remove Python."})
+    if require_switch and not switch_ready:
+        warnings.append({"code": "rust_backend_api_handoff_switch_contract_not_ready", "severity": "warning", "path": "collector_authority_production_switch_contract", "message": "Production switch contract has not passed."})
+    if require_confirmation and not confirmation_ok:
+        warnings.append({"code": "rust_backend_api_handoff_confirmation_required", "severity": "warning", "path": "confirmation", "message": "API handoff confirmation is required."})
+    if not require_fallback:
+        errors.append({"code": "rust_backend_api_handoff_requires_python_fallback", "severity": "error", "path": "rust_core.rust_backend_api_handoff_require_python_backend_fallback", "message": "v5.1 still requires Python backend fallback."})
+    if require_webui and not webui_ready:
+        warnings.append({"code": "rust_backend_api_handoff_webui_compat_required", "severity": "warning", "path": "webui_ux_unchanged", "message": "Existing WebUI/UX compatibility is required."})
+    if require_routes and not route_ready:
+        warnings.append({"code": "rust_backend_api_handoff_route_parity_required", "severity": "warning", "path": "api_route_parity", "message": "API route parity inventory is required."})
+    if require_no_side_effects and not side_effect_free:
+        errors.append({"code": "rust_backend_api_handoff_side_effect_detected", "severity": "error", "path": "rust_backend_api_handoff_plan", "message": "API handoff side effects are forbidden."})
+    if shadow_age > max_shadow_age:
+        warnings.append({"code": "rust_backend_api_handoff_shadow_stale", "severity": "warning", "path": "shadow_age_seconds", "message": "Rust-shadow data is stale."})
+    if not gates_ready:
+        warnings.append({"code": "rust_backend_api_handoff_gates_not_enabled", "severity": "warning", "path": "rust_core", "message": "API handoff gates are not enabled."})
+    ready = not errors and gates_ready and confirmation_ok and (switch_ready or not require_switch) and require_fallback and webui_ready and route_ready and side_effect_free and shadow_age <= max_shadow_age
+    review = not errors and switch_ready and webui_ready and route_ready and side_effect_free
+    status = "blocked" if errors else ("rust_backend_api_handoff_plan_ready" if ready else ("rust_backend_api_handoff_plan_review" if review else "rust_backend_api_handoff_plan_shadow_only"))
+    return {
+        "version": "1",
+        "op": "build-rust-backend-api-handoff-plan",
+        "ok": not errors,
+        "result": {
+            "mode": "rust_backend_api_handoff_plan",
+            "status": status,
+            "rust_backend_api_handoff_ready": ready,
+            "webui_ux_unchanged": webui_ux_unchanged,
+            "webui_static_assets_unchanged": static_unchanged,
+            "api_route_parity": api_route_parity,
+            "api_route_count": api_route_count,
+            "full_rust_backend": False,
+            "python_backend_removable": False,
+            "python_backend_removed": False,
+            "python_backend_required": True,
+            "python_backend_fallback_required": True,
+            "rust_api_service_authoritative": False,
+            "rust_scheduler_authoritative": False,
+            "rust_run_cycle_authoritative": False,
+            "rust_apply_authoritative": False,
+            "safe_for_cleanup": False,
+            "write_allowed": False,
+            "apply_allowed": False,
+            "next_stage": "rust_scheduler_handoff_contract",
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_rust_backend_api_handoff_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_rust_backend_api_handoff_plan(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-rust-backend-api-handoff-plan", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_rust_backend_api_handoff_plan(req_payload, started=started)
+    return response
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

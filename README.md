@@ -550,3 +550,8 @@ Adds `build-collector-authority-production-freeze-gate`, the final non-mutating 
 ## Rust Core v5.0 Collector Authority Production Switch Contract
 
 LQoSync `2.120.0-rc1` / `lqosync-core 5.0.0` adds `build-collector-authority-production-switch-contract`, the first production collector-authority switch contract after the v4.9 freeze gate. It is still non-mutating: it does not switch authority, remove Python, transfer cleanup/apply authority, write generated files, or apply LibreQoS. Python collector fallback remains mandatory.
+
+
+## Rust Core v5.1 Rust Backend API Handoff Plan
+
+Adds `build-rust-backend-api-handoff-plan`, the first full-Rust-backend-track bridge after the collector-authority production switch contract. It checks WebUI/UX compatibility, static asset compatibility, API route parity, Python backend fallback, and side-effect-free status. It does not remove Python, replace Flask routes, or switch API traffic to Rust yet.

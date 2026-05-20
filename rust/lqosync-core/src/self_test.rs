@@ -20,6 +20,7 @@ use crate::routeros_tcp_probe::run_routeros_tcp_connectivity_pilot_payload;
 use crate::routeros_auth_plan::build_routeros_auth_plan_payload;
 use crate::routeros_auth_handshake::run_routeros_auth_handshake_payload;
 use crate::routeros_auth_session::build_routeros_auth_session_contract_payload;
+use crate::routeros_authenticated_read::run_routeros_authenticated_read_fixture_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -53,6 +54,7 @@ pub const OP_RUN_ROUTEROS_TCP_CONNECTIVITY_PILOT: &str = "run-routeros-tcp-conne
 pub const OP_BUILD_ROUTEROS_AUTH_PLAN: &str = "build-routeros-auth-plan";
 pub const OP_RUN_ROUTEROS_AUTH_HANDSHAKE: &str = "run-routeros-auth-handshake";
 pub const OP_BUILD_ROUTEROS_AUTH_SESSION_CONTRACT: &str = "build-routeros-auth-session-contract";
+pub const OP_RUN_ROUTEROS_AUTHENTICATED_READ_FIXTURE: &str = "run-routeros-authenticated-read-fixture";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -100,6 +102,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_ROUTEROS_AUTH_PLAN,
         OP_RUN_ROUTEROS_AUTH_HANDSHAKE,
         OP_BUILD_ROUTEROS_AUTH_SESSION_CONTRACT,
+        OP_RUN_ROUTEROS_AUTHENTICATED_READ_FIXTURE,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,

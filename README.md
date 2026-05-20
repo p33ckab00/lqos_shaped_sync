@@ -1,3 +1,7 @@
+### Rust Core v3.3 Authenticated Read Fixture Pipeline
+
+The `lqosync-in-rust` branch now includes `run-routeros-authenticated-read-fixture`, a fixture-only authenticated RouterOS read pipeline. It still does not open sockets or replace Python collectors.
+
 # LQoSync
 
 > **Canonical path:** LQoSync installs and runs from `/opt/lqosync`. LibreQoS remains under `/opt/libreqos`. Do not use a user-home directory as the documented install base.

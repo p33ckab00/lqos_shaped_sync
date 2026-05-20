@@ -40,3 +40,4 @@ pub mod routeros_tcp_probe;
 pub mod routeros_auth_plan;
 pub mod routeros_auth_handshake;
 pub mod routeros_auth_session;
+pub mod routeros_authenticated_read;

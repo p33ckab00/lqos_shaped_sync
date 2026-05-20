@@ -101,6 +101,9 @@ DEFAULT_CONFIG = {
         "routeros_auth_session_pilot": False,
         "allow_rust_routeros_session_state": False,
         "routeros_session_authority": "contract_only",
+        "routeros_authenticated_read_pilot": False,
+        "allow_rust_routeros_authenticated_fixture_reads": True,
+        "routeros_authenticated_read_authority": "fixture_only",
     },
     "collector": {
         "selective_fields": True,

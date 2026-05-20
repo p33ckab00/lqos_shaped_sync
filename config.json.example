@@ -572,6 +572,9 @@
         "allow_rust_routeros_auth_fixture": true,
         "routeros_auth_session_pilot": false,
         "allow_rust_routeros_session_state": false,
-        "routeros_session_authority": "contract_only"
+        "routeros_session_authority": "contract_only",
+        "routeros_authenticated_read_pilot": false,
+        "allow_rust_routeros_authenticated_fixture_reads": true,
+        "routeros_authenticated_read_authority": "fixture_only"
     }
 }

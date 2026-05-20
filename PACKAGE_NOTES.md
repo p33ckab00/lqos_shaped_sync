@@ -1,3 +1,7 @@
+## Rust Core v3.3 package note
+
+This package adds the authenticated read fixture pipeline. It remains a bridge toward live Rust reads; Python collectors remain authoritative.
+
 ## v2.100.0-rc1 Package Notes - Rust Core v3.0 RouterOS Authentication Plan
 
 This package adds the RouterOS auth-plan bridge with safe defaults: no password emission, no authentication attempts, no socket use, and no collector authority migration.

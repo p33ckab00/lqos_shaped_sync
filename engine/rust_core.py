@@ -2429,6 +2429,69 @@ def _python_validate_routeros_read_results(payload: dict[str, Any], *, started: 
     }
 
 
+
+
+def _python_run_routeros_authenticated_read_fixture(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    """Fallback for v3.3 RouterOS authenticated-read fixture.
+
+    This is fixture-only. It never opens sockets, authenticates, sends API words,
+    or replaces Python collectors.
+    """
+    started = started or time.perf_counter()
+    session = _python_build_routeros_auth_session_contract({**(payload or {}), "execute": bool((payload or {}).get("execute", False))}, started=started)
+    errors = list(session.get("errors") or [])
+    session_result = session.get("result") or {}
+    authenticated = bool(session_result.get("authenticated")) and session_result.get("status") == "auth_session_contract_ready"
+    adapter = str((payload or {}).get("adapter") or "fixture")
+    if adapter in {"live", "tcp", "routeros"} or str((payload or {}).get("mode") or "").lower() in {"live", "authenticated_live_read", "execute_live"}:
+        errors.append({"code": "routeros_authenticated_read_live_adapter_not_implemented", "severity": "error", "path": "adapter", "message": "Python fallback cannot execute live RouterOS authenticated reads."})
+    if not authenticated and not errors:
+        errors.append({"code": "routeros_authenticated_read_session_not_authenticated", "severity": "error", "path": "auth_session", "message": "Authenticated read fixture requires an accepted auth session contract."})
+    rows = (payload or {}).get("fixture_rows") if isinstance((payload or {}).get("fixture_rows"), list) else []
+    status = "blocked" if errors else "authenticated_read_fixture_complete"
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "run-routeros-authenticated-read-fixture",
+        "available": False,
+        "ok": not errors,
+        "result": {
+            "mode": "routeros_authenticated_read_fixture",
+            "status": status,
+            "adapter": adapter,
+            "authenticated": authenticated,
+            "auth_session": session_result,
+            "row_count": len(rows),
+            "trap_count": 0,
+            "safe_for_cleanup": bool(rows) and not errors,
+            "fixture_read_count": 1 if bool((payload or {}).get("execute")) and not errors else 0,
+            "connection_attempt_count": 0,
+            "authentication_attempt_count": 0,
+            "api_sentence_write_count": 0,
+            "api_reply_read_count": 0,
+            "credential_material": "redacted",
+            "username_emitted": False,
+            "password_emitted": False,
+            "session_token_emitted": False,
+            "full_rust_backend": False,
+            "authority_note": "Python fallback only models authenticated read fixtures. It never performs live RouterOS reads."
+        },
+        "errors": errors,
+        "warnings": [],
+        "meta": {"engine": "python-wrapper", "mode": "python_routeros_authenticated_read_fixture_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_run_routeros_authenticated_read_fixture(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("run-routeros-authenticated-read-fixture", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_run_routeros_authenticated_read_fixture(req_payload, started=started)
+    return response
+
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

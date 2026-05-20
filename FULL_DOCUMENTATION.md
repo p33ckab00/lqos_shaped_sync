@@ -1,3 +1,7 @@
+## Rust Core v3.3 Authenticated Read Fixture Pipeline
+
+See `docs/RUST_CORE_V33_AUTHENTICATED_READ_FIXTURE.md`. This phase proves the authenticated read state machine using fixtures only before live Rust RouterOS read pilots.
+
 
 ## v2.92.1-rc1 — Rust Core v2.2.1 RouterOS Transport Redaction Test Hotfix
 

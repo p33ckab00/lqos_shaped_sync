@@ -1,3 +1,9 @@
+## v2.103.0-rc1 - Rust Core v3.3 Authenticated Read Fixture Pipeline
+
+- Added `run-routeros-authenticated-read-fixture`.
+- Composes auth-session contract, offline RouterOS session, and read-result trust validation.
+- Fixture-only: no live sockets, no RouterOS authentication, no credential emission, and no collector authority migration.
+
 ## v2.100.0-rc1 - Rust Core v3.0 RouterOS Authentication Plan
 
 Adds `build-routeros-auth-plan`, a credential-redacted RouterOS authentication planning operation. It does not authenticate, does not open sockets, and keeps Python collectors authoritative while preparing the next live Rust transport step. Also cleans the v2.9 TCP probe unused-assignment warning.

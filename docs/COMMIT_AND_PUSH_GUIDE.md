@@ -1,3 +1,12 @@
+## v3.3 commit suggestion
+
+```bash
+git add .
+git commit -m "rust(core): add authenticated RouterOS read fixture" \
+  -m "Add run-routeros-authenticated-read-fixture, a fixture-only authenticated read pipeline that composes auth-session contract, offline RouterOS session, and read-result trust before live Rust RouterOS reads."
+git push -u origin lqosync-in-rust
+```
+
 # Commit and Push Guide for `lqosync-in-rust`
 
 > **Canonical path:** LQoSync installs and runs from `/opt/lqosync`. LibreQoS remains under `/opt/libreqos`. Do not use a user-home directory as the documented install base.

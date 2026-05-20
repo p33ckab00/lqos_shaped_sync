@@ -203,3 +203,5 @@ Adds `run-routeros-auth-handshake`, an offline fixture operation that models Rou
 ## Rust Core v3.2 RouterOS Auth Session Contract
 
 Adds `build-routeros-auth-session-contract`, a redacted authenticated-session contract built from fixture auth replies. It performs zero socket/auth attempts, emits no credentials or tokens, and keeps Python collectors authoritative.
+
+- [Rust Core v3.3 Authenticated Read Fixture Pipeline](RUST_CORE_V33_AUTHENTICATED_READ_FIXTURE.md) — fixture-only authenticated read pipeline before live Rust RouterOS reads.

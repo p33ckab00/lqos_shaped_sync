@@ -620,5 +620,11 @@
         "file": "docs/RUST_CORE_V32_AUTH_SESSION_CONTRACT.md",
         "anchor": "rust-core-v32-routeros-auth-session-contract",
         "summary": "Redacted authenticated-session contract built from RouterOS auth fixture replies before live Rust authenticated reads."
+    },
+    "rust.v33_authenticated_read_fixture": {
+        "title": "Rust Core v3.3 Authenticated Read Fixture Pipeline",
+        "file": "docs/RUST_CORE_V33_AUTHENTICATED_READ_FIXTURE.md",
+        "anchor": "rust-core-v33-authenticated-read-fixture-pipeline",
+        "summary": "Fixture-only authenticated RouterOS read pipeline that composes auth session, offline session, and read-result trust before live Rust reads."
     }
 }

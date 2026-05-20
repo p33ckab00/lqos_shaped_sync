@@ -27,6 +27,7 @@ use lqosync_core::routeros_tcp_probe::run_routeros_tcp_connectivity_pilot_payloa
 use lqosync_core::routeros_auth_plan::build_routeros_auth_plan_payload;
 use lqosync_core::routeros_auth_handshake::run_routeros_auth_handshake_payload;
 use lqosync_core::routeros_auth_session::build_routeros_auth_session_contract_payload;
+use lqosync_core::routeros_authenticated_read::run_routeros_authenticated_read_fixture_payload;
 use lqosync_core::self_test::{advertised_operations, self_test_payload};
 use lqosync_core::shaped_devices::{parse_csv_text, render_csv_text, validate_rows};
 use lqosync_core::sync_plan::evaluate_sync_plan_payload;
@@ -265,6 +266,10 @@ fn handle_request(req: &CoreRequest, started: Instant) -> anyhow::Result<CoreRes
         }
         "build-routeros-auth-session-contract" => {
             let (result, errors, warnings) = build_routeros_auth_session_contract_payload(&req.payload);
+            Ok(CoreResponse::validation(req, result, errors, warnings, started))
+        }
+        "run-routeros-authenticated-read-fixture" => {
+            let (result, errors, warnings) = run_routeros_authenticated_read_fixture_payload(&req.payload);
             Ok(CoreResponse::validation(req, result, errors, warnings, started))
         }
         "build-collector-circuit-bundle" => {

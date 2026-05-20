@@ -1,3 +1,7 @@
+## v3.3 Authenticated Read Fixture Pipeline
+
+Adds `run-routeros-authenticated-read-fixture`, composing auth session, offline session, and read-result validation without network access.
+
 # lqosync-core
 
 `lqosync-core` is the optional Rust safety sidecar for LQoSync.

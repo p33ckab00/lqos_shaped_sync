@@ -44,6 +44,7 @@ use crate::rust_run_cycle_orchestrator_handoff::build_rust_run_cycle_orchestrato
 use crate::rust_config_state_authority_handoff::build_rust_config_state_authority_handoff_contract_payload;
 use crate::rust_live_collector_authority_handoff::build_rust_live_collector_authority_handoff_contract_payload;
 use crate::rust_circuit_builder_authority_handoff::build_rust_circuit_builder_authority_handoff_contract_payload;
+use crate::rust_sync_engine_authority_handoff::build_rust_sync_engine_authority_handoff_contract_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -101,6 +102,7 @@ pub const OP_BUILD_RUST_RUN_CYCLE_ORCHESTRATOR_HANDOFF_CONTRACT: &str = "build-r
 pub const OP_BUILD_RUST_CONFIG_STATE_AUTHORITY_HANDOFF_CONTRACT: &str = "build-rust-config-state-authority-handoff-contract";
 pub const OP_BUILD_RUST_LIVE_COLLECTOR_AUTHORITY_HANDOFF_CONTRACT: &str = "build-rust-live-collector-authority-handoff-contract";
 pub const OP_BUILD_RUST_CIRCUIT_BUILDER_AUTHORITY_HANDOFF_CONTRACT: &str = "build-rust-circuit-builder-authority-handoff-contract";
+pub const OP_BUILD_RUST_SYNC_ENGINE_AUTHORITY_HANDOFF_CONTRACT: &str = "build-rust-sync-engine-authority-handoff-contract";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -172,6 +174,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_RUST_CONFIG_STATE_AUTHORITY_HANDOFF_CONTRACT,
         OP_BUILD_RUST_LIVE_COLLECTOR_AUTHORITY_HANDOFF_CONTRACT,
         OP_BUILD_RUST_CIRCUIT_BUILDER_AUTHORITY_HANDOFF_CONTRACT,
+        OP_BUILD_RUST_SYNC_ENGINE_AUTHORITY_HANDOFF_CONTRACT,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -1254,6 +1257,48 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     })));
     if !circuit_builder_handoff_ok {
         errors.push(Diagnostic::error("self_test_rust_circuit_builder_authority_handoff_failed", Some("build-rust-circuit-builder-authority-handoff-contract".to_string()), "Self-test Rust circuit builder authority handoff contract should report ready without switching circuit builder authority."));
+    }
+
+    let mut sync_engine_handoff_payload = circuit_builder_handoff_payload.clone();
+    if let Some(obj) = sync_engine_handoff_payload.as_object_mut() {
+        obj.insert("confirmation".to_string(), json!("CONFIRM_RUST_SYNC_ENGINE_AUTHORITY_HANDOFF_CONTRACT"));
+        obj.insert("rust_circuit_builder_authority_handoff_contract".to_string(), json!(circuit_builder_handoff.clone()));
+        obj.insert("sync_plan_shadow_ready".to_string(), json!(true));
+        obj.insert("sync_plan_shadow_count".to_string(), json!(3));
+        obj.insert("sync_diff_parity_ready".to_string(), json!(true));
+        obj.insert("sync_diff_parity_score".to_string(), json!(100.0));
+        obj.insert("apply_manifest_preview_ready".to_string(), json!(true));
+        obj.insert("apply_manifest_preview_blocker_count".to_string(), json!(0));
+        obj.insert("cleanup_safety_ready".to_string(), json!(true));
+        obj.insert("cleanup_candidate_count".to_string(), json!(0));
+        if let Some(rc) = obj.get_mut("rust_core").and_then(Value::as_object_mut) {
+            rc.insert("rust_sync_engine_authority_handoff_contract_pilot".to_string(), json!(true));
+            rc.insert("allow_rust_sync_engine_authority_handoff_contract".to_string(), json!(true));
+            rc.insert("rust_sync_engine_authority_handoff_mode".to_string(), json!("contract_only"));
+            rc.insert("rust_sync_engine_authority_handoff_require_circuit_builder_authority".to_string(), json!(true));
+            rc.insert("rust_sync_engine_authority_handoff_require_python_fallback".to_string(), json!(true));
+            rc.insert("rust_sync_engine_authority_handoff_require_manual_confirmation".to_string(), json!(true));
+            rc.insert("rust_sync_engine_authority_handoff_require_sync_plan_shadow".to_string(), json!(true));
+            rc.insert("rust_sync_engine_authority_handoff_require_diff_parity".to_string(), json!(true));
+            rc.insert("rust_sync_engine_authority_handoff_require_apply_manifest_preview".to_string(), json!(true));
+            rc.insert("rust_sync_engine_authority_handoff_require_cleanup_safety".to_string(), json!(true));
+            rc.insert("rust_sync_engine_authority_handoff_require_no_side_effects".to_string(), json!(true));
+            rc.insert("rust_sync_engine_authority_handoff_max_shadow_age_seconds".to_string(), json!(900));
+        }
+    }
+    let (sync_engine_handoff, sync_engine_handoff_errors, _sync_engine_handoff_warnings) = build_rust_sync_engine_authority_handoff_contract_payload(&sync_engine_handoff_payload);
+    let sync_engine_handoff_ok = sync_engine_handoff_errors.is_empty()
+        && sync_engine_handoff.get("status").and_then(Value::as_str) == Some("rust_sync_engine_authority_handoff_contract_ready")
+        && sync_engine_handoff.get("rust_sync_engine_authority_handoff_ready").and_then(Value::as_bool) == Some(true)
+        && sync_engine_handoff.get("rust_sync_engine_authoritative").and_then(Value::as_bool) == Some(false)
+        && sync_engine_handoff.get("python_sync_engine_authoritative").and_then(Value::as_bool) == Some(true);
+    checks.push(check("rust_sync_engine_authority_handoff_contract", sync_engine_handoff_ok, json!({
+        "status": sync_engine_handoff.get("status"),
+        "rust_sync_engine_authority_handoff_ready": sync_engine_handoff.get("rust_sync_engine_authority_handoff_ready"),
+        "rust_sync_engine_authoritative": sync_engine_handoff.get("rust_sync_engine_authoritative")
+    })));
+    if !sync_engine_handoff_ok {
+        errors.push(Diagnostic::error("self_test_rust_sync_engine_authority_handoff_failed", Some("build-rust-sync-engine-authority-handoff-contract".to_string()), "Self-test Rust sync engine authority handoff contract should report ready without switching sync engine authority."));
     }
 
     let collector_bundle_payload = json!({

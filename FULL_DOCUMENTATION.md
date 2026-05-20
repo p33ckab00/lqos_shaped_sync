@@ -7834,3 +7834,8 @@ LQoSync `2.125.0-rc1` / `lqosync-core 5.5.0` adds `build-rust-live-collector-aut
 ## Rust Core v5.6 Rust Circuit Builder Authority Handoff Contract
 
 LQoSync `2.126.0-rc1` / `lqosync-core 5.6.0` adds `build-rust-circuit-builder-authority-handoff-contract`. This moves the full-Rust-backend track from live collector authority to circuit row / ShapedDevices builder authority while keeping WebUI/UX unchanged and Python as the authoritative fallback. It remains non-mutating and does not remove Python.
+
+
+## Rust Core v5.7 Rust Sync Engine Authority Handoff Contract
+
+Adds `build-rust-sync-engine-authority-handoff-contract`, the sync engine authority bridge after circuit builder authority handoff. It verifies sync-plan shadow output, diff parity, apply-manifest preview, cleanup safety, and Python fallback while keeping WebUI/UX unchanged and Python sync engine authoritative.

@@ -78,6 +78,7 @@ from engine.rust_core import (
     rust_build_rust_config_state_authority_handoff_contract,
     rust_build_rust_live_collector_authority_handoff_contract,
     rust_build_rust_circuit_builder_authority_handoff_contract,
+    rust_build_rust_sync_engine_authority_handoff_contract,
     rust_validate_routeros_read_results,
     rust_build_collector_circuit_bundle,
     rust_compare_collector_bundle_parity,
@@ -2857,6 +2858,31 @@ def api_rust_core_rust_circuit_builder_authority_handoff_contract():
             "rust_live_collector_authority_handoff_confirmation": request.args.get("rust_live_collector_authority_handoff_confirmation") or "CONFIRM_RUST_LIVE_COLLECTOR_AUTHORITY_HANDOFF_CONTRACT",
         }
     return jsonify(rust_build_rust_circuit_builder_authority_handoff_contract(cfg, payload))
+
+
+@app.route("/api/rust-core/rust-sync-engine-authority-handoff-contract", methods=["GET", "POST"])
+@login_required
+def api_rust_core_rust_sync_engine_authority_handoff_contract():
+    cfg = load_config(CONFIG_PATH)
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or {}
+    else:
+        payload = {
+            "mode": request.args.get("mode") or "contract",
+            "execute": str(request.args.get("execute") or "").lower() in {"1", "true", "yes", "on"},
+            "confirmation": request.args.get("confirmation") or "",
+            "shadow_age_seconds": int(request.args.get("shadow_age_seconds") or 0),
+            "sync_plan_shadow_ready": str(request.args.get("sync_plan_shadow_ready") or "").lower() in {"1", "true", "yes", "on"},
+            "sync_plan_shadow_count": int(request.args.get("sync_plan_shadow_count") or 0),
+            "sync_diff_parity_ready": str(request.args.get("sync_diff_parity_ready") or "").lower() in {"1", "true", "yes", "on"},
+            "sync_diff_parity_score": float(request.args.get("sync_diff_parity_score") or 0),
+            "apply_manifest_preview_ready": str(request.args.get("apply_manifest_preview_ready") or "").lower() in {"1", "true", "yes", "on"},
+            "apply_manifest_preview_blocker_count": int(request.args.get("apply_manifest_preview_blocker_count") or 0),
+            "cleanup_safety_ready": str(request.args.get("cleanup_safety_ready") or "").lower() in {"1", "true", "yes", "on"},
+            "cleanup_candidate_count": int(request.args.get("cleanup_candidate_count") or 0),
+            "rust_circuit_builder_authority_handoff_confirmation": request.args.get("rust_circuit_builder_authority_handoff_confirmation") or "CONFIRM_RUST_CIRCUIT_BUILDER_AUTHORITY_HANDOFF_CONTRACT",
+        }
+    return jsonify(rust_build_rust_sync_engine_authority_handoff_contract(cfg, payload))
 
 @app.route("/api/rust-core/routeros-read-results", methods=["POST"])
 @login_required

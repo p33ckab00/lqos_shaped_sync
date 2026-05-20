@@ -747,6 +747,18 @@
     "rust_circuit_builder_authority_handoff_require_shaped_devices_parity": true,
     "rust_circuit_builder_authority_handoff_require_parent_integrity": true,
     "rust_circuit_builder_authority_handoff_require_no_side_effects": true,
-    "rust_circuit_builder_authority_handoff_max_shadow_age_seconds": 900
+    "rust_circuit_builder_authority_handoff_max_shadow_age_seconds": 900,
+    "rust_sync_engine_authority_handoff_contract_pilot": false,
+    "allow_rust_sync_engine_authority_handoff_contract": false,
+    "rust_sync_engine_authority_handoff_mode": "contract_only",
+    "rust_sync_engine_authority_handoff_require_circuit_builder_authority": true,
+    "rust_sync_engine_authority_handoff_require_python_fallback": true,
+    "rust_sync_engine_authority_handoff_require_manual_confirmation": true,
+    "rust_sync_engine_authority_handoff_require_sync_plan_shadow": true,
+    "rust_sync_engine_authority_handoff_require_diff_parity": true,
+    "rust_sync_engine_authority_handoff_require_apply_manifest_preview": true,
+    "rust_sync_engine_authority_handoff_require_cleanup_safety": true,
+    "rust_sync_engine_authority_handoff_require_no_side_effects": true,
+    "rust_sync_engine_authority_handoff_max_shadow_age_seconds": 900
   }
 }

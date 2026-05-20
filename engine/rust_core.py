@@ -4574,6 +4574,106 @@ def rust_build_rust_circuit_builder_authority_handoff_contract(config: dict, pay
     return response
 
 
+
+def _python_build_rust_sync_engine_authority_handoff_contract(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rc = dict(((payload.get("config") or {}).get("rust_core") or payload.get("rust_core") or {}) if isinstance(payload, dict) else {})
+    allow = bool(rc.get("allow_rust_sync_engine_authority_handoff_contract"))
+    pilot = bool(rc.get("rust_sync_engine_authority_handoff_contract_pilot"))
+    mode = str(rc.get("rust_sync_engine_authority_handoff_mode") or "contract_only")
+    require_circuit = rc.get("rust_sync_engine_authority_handoff_require_circuit_builder_authority", True) is not False
+    require_fallback = rc.get("rust_sync_engine_authority_handoff_require_python_fallback", True) is not False
+    require_confirmation = rc.get("rust_sync_engine_authority_handoff_require_manual_confirmation", True) is not False
+    require_sync_plan = rc.get("rust_sync_engine_authority_handoff_require_sync_plan_shadow", True) is not False
+    require_diff = rc.get("rust_sync_engine_authority_handoff_require_diff_parity", True) is not False
+    require_apply_preview = rc.get("rust_sync_engine_authority_handoff_require_apply_manifest_preview", True) is not False
+    require_cleanup = rc.get("rust_sync_engine_authority_handoff_require_cleanup_safety", True) is not False
+    require_no_side_effects = rc.get("rust_sync_engine_authority_handoff_require_no_side_effects", True) is not False
+    max_shadow_age = int(rc.get("rust_sync_engine_authority_handoff_max_shadow_age_seconds") or 900)
+    shadow_age = int(payload.get("shadow_age_seconds") or 0)
+    confirmation_ok = (not require_confirmation) or payload.get("confirmation") == "CONFIRM_RUST_SYNC_ENGINE_AUTHORITY_HANDOFF_CONTRACT"
+
+    circuit = payload.get("rust_circuit_builder_authority_handoff_contract") or payload.get("circuit_builder_authority_handoff_contract") or {}
+    if isinstance(circuit, dict) and isinstance(circuit.get("result"), dict):
+        circuit = circuit.get("result") or {}
+    circuit_ready = isinstance(circuit, dict) and circuit.get("status") == "rust_circuit_builder_authority_handoff_contract_ready" and circuit.get("rust_circuit_builder_authority_handoff_ready") is True and circuit.get("rust_circuit_builder_authoritative") is False and circuit.get("python_circuit_builder_authoritative", True) is True
+    sync_ready = (not require_sync_plan) or (bool(payload.get("sync_plan_shadow_ready")) and int(payload.get("sync_plan_shadow_count") or 0) > 0)
+    diff_score = float(payload.get("sync_diff_parity_score") or 0)
+    diff_ready = (not require_diff) or (bool(payload.get("sync_diff_parity_ready")) and diff_score >= 99.0)
+    preview_ready = (not require_apply_preview) or (bool(payload.get("apply_manifest_preview_ready")) and int(payload.get("apply_manifest_preview_blocker_count") or 0) == 0)
+    cleanup_ready = (not require_cleanup) or (bool(payload.get("cleanup_safety_ready")) and int(payload.get("cleanup_candidate_count") or 0) == 0)
+    side_effect_free = not any([
+        payload.get("sync_engine_authority_switched_to_rust"), payload.get("python_backend_removed"), payload.get("shaped_devices_write_attempted"), payload.get("config_write_attempted"), payload.get("state_write_attempted"), payload.get("apply_attempted"), payload.get("cleanup_attempted"),
+    ])
+    gates_ready = bool(allow and pilot and mode == "contract_only")
+    errors: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if bool(payload.get("execute")) or str(payload.get("mode") or "").lower() in {"execute", "commit", "switch", "remove-python", "replace-sync-engine", "production", "authoritative", "sync-live", "apply"}:
+        errors.append({"code": "rust_sync_engine_authority_handoff_execute_not_implemented", "severity": "error", "path": "rust_sync_engine_authority_handoff_contract", "message": "Python fallback cannot execute sync engine authority handoff or remove Python."})
+    if require_circuit and not circuit_ready:
+        warnings.append({"code": "rust_sync_engine_authority_handoff_circuit_builder_not_ready", "severity": "warning", "path": "rust_circuit_builder_authority_handoff_contract", "message": "Circuit builder authority handoff has not passed."})
+    if require_confirmation and not confirmation_ok:
+        warnings.append({"code": "rust_sync_engine_authority_handoff_confirmation_required", "severity": "warning", "path": "confirmation", "message": "Sync engine authority handoff confirmation is required."})
+    if not require_fallback:
+        errors.append({"code": "rust_sync_engine_authority_handoff_requires_python_fallback", "severity": "error", "path": "rust_core.rust_sync_engine_authority_handoff_require_python_fallback", "message": "v5.7 still requires Python backend fallback."})
+    if not all([sync_ready, diff_ready, preview_ready, cleanup_ready]):
+        warnings.append({"code": "rust_sync_engine_authority_handoff_shadow_requirements_missing", "severity": "warning", "path": "sync_plan_shadow_ready", "message": "One or more sync engine shadow requirements are missing."})
+    if require_no_side_effects and not side_effect_free:
+        errors.append({"code": "rust_sync_engine_authority_handoff_side_effect_detected", "severity": "error", "path": "rust_sync_engine_authority_handoff_contract", "message": "Sync engine handoff side effects are forbidden."})
+    if shadow_age > max_shadow_age:
+        warnings.append({"code": "rust_sync_engine_authority_handoff_shadow_stale", "severity": "warning", "path": "shadow_age_seconds", "message": "Rust-shadow data is stale."})
+    if not gates_ready:
+        warnings.append({"code": "rust_sync_engine_authority_handoff_gates_not_enabled", "severity": "warning", "path": "rust_core", "message": "Sync engine authority handoff gates are not enabled."})
+
+    ready = not errors and gates_ready and confirmation_ok and (circuit_ready or not require_circuit) and require_fallback and sync_ready and diff_ready and preview_ready and cleanup_ready and side_effect_free and shadow_age <= max_shadow_age
+    review = not errors and circuit_ready and sync_ready and diff_ready and preview_ready and cleanup_ready and side_effect_free
+    status = "blocked" if errors else ("rust_sync_engine_authority_handoff_contract_ready" if ready else ("rust_sync_engine_authority_handoff_contract_review" if review else "rust_sync_engine_authority_handoff_contract_shadow_only"))
+    return {
+        "version": "1",
+        "op": "build-rust-sync-engine-authority-handoff-contract",
+        "ok": not errors,
+        "result": {
+            "mode": "rust_sync_engine_authority_handoff_contract",
+            "status": status,
+            "rust_sync_engine_authority_handoff_ready": ready,
+            "circuit_builder_authority_handoff_ready": circuit_ready,
+            "sync_plan_shadow_ready": sync_ready,
+            "sync_diff_parity_ready": diff_ready,
+            "apply_manifest_preview_ready": preview_ready,
+            "cleanup_safety_ready": cleanup_ready,
+            "webui_ux_unchanged": True,
+            "full_rust_backend": False,
+            "python_backend_removable": False,
+            "python_backend_removed": False,
+            "python_backend_required": True,
+            "python_backend_fallback_required": True,
+            "python_sync_engine_authoritative": True,
+            "rust_sync_engine_authoritative": False,
+            "python_circuit_builder_authoritative": True,
+            "rust_circuit_builder_authoritative": False,
+            "rust_apply_authoritative": False,
+            "safe_for_cleanup": False,
+            "write_allowed": False,
+            "apply_allowed": False,
+            "next_stage": "rust_apply_journal_authority_handoff_contract",
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_rust_sync_engine_authority_handoff_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_rust_sync_engine_authority_handoff_contract(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-rust-sync-engine-authority-handoff-contract", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_rust_sync_engine_authority_handoff_contract(req_payload, started=started)
+    return response
+
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

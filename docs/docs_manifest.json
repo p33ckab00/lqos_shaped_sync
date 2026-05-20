@@ -805,5 +805,11 @@
     "file": "docs/RUST_CORE_V56_RUST_CIRCUIT_BUILDER_AUTHORITY_HANDOFF.md",
     "anchor": "rust-core-v56-rust-circuit-builder-authority-handoff-contract",
     "summary": "Adds a non-mutating Rust circuit builder authority handoff contract after live collector authority handoff while keeping Python fallback and WebUI/UX unchanged."
+  },
+  "rust.core_v57_rust_sync_engine_authority_handoff": {
+    "title": "Rust Core v5.7 Rust Sync Engine Authority Handoff Contract",
+    "file": "docs/RUST_CORE_V57_RUST_SYNC_ENGINE_AUTHORITY_HANDOFF.md",
+    "anchor": "rust-core-v57-rust-sync-engine-authority-handoff-contract",
+    "summary": "Adds the Rust sync engine authority handoff contract after circuit builder authority, preserving WebUI/UX and Python fallback."
   }
 }

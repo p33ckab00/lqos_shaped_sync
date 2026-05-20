@@ -298,3 +298,8 @@ Adds `build-collector-authority-runtime-contract`, a non-mutating runtime contra
 ## Rust Core v4.2 Collector Authority Switch Rehearsal
 
 Adds `build-collector-authority-switch-rehearsal`, a non-mutating rehearsal layer after the collector authority runtime contract. It never switches production authority and keeps Python fallback mandatory.
+
+
+## Rust Core v4.3 Collector Authority Pilot Execution Contract
+
+Adds `build-collector-authority-pilot-execution-contract`, a non-mutating contract after the collector authority switch rehearsal. It requires explicit gates, the `CONFIRM_COLLECTOR_AUTHORITY_PILOT_EXECUTION` token, fresh Rust-shadow data, and Python fallback. It does not switch production collector authority, drive cleanup, write generated files, or apply LibreQoS. See `docs/RUST_CORE_V43_COLLECTOR_AUTHORITY_PILOT_EXECUTION.md`.

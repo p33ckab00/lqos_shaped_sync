@@ -3159,6 +3159,89 @@ def rust_build_collector_authority_switch_rehearsal(config: dict, payload: dict[
         return _python_build_collector_authority_switch_rehearsal(req_payload, started=started)
     return response
 
+
+def _python_build_collector_authority_pilot_execution_contract(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rust_core = _extract_rust_core_config(payload)
+    allow = bool(rust_core.get("allow_collector_authority_pilot_execution_contract"))
+    pilot = bool(rust_core.get("collector_authority_pilot_execution_pilot"))
+    mode = str(rust_core.get("collector_authority_pilot_execution_mode") or "contract_only")
+    require_fallback = rust_core.get("collector_authority_pilot_execution_require_python_fallback", True) is not False
+    require_confirm = rust_core.get("collector_authority_pilot_execution_require_manual_confirmation", True) is not False
+    max_shadow_age = int(rust_core.get("collector_authority_pilot_execution_max_shadow_age_seconds") or 900)
+    shadow_age = int(payload.get("shadow_age_seconds") or 0)
+    confirmation_ok = (not require_confirm) or payload.get("confirmation") == "CONFIRM_COLLECTOR_AUTHORITY_PILOT_EXECUTION"
+    switch = payload.get("collector_authority_switch_rehearsal") or {}
+    if isinstance(switch, dict) and isinstance(switch.get("result"), dict):
+        switch = switch.get("result") or {}
+    if not isinstance(switch, dict) or not switch:
+        switch = rust_build_collector_authority_switch_rehearsal(payload.get("config") or {}, payload).get("result") or {}
+    switch_ready = switch.get("status") == "collector_authority_switch_rehearsal_ready" and switch.get("production_collector_authority_switched") is False
+    requested = bool(allow and pilot and mode == "rust_collector_authority_pilot_execution_contract")
+    errors: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if bool(payload.get("execute")) or str(payload.get("mode") or "").lower() in {"execute", "switch", "promote", "authority", "apply", "production"}:
+        errors.append({"code": "collector_authority_pilot_execution_not_implemented", "severity": "error", "path": "collector_authority_pilot_execution", "message": "Python fallback cannot execute Rust collector authority pilot execution."})
+    if not require_fallback:
+        errors.append({"code": "collector_authority_pilot_execution_requires_python_fallback", "severity": "error", "path": "rust_core.collector_authority_pilot_execution_require_python_fallback", "message": "Collector authority pilot execution contract requires Python collector fallback in this release."})
+    if not switch_ready:
+        warnings.append({"code": "collector_authority_pilot_execution_switch_not_ready", "severity": "warning", "path": "collector_authority_switch_rehearsal", "message": "Collector authority switch rehearsal is not ready."})
+    if shadow_age > max_shadow_age:
+        warnings.append({"code": "collector_authority_pilot_execution_shadow_stale", "severity": "warning", "path": "shadow_age_seconds", "message": "Rust-shadow collector output is older than the configured maximum age."})
+    if not confirmation_ok:
+        warnings.append({"code": "collector_authority_pilot_execution_confirmation_missing", "severity": "warning", "path": "collector_authority_pilot_execution.confirmation", "message": "Manual confirmation token is missing."})
+    ready = not errors and requested and switch_ready and require_fallback and confirmation_ok and shadow_age <= max_shadow_age
+    status = "blocked" if errors else ("collector_authority_pilot_execution_contract_ready" if ready else ("collector_authority_pilot_execution_waiting_for_gates" if switch_ready else "collector_authority_pilot_execution_shadow_only"))
+    return {
+        "version": "1",
+        "op": "build-collector-authority-pilot-execution-contract",
+        "ok": not errors,
+        "result": {
+            "mode": "collector_authority_pilot_execution_contract",
+            "status": status,
+            "collector_authority": "python_authoritative",
+            "target_authority": "rust_collector_authority_pilot_candidate" if ready else "python_authoritative",
+            "contract_requested": requested,
+            "switch_ready": switch_ready,
+            "manual_confirmation_ok": confirmation_ok,
+            "collector_authority_switch_rehearsal": switch,
+            "full_rust_backend": False,
+            "production_collector_authority_switched": False,
+            "collector_authority_switch_supported": False,
+            "collector_authority_switch_executed": False,
+            "collector_authority_pilot_execution_supported": False,
+            "collector_authority_pilot_execution_executed": False,
+            "python_collector_fallback_required": True,
+            "pilot_execution_contract_only": True,
+            "rust_pilot_may_be_observed": ready,
+            "rust_can_drive_cleanup": False,
+            "rust_can_drive_apply": False,
+            "rust_can_write_generated_files": False,
+            "safe_for_cleanup": False,
+            "write_allowed": False,
+            "apply_allowed": False,
+            "connection_attempt_count": 0,
+            "authentication_attempt_count": 0,
+            "api_sentence_write_count": 0,
+            "api_reply_read_count": 0,
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_collector_authority_pilot_execution_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_collector_authority_pilot_execution_contract(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-collector-authority-pilot-execution-contract", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_collector_authority_pilot_execution_contract(req_payload, started=started)
+    return response
+
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

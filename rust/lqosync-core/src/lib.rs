@@ -50,3 +50,4 @@ pub mod collector_run_cycle_shadow;
 pub mod collector_authority_activation;
 pub mod collector_authority_runtime;
 pub mod collector_authority_switch;
+pub mod collector_authority_pilot_execution;

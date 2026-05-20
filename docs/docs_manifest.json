@@ -693,5 +693,12 @@
     "path": "docs/RUST_CORE_V42_COLLECTOR_AUTHORITY_SWITCH.md",
     "category": "Rust Core",
     "summary": "Adds a non-mutating collector authority switch rehearsal after the v4.1 runtime contract while keeping Python collectors authoritative."
+  },
+  "rust.core_v43_collector_authority_pilot_execution": {
+    "id": "rust.core_v43_collector_authority_pilot_execution",
+    "title": "Rust Core v4.3 Collector Authority Pilot Execution Contract",
+    "path": "docs/RUST_CORE_V43_COLLECTOR_AUTHORITY_PILOT_EXECUTION.md",
+    "category": "Rust Core",
+    "summary": "Adds a non-mutating collector authority pilot execution contract after the v4.2 switch rehearsal while keeping Python collectors authoritative."
   }
 }

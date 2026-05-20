@@ -649,3 +649,13 @@ git commit -m "rust(core): add collector authority switch rehearsal" \
   -m "Add build-collector-authority-switch-rehearsal, a non-mutating switch rehearsal after the runtime contract that requires explicit gates, manual confirmation, and Python fallback while keeping production collector authority in Python."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Suggested commit for Rust Core v4.3
+
+```bash
+git add .
+git commit -m "rust(core): add collector authority pilot execution contract" \
+  -m "Add build-collector-authority-pilot-execution-contract, a non-mutating readiness bridge after switch rehearsal that requires explicit gates, manual confirmation, fresh Rust-shadow data, and Python fallback before any future Rust collector authority pilot execution."
+git push -u origin lqosync-in-rust
+```

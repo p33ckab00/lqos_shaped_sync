@@ -74,6 +74,7 @@ from engine.rust_core import (
     rust_build_collector_authority_production_switch_contract,
     rust_build_rust_backend_api_handoff_plan,
     rust_build_rust_backend_scheduler_handoff_plan,
+    rust_build_rust_run_cycle_orchestrator_handoff_contract,
     rust_validate_routeros_read_results,
     rust_build_collector_circuit_bundle,
     rust_compare_collector_bundle_parity,
@@ -2756,6 +2757,30 @@ def api_rust_core_rust_backend_scheduler_handoff_plan():
             "api_route_count": int(request.args.get("api_route_count") or 42),
         }
     return jsonify(rust_build_rust_backend_scheduler_handoff_plan(cfg, payload))
+
+
+@app.route("/api/rust-core/rust-run-cycle-orchestrator-handoff-contract", methods=["GET", "POST"])
+@login_required
+def api_rust_core_run_cycle_orchestrator_handoff_contract():
+    cfg = load_config(CONFIG_PATH)
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or {}
+    else:
+        payload = {
+            "mode": request.args.get("mode") or "contract",
+            "execute": str(request.args.get("execute") or "").lower() in {"1", "true", "yes", "on"},
+            "confirmation": request.args.get("confirmation") or "",
+            "rust_backend_scheduler_handoff_confirmation": request.args.get("scheduler_confirmation") or "CONFIRM_RUST_BACKEND_SCHEDULER_RUN_CYCLE_HANDOFF_PLAN",
+            "shadow_age_seconds": int(request.args.get("shadow_age_seconds") or 0),
+            "run_cycle_orchestrator_manifest_ready": str(request.args.get("run_cycle_orchestrator_manifest_ready") or "").lower() in {"1", "true", "yes", "on"},
+            "run_cycle_shadow_ready": str(request.args.get("run_cycle_shadow_ready") or "").lower() in {"1", "true", "yes", "on"},
+            "run_cycle_shadow_count": int(request.args.get("run_cycle_shadow_count") or 0),
+            "config_state_shadow_ready": str(request.args.get("config_state_shadow_ready") or "").lower() in {"1", "true", "yes", "on"},
+            "config_state_shadow_count": int(request.args.get("config_state_shadow_count") or 0),
+            "scheduler_manifest_ready": str(request.args.get("scheduler_manifest_ready") or "").lower() in {"1", "true", "yes", "on"},
+            "scheduler_interval_seconds": int(request.args.get("scheduler_interval_seconds") or 30),
+        }
+    return jsonify(rust_build_rust_run_cycle_orchestrator_handoff_contract(cfg, payload))
 
 @app.route("/api/rust-core/routeros-read-results", methods=["POST"])
 @login_required

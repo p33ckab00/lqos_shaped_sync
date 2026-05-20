@@ -4176,6 +4176,102 @@ def rust_build_rust_backend_scheduler_handoff_plan(config: dict, payload: dict[s
     return response
 
 
+
+
+def _python_build_rust_run_cycle_orchestrator_handoff_contract(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rc = dict(((payload.get("config") or {}).get("rust_core") or payload.get("rust_core") or {}) if isinstance(payload, dict) else {})
+    allow = bool(rc.get("allow_rust_run_cycle_orchestrator_handoff_contract"))
+    pilot = bool(rc.get("rust_run_cycle_orchestrator_handoff_contract_pilot"))
+    mode = str(rc.get("rust_run_cycle_orchestrator_handoff_mode") or "contract_only")
+    require_scheduler = rc.get("rust_run_cycle_orchestrator_handoff_require_scheduler_handoff", True) is not False
+    require_fallback = rc.get("rust_run_cycle_orchestrator_handoff_require_python_fallback", True) is not False
+    require_confirmation = rc.get("rust_run_cycle_orchestrator_handoff_require_manual_confirmation", True) is not False
+    require_run_cycle_shadow = rc.get("rust_run_cycle_orchestrator_handoff_require_run_cycle_shadow", True) is not False
+    require_config_state_shadow = rc.get("rust_run_cycle_orchestrator_handoff_require_config_state_shadow", True) is not False
+    require_no_side_effects = rc.get("rust_run_cycle_orchestrator_handoff_require_no_side_effects", True) is not False
+    max_shadow_age = int(rc.get("rust_run_cycle_orchestrator_handoff_max_shadow_age_seconds") or 900)
+    shadow_age = int(payload.get("shadow_age_seconds") or 0)
+    confirmation_ok = (not require_confirmation) or payload.get("confirmation") == "CONFIRM_RUST_RUN_CYCLE_ORCHESTRATOR_HANDOFF_CONTRACT"
+    scheduler = payload.get("rust_backend_scheduler_handoff_plan") or payload.get("scheduler_handoff_plan") or {}
+    if isinstance(scheduler, dict) and isinstance(scheduler.get("result"), dict):
+        scheduler = scheduler.get("result") or {}
+    scheduler_ready = isinstance(scheduler, dict) and scheduler.get("status") == "rust_backend_scheduler_handoff_plan_ready" and scheduler.get("rust_backend_scheduler_handoff_ready") is True and scheduler.get("rust_run_cycle_authoritative") is False
+    run_cycle_ready = (not require_run_cycle_shadow) or (bool(payload.get("run_cycle_orchestrator_manifest_ready")) and bool(payload.get("run_cycle_shadow_ready")) and int(payload.get("run_cycle_shadow_count") or 0) > 0)
+    config_state_ready = (not require_config_state_shadow) or (bool(payload.get("config_state_shadow_ready")) and int(payload.get("config_state_shadow_count") or 0) > 0)
+    side_effect_free = not any([
+        payload.get("cleanup_attempted"), payload.get("apply_attempted"), payload.get("write_attempted"),
+        payload.get("python_backend_removed"), payload.get("scheduler_switched_to_rust"), payload.get("run_cycle_switched_to_rust"),
+    ])
+    gates_ready = bool(allow and pilot and mode == "contract_only")
+    errors: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if bool(payload.get("execute")) or str(payload.get("mode") or "").lower() in {"execute", "commit", "switch", "remove-python", "replace-run-cycle", "production", "cutover", "authoritative"}:
+        errors.append({"code": "rust_run_cycle_orchestrator_handoff_execute_not_implemented", "severity": "error", "path": "rust_run_cycle_orchestrator_handoff_contract", "message": "Python fallback cannot execute run_cycle orchestrator handoff or remove Python."})
+    if require_scheduler and not scheduler_ready:
+        warnings.append({"code": "rust_run_cycle_orchestrator_handoff_scheduler_not_ready", "severity": "warning", "path": "rust_backend_scheduler_handoff_plan", "message": "Scheduler handoff plan has not passed."})
+    if require_confirmation and not confirmation_ok:
+        warnings.append({"code": "rust_run_cycle_orchestrator_handoff_confirmation_required", "severity": "warning", "path": "confirmation", "message": "Run-cycle orchestrator confirmation is required."})
+    if not require_fallback:
+        errors.append({"code": "rust_run_cycle_orchestrator_handoff_requires_python_fallback", "severity": "error", "path": "rust_core.rust_run_cycle_orchestrator_handoff_require_python_fallback", "message": "v5.3 still requires Python backend fallback."})
+    if require_run_cycle_shadow and not run_cycle_ready:
+        warnings.append({"code": "rust_run_cycle_orchestrator_handoff_shadow_required", "severity": "warning", "path": "run_cycle_shadow_ready", "message": "Run-cycle orchestrator manifest and shadow cycles are required."})
+    if require_config_state_shadow and not config_state_ready:
+        warnings.append({"code": "rust_run_cycle_orchestrator_handoff_config_state_shadow_required", "severity": "warning", "path": "config_state_shadow_ready", "message": "Config/state shadow verification is required."})
+    if require_no_side_effects and not side_effect_free:
+        errors.append({"code": "rust_run_cycle_orchestrator_handoff_side_effect_detected", "severity": "error", "path": "rust_run_cycle_orchestrator_handoff_contract", "message": "Run-cycle orchestrator side effects are forbidden."})
+    if shadow_age > max_shadow_age:
+        warnings.append({"code": "rust_run_cycle_orchestrator_handoff_shadow_stale", "severity": "warning", "path": "shadow_age_seconds", "message": "Rust-shadow data is stale."})
+    if not gates_ready:
+        warnings.append({"code": "rust_run_cycle_orchestrator_handoff_gates_not_enabled", "severity": "warning", "path": "rust_core", "message": "Run-cycle orchestrator handoff gates are not enabled."})
+
+    ready = not errors and gates_ready and confirmation_ok and (scheduler_ready or not require_scheduler) and require_fallback and run_cycle_ready and config_state_ready and side_effect_free and shadow_age <= max_shadow_age
+    review = not errors and scheduler_ready and run_cycle_ready and config_state_ready and side_effect_free
+    status = "blocked" if errors else ("rust_run_cycle_orchestrator_handoff_contract_ready" if ready else ("rust_run_cycle_orchestrator_handoff_contract_review" if review else "rust_run_cycle_orchestrator_handoff_contract_shadow_only"))
+    return {
+        "version": "1",
+        "op": "build-rust-run-cycle-orchestrator-handoff-contract",
+        "ok": not errors,
+        "result": {
+            "mode": "rust_run_cycle_orchestrator_handoff_contract",
+            "status": status,
+            "rust_run_cycle_orchestrator_handoff_ready": ready,
+            "scheduler_handoff_ready": scheduler_ready,
+            "run_cycle_shadow_ready": run_cycle_ready,
+            "config_state_shadow_ready": config_state_ready,
+            "webui_ux_unchanged": True,
+            "full_rust_backend": False,
+            "python_backend_removable": False,
+            "python_backend_removed": False,
+            "python_backend_required": True,
+            "python_backend_fallback_required": True,
+            "python_run_cycle_authoritative": True,
+            "rust_run_cycle_authoritative": False,
+            "rust_scheduler_authoritative": False,
+            "rust_api_service_authoritative": False,
+            "rust_apply_authoritative": False,
+            "safe_for_cleanup": False,
+            "write_allowed": False,
+            "apply_allowed": False,
+            "next_stage": "rust_config_state_authority_handoff_contract",
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_rust_run_cycle_orchestrator_handoff_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_rust_run_cycle_orchestrator_handoff_contract(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-rust-run-cycle-orchestrator-handoff-contract", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_rust_run_cycle_orchestrator_handoff_contract(req_payload, started=started)
+    return response
+
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

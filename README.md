@@ -560,3 +560,8 @@ Adds `build-rust-backend-api-handoff-plan`, the first full-Rust-backend-track br
 ## Rust Core v5.2 Rust Backend Scheduler / Run Cycle Handoff Plan
 
 Adds `build-rust-backend-scheduler-handoff-plan`, a non-mutating full-Rust-backend-track bridge after v5.1 API handoff. It validates scheduler manifest readiness, run_cycle shadow readiness, API handoff readiness, and Python fallback while keeping WebUI/UX unchanged and Python scheduler/run_cycle authoritative.
+
+
+## Rust Core v5.3 Rust Run Cycle Orchestrator Handoff Contract
+
+Adds `build-rust-run-cycle-orchestrator-handoff-contract`, the next full-Rust-backend bridge after scheduler/run_cycle handoff planning. It verifies run_cycle orchestrator manifest readiness, run_cycle shadow cycles, config/state shadow verification, manual confirmation, and Python fallback. It remains non-mutating: Python run_cycle stays authoritative and WebUI/UX remains unchanged.

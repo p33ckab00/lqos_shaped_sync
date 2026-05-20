@@ -702,6 +702,16 @@
     "rust_backend_scheduler_handoff_require_run_cycle_shadow": true,
     "rust_backend_scheduler_handoff_require_scheduler_parity": true,
     "rust_backend_scheduler_handoff_require_no_side_effects": true,
-    "rust_backend_scheduler_handoff_max_shadow_age_seconds": 900
+    "rust_backend_scheduler_handoff_max_shadow_age_seconds": 900,
+    "rust_run_cycle_orchestrator_handoff_contract_pilot": false,
+    "allow_rust_run_cycle_orchestrator_handoff_contract": false,
+    "rust_run_cycle_orchestrator_handoff_mode": "contract_only",
+    "rust_run_cycle_orchestrator_handoff_require_scheduler_handoff": true,
+    "rust_run_cycle_orchestrator_handoff_require_python_fallback": true,
+    "rust_run_cycle_orchestrator_handoff_require_manual_confirmation": true,
+    "rust_run_cycle_orchestrator_handoff_require_run_cycle_shadow": true,
+    "rust_run_cycle_orchestrator_handoff_require_config_state_shadow": true,
+    "rust_run_cycle_orchestrator_handoff_require_no_side_effects": true,
+    "rust_run_cycle_orchestrator_handoff_max_shadow_age_seconds": 900
   }
 }

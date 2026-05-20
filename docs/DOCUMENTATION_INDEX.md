@@ -260,3 +260,5 @@ Adds `evaluate-collector-authority-pilot-result`, a fail-safe evaluator for futu
 - [Rust Core v5.1 Rust Backend API Handoff Plan](RUST_CORE_V51_RUST_BACKEND_API_HANDOFF.md) — starts the full Rust backend API handoff track while preserving existing WebUI/UX.
 
 - [Rust Core v5.2 Rust Backend Scheduler / Run Cycle Handoff Plan](RUST_CORE_V52_RUST_BACKEND_SCHEDULER_HANDOFF.md)
+
+- [Rust Core v5.3 Rust Run Cycle Orchestrator Handoff Contract](RUST_CORE_V53_RUST_RUN_CYCLE_ORCHESTRATOR_HANDOFF.md) — non-mutating Rust run_cycle orchestrator handoff contract with WebUI/UX unchanged.

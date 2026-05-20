@@ -781,5 +781,11 @@
     "file": "docs/RUST_CORE_V52_RUST_BACKEND_SCHEDULER_HANDOFF.md",
     "anchor": "rust-core-v52-rust-backend-scheduler-run-cycle-handoff-plan",
     "summary": "Adds the non-mutating Rust scheduler/run_cycle handoff planning bridge after API handoff while keeping Python scheduler/run_cycle authoritative."
+  },
+  "rust.core_v53_run_cycle_orchestrator_handoff": {
+    "title": "Rust Core v5.3 Rust Run Cycle Orchestrator Handoff Contract",
+    "file": "docs/RUST_CORE_V53_RUST_RUN_CYCLE_ORCHESTRATOR_HANDOFF.md",
+    "anchor": "rust-core-v53-rust-run-cycle-orchestrator-handoff-contract",
+    "summary": "Adds a non-mutating Rust run_cycle orchestrator handoff contract after scheduler handoff planning while keeping Python run_cycle authoritative and preserving WebUI/UX."
   }
 }

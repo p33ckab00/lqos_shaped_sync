@@ -757,3 +757,13 @@ git commit -m "rust(core): add Rust backend scheduler handoff plan" \
   -m "Add build-rust-backend-scheduler-handoff-plan, the scheduler/run_cycle handoff bridge after API handoff while preserving WebUI/UX and keeping Python scheduler/run_cycle authoritative."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Rust Core v5.3 commit suggestion
+
+```bash
+git add .
+git commit -m "rust(core): add Rust run_cycle orchestrator handoff contract" \
+  -m "Add build-rust-run-cycle-orchestrator-handoff-contract, the next full-Rust-backend bridge after scheduler handoff planning while keeping Python run_cycle authoritative and WebUI/UX unchanged."
+git push -u origin lqosync-in-rust
+```

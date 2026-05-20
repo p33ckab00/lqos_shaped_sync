@@ -629,3 +629,8 @@ git commit -m "rust(core): add run_cycle Rust-shadow report" \
   -m "Add build-run-cycle-rust-shadow-report, Python run_cycle diagnostic integration, API wrapper, config defaults, and documentation while keeping Python collector cleanup/apply authority."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Rust Core v4.0 Collector Authority Activation Plan
+
+Adds `build-collector-authority-activation-plan`, a non-mutating activation readiness plan for the future Rust collector authority pilot. It requires a clean run_cycle Rust-shadow report, successful shadow-cycle history, explicit activation gates, and Python fallback. Python collectors remain authoritative; Rust cannot drive cleanup, writes, or apply in this release.

@@ -121,6 +121,13 @@ DEFAULT_CONFIG = {
         "run_cycle_rust_shadow_report_enabled": False,
         "run_cycle_rust_shadow_report_pilot": False,
         "run_cycle_rust_shadow_include_rows": False,
+        "collector_authority_activation_pilot": False,
+        "allow_collector_authority_activation": False,
+        "collector_authority_activation_mode": "shadow_only",
+        "collector_authority_require_python_fallback": True,
+        "collector_authority_require_run_cycle_shadow": True,
+        "collector_authority_min_shadow_cycles": 3,
+        "collector_authority_successful_shadow_cycles": 0,
     },
     "collector": {
         "selective_fields": True,

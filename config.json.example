@@ -592,6 +592,13 @@
         "allow_collector_authority_dry_run_bundle": false,
         "run_cycle_rust_shadow_report_enabled": false,
         "run_cycle_rust_shadow_report_pilot": false,
-        "run_cycle_rust_shadow_include_rows": false
+        "run_cycle_rust_shadow_include_rows": false,
+        "collector_authority_activation_pilot": false,
+        "allow_collector_authority_activation": false,
+        "collector_authority_activation_mode": "shadow_only",
+        "collector_authority_require_python_fallback": true,
+        "collector_authority_require_run_cycle_shadow": true,
+        "collector_authority_min_shadow_cycles": 3,
+        "collector_authority_successful_shadow_cycles": 0
     }
 }

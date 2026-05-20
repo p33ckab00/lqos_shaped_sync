@@ -27,6 +27,7 @@ use crate::collector_authority_manifest::build_collector_authority_manifest_payl
 use crate::collector_authority_selection::build_collector_authority_selection_payload;
 use crate::collector_authority_dry_run::build_collector_authority_dry_run_bundle_payload;
 use crate::collector_run_cycle_shadow::build_run_cycle_rust_shadow_report_payload;
+use crate::collector_authority_activation::build_collector_authority_activation_plan_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -67,6 +68,7 @@ pub const OP_BUILD_COLLECTOR_AUTHORITY_MANIFEST: &str = "build-collector-authori
 pub const OP_BUILD_COLLECTOR_AUTHORITY_SELECTION: &str = "build-collector-authority-selection";
 pub const OP_BUILD_COLLECTOR_AUTHORITY_DRY_RUN_BUNDLE: &str = "build-collector-authority-dry-run-bundle";
 pub const OP_BUILD_RUN_CYCLE_RUST_SHADOW_REPORT: &str = "build-run-cycle-rust-shadow-report";
+pub const OP_BUILD_COLLECTOR_AUTHORITY_ACTIVATION_PLAN: &str = "build-collector-authority-activation-plan";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -121,6 +123,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_COLLECTOR_AUTHORITY_SELECTION,
         OP_BUILD_COLLECTOR_AUTHORITY_DRY_RUN_BUNDLE,
         OP_BUILD_RUN_CYCLE_RUST_SHADOW_REPORT,
+        OP_BUILD_COLLECTOR_AUTHORITY_ACTIVATION_PLAN,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -635,6 +638,30 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     })));
     if !run_cycle_shadow_ok {
         errors.push(Diagnostic::error("self_test_run_cycle_rust_shadow_failed", Some("build-run-cycle-rust-shadow-report".to_string()), "Self-test run_cycle Rust-shadow report should expose one Rust-shadow candidate while keeping Python run_cycle authoritative."));
+    }
+
+    let mut activation_payload = run_cycle_shadow_payload.clone();
+    if let Some(obj) = activation_payload.as_object_mut() {
+        obj.insert("successful_shadow_cycles".to_string(), json!(3));
+        if let Some(rc) = obj.get_mut("rust_core").and_then(Value::as_object_mut) {
+            rc.insert("collector_authority_activation_pilot".to_string(), json!(true));
+            rc.insert("allow_collector_authority_activation".to_string(), json!(true));
+            rc.insert("collector_authority_activation_mode".to_string(), json!("rust_collector_authority_pilot"));
+            rc.insert("collector_authority_require_python_fallback".to_string(), json!(true));
+            rc.insert("collector_authority_min_shadow_cycles".to_string(), json!(3));
+        }
+    }
+    let (activation_plan, activation_errors, _activation_warnings) = build_collector_authority_activation_plan_payload(&activation_payload);
+    let activation_ok = activation_errors.is_empty()
+        && activation_plan.get("status").and_then(Value::as_str) == Some("collector_authority_activation_ready_for_pilot")
+        && activation_plan.get("production_collector_authority_switched").and_then(Value::as_bool) == Some(false);
+    checks.push(check("collector_authority_activation_plan", activation_ok, json!({
+        "status": activation_plan.get("status"),
+        "collector_authority": activation_plan.get("collector_authority"),
+        "successful_shadow_cycles": activation_plan.get("successful_shadow_cycles")
+    })));
+    if !activation_ok {
+        errors.push(Diagnostic::error("self_test_collector_authority_activation_failed", Some("build-collector-authority-activation-plan".to_string()), "Self-test collector authority activation plan should become ready only as a non-mutating pilot with Python fallback retained."));
     }
 
     let collector_bundle_payload = json!({

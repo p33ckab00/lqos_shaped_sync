@@ -2936,6 +2936,80 @@ def rust_build_run_cycle_rust_shadow_report(config: dict, payload: dict[str, Any
     return response
 
 
+def _python_build_collector_authority_activation_plan(payload: dict[str, Any], *, started: float | None = None) -> dict[str, Any]:
+    started = started or time.perf_counter()
+    rust_core = payload.get("rust_core") if isinstance(payload.get("rust_core"), dict) else ((payload.get("config") or {}).get("rust_core") if isinstance(payload.get("config"), dict) else {}) or {}
+    allow = bool(rust_core.get("allow_collector_authority_activation"))
+    pilot = bool(rust_core.get("collector_authority_activation_pilot"))
+    mode = str(rust_core.get("collector_authority_activation_mode") or "shadow_only")
+    require_fallback = rust_core.get("collector_authority_require_python_fallback", True) is not False
+    required_cycles = int(rust_core.get("collector_authority_min_shadow_cycles") or 3)
+    successful_cycles = int(payload.get("successful_shadow_cycles") or rust_core.get("collector_authority_successful_shadow_cycles") or 0)
+    report_resp = _python_build_run_cycle_rust_shadow_report(payload, started=started)
+    report = report_resp.get("result") if isinstance(report_resp.get("result"), dict) else {}
+    rust_shadow_ready = bool(report.get("rust_shadow_ready")) and report.get("status") == "run_cycle_rust_shadow_ready"
+    errors = []
+    warnings = []
+    if payload.get("execute") or str(payload.get("mode") or "plan") in {"execute", "promote", "switch", "authority", "apply", "production"}:
+        errors.append({"code": "collector_authority_activation_execute_not_implemented", "severity": "error", "path": "collector_authority_activation", "message": "Python fallback cannot activate Rust collector authority."})
+    if not require_fallback:
+        errors.append({"code": "collector_authority_activation_requires_python_fallback", "severity": "error", "path": "rust_core.collector_authority_require_python_fallback", "message": "Collector authority pilot requires Python collector fallback in this release."})
+    if successful_cycles < required_cycles:
+        warnings.append({"code": "collector_authority_activation_shadow_cycles_insufficient", "severity": "warning", "path": "collector_authority_activation.successful_shadow_cycles", "message": "Not enough successful Rust-shadow cycles for collector authority activation."})
+    ready = not errors and allow and pilot and mode == "rust_collector_authority_pilot" and require_fallback and rust_shadow_ready and successful_cycles >= required_cycles
+    status = "blocked" if errors else ("collector_authority_activation_ready_for_pilot" if ready else "collector_authority_activation_shadow_only")
+    return {
+        "version": PROTOCOL_VERSION,
+        "op": "build-collector-authority-activation-plan",
+        "available": False,
+        "ok": not errors,
+        "result": {
+            "mode": "collector_authority_activation_plan",
+            "status": status,
+            "collector_authority": "python_authoritative",
+            "target_authority": "rust_collector_authority_pilot_candidate" if ready else "python_authoritative",
+            "activation_requested": bool(allow and pilot and mode == "rust_collector_authority_pilot"),
+            "allow_activation": allow,
+            "activation_pilot": pilot,
+            "activation_mode": mode,
+            "require_python_fallback": require_fallback,
+            "required_shadow_cycles": required_cycles,
+            "successful_shadow_cycles": successful_cycles,
+            "shadow_cycles_ok": successful_cycles >= required_cycles,
+            "run_cycle_shadow_status": report.get("status"),
+            "rust_shadow_ready": rust_shadow_ready,
+            "python_row_count": report.get("python_row_count", 0),
+            "rust_row_count": report.get("rust_row_count", 0),
+            "run_cycle_rust_shadow_report": report,
+            "full_rust_backend": False,
+            "production_collector_authority_switched": False,
+            "collector_authority_switch_supported": False,
+            "python_collector_fallback_required": True,
+            "rust_can_drive_cleanup": False,
+            "rust_can_drive_apply": False,
+            "rust_can_write_generated_files": False,
+            "safe_for_cleanup": False,
+            "write_allowed": False,
+            "apply_allowed": False,
+            "next_stage": "rust_collector_authority_pilot_runtime_decision",
+        },
+        "errors": errors,
+        "warnings": warnings,
+        "meta": {"engine": "python-wrapper", "mode": "python_collector_authority_activation_fallback", "duration_ms": round((time.perf_counter() - started) * 1000, 3)},
+    }
+
+
+def rust_build_collector_authority_activation_plan(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    started = time.perf_counter()
+    req_payload = dict(payload or {})
+    req_payload.setdefault("config", config)
+    response = call_rust_core("build-collector-authority-activation-plan", req_payload, config=config)
+    error_codes = {str(e.get("code")) for e in (response.get("errors") or []) if isinstance(e, dict)}
+    if response.get("skipped") or not response.get("available", True) or "unknown_operation" in error_codes:
+        return _python_build_collector_authority_activation_plan(req_payload, started=started)
+    return response
+
+
 def rust_validate_routeros_read_results(config: dict, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     req_payload = dict(payload or {})

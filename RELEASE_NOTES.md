@@ -2021,3 +2021,8 @@ Adds `build-collector-authority-dry-run-bundle`, a non-mutating Rust-shadow bund
 - Python `run_cycle` now records a non-mutating Rust-shadow report in diff/timeline data.
 - Rust-shadow collector data remains diagnostic only and cannot drive cleanup, generated file writes, or LibreQoS apply.
 - Added API endpoint and documentation for the new run_cycle shadow bridge.
+
+
+## Rust Core v4.0 Collector Authority Activation Plan
+
+Adds `build-collector-authority-activation-plan`, a non-mutating activation readiness plan for the future Rust collector authority pilot. It requires a clean run_cycle Rust-shadow report, successful shadow-cycle history, explicit activation gates, and Python fallback. Python collectors remain authoritative; Rust cannot drive cleanup, writes, or apply in this release.

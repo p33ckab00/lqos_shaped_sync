@@ -414,7 +414,7 @@
     "title": "Custom Policy Mode Persistence Hotfix",
     "file": "docs/content/custom_policy_mode_persistence.md",
     "anchor": "custom-policy-mode-persistence-hotfix",
-    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center → Policies."
+    "summary": "v2.70.9-rc1 preserves explicit custom policy mode and adds a visible Custom state in Config Center \u2192 Policies."
   },
   "policy_overview_custom_wiring_hotfix": {
     "title": "Policy Overview Custom Wiring Hotfix",
@@ -667,5 +667,11 @@
     "file": "docs/RUST_CORE_V39_RUN_CYCLE_SHADOW.md",
     "anchor": "rust-core-v39--run_cycle-rust-shadow-integration-report",
     "summary": "Non-mutating run_cycle Rust-shadow report that attaches Rust candidate collector output beside Python-authoritative cycle results."
+  },
+  "rust.core_v40_collector_authority_activation": {
+    "title": "Rust Core v4.0 Collector Authority Activation Plan",
+    "file": "docs/RUST_CORE_V40_COLLECTOR_AUTHORITY_ACTIVATION.md",
+    "anchor": "rust-core-v40-collector-authority-activation-plan",
+    "summary": "Non-mutating activation plan for future Rust collector authority pilot, based on run_cycle Rust-shadow results and successful shadow-cycle gates."
   }
 }

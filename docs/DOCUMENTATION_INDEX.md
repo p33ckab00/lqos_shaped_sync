@@ -274,3 +274,5 @@ Adds `evaluate-collector-authority-pilot-result`, a fail-safe evaluator for futu
 
 - [Rust Core v5.9 Rust Backend Service Runtime Handoff Contract](RUST_CORE_V59_RUST_BACKEND_SERVICE_RUNTIME_HANDOFF.md) — service/API runtime handoff bridge while WebUI/UX stays unchanged.
 - [Rust Core v6.0 Full Rust Backend Production Readiness Contract](RUST_CORE_V60_FULL_RUST_BACKEND_PRODUCTION_READINESS.md) — full Rust backend readiness gate after service/runtime handoff; still non-mutating and Python-fallback based.
+
+- [Rust Core v6.1 Full Rust Backend Cutover Plan](RUST_CORE_V61_FULL_RUST_BACKEND_CUTOVER_PLAN.md) — non-mutating cutover planning gate after v6.0 production-readiness.

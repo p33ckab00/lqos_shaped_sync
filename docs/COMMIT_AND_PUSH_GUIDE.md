@@ -837,3 +837,13 @@ git commit -m "rust(core): add full Rust backend production readiness contract" 
   -m "Add build-full-rust-backend-production-readiness-contract, the full backend readiness gate after service/runtime handoff while preserving WebUI/UX and requiring Python fallback until an explicit cutover/removal package."
 git push -u origin lqosync-in-rust
 ```
+
+
+## Rust Core v6.1 commit suggestion
+
+```bash
+git add .
+git commit -m "rust(core): add full Rust backend cutover plan" \
+  -m "Add build-full-rust-backend-cutover-plan, a non-mutating cutover planning gate after full backend production-readiness while keeping Python fallback and WebUI/UX unchanged."
+git push -u origin lqosync-in-rust
+```

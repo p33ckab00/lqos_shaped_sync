@@ -829,5 +829,11 @@
     "file": "docs/RUST_CORE_V60_FULL_RUST_BACKEND_PRODUCTION_READINESS.md",
     "anchor": "rust-core-v60-full-rust-backend-production-readiness-contract",
     "summary": "Adds the first full Rust backend production-readiness contract after service/runtime handoff, while keeping Python fallback and WebUI/UX unchanged."
+  },
+  "rust.core_v61_full_backend_cutover_plan": {
+    "title": "Rust Core v6.1 Full Rust Backend Cutover Plan",
+    "file": "docs/RUST_CORE_V61_FULL_RUST_BACKEND_CUTOVER_PLAN.md",
+    "anchor": "rust-core-v61-full-rust-backend-cutover-plan",
+    "summary": "Adds the non-mutating full Rust backend cutover plan after production-readiness while preserving WebUI/UX and requiring Python fallback."
   }
 }

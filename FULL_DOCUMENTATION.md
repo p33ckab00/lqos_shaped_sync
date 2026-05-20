@@ -7854,3 +7854,8 @@ Adds `build-rust-backend-service-runtime-handoff-contract`, the service/API runt
 ## Rust Core v6.0 Full Rust Backend Production Readiness Contract
 
 Adds `build-full-rust-backend-production-readiness-contract`, the first full Rust backend production-readiness gate after service/runtime handoff. It can mark the system as a future cutover candidate, but it does not remove Python, disable Flask routes, switch live API traffic, or enable Rust production service authority. WebUI/UX remains unchanged and Python fallback remains mandatory.
+
+
+## Rust Core v6.1 Full Rust Backend Cutover Plan
+
+Adds `build-full-rust-backend-cutover-plan`, a non-mutating full Rust backend cutover plan after v6.0 production-readiness. It keeps WebUI/UX unchanged and requires Python backend fallback, rollback path, and operator approval. It does not remove Python, disable Flask routes, or switch API traffic to Rust.

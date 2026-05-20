@@ -48,6 +48,7 @@ use crate::rust_sync_engine_authority_handoff::build_rust_sync_engine_authority_
 use crate::rust_apply_journal_rollback_authority_handoff::build_rust_apply_journal_rollback_authority_handoff_contract_payload;
 use crate::rust_backend_service_runtime_handoff::build_rust_backend_service_runtime_handoff_contract_payload;
 use crate::rust_full_backend_production_readiness::build_full_rust_backend_production_readiness_contract_payload;
+use crate::rust_full_backend_cutover_plan::build_full_rust_backend_cutover_plan_payload;
 use crate::transaction_journal::{append_transaction_journal_payload, build_rollback_manifest_payload, build_transaction_journal_payload};
 use crate::transaction_history::{build_rollback_from_journal_payload, read_transaction_journal_payload};
 use serde_json::{json, Value};
@@ -109,6 +110,7 @@ pub const OP_BUILD_RUST_SYNC_ENGINE_AUTHORITY_HANDOFF_CONTRACT: &str = "build-ru
 pub const OP_BUILD_RUST_APPLY_JOURNAL_ROLLBACK_AUTHORITY_HANDOFF_CONTRACT: &str = "build-rust-apply-journal-rollback-authority-handoff-contract";
 pub const OP_BUILD_RUST_BACKEND_SERVICE_RUNTIME_HANDOFF_CONTRACT: &str = "build-rust-backend-service-runtime-handoff-contract";
 pub const OP_BUILD_FULL_RUST_BACKEND_PRODUCTION_READINESS_CONTRACT: &str = "build-full-rust-backend-production-readiness-contract";
+pub const OP_BUILD_FULL_RUST_BACKEND_CUTOVER_PLAN: &str = "build-full-rust-backend-cutover-plan";
 pub const OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE: &str = "build-collector-circuit-bundle";
 pub const OP_COMPARE_COLLECTOR_BUNDLE_PARITY: &str = "compare-collector-bundle-parity";
 pub const OP_EVALUATE_SYNC_PLAN: &str = "evaluate-sync-plan";
@@ -184,6 +186,7 @@ pub fn advertised_operations() -> &'static [&'static str] {
         OP_BUILD_RUST_APPLY_JOURNAL_ROLLBACK_AUTHORITY_HANDOFF_CONTRACT,
         OP_BUILD_RUST_BACKEND_SERVICE_RUNTIME_HANDOFF_CONTRACT,
         OP_BUILD_FULL_RUST_BACKEND_PRODUCTION_READINESS_CONTRACT,
+        OP_BUILD_FULL_RUST_BACKEND_CUTOVER_PLAN,
         OP_BUILD_COLLECTOR_CIRCUIT_BUNDLE,
         OP_COMPARE_COLLECTOR_BUNDLE_PARITY,
         OP_EVALUATE_SYNC_PLAN,
@@ -1436,6 +1439,43 @@ pub fn self_test_payload(payload: &Value) -> (Value, Vec<Diagnostic>, Vec<Diagno
     })));
     if !full_backend_readiness_ok {
         errors.push(Diagnostic::error("self_test_full_rust_backend_production_readiness_failed", Some("build-full-rust-backend-production-readiness-contract".to_string()), "Self-test full Rust backend production-readiness contract should report ready without removing Python or switching service/API runtime authority."));
+    }
+
+    let mut full_backend_cutover_payload = full_backend_readiness_payload.clone();
+    if let Some(obj) = full_backend_cutover_payload.as_object_mut() {
+        obj.insert("confirmation".to_string(), json!("CONFIRM_FULL_RUST_BACKEND_CUTOVER_PLAN"));
+        obj.insert("full_rust_backend_production_readiness_contract".to_string(), json!(full_backend_readiness.clone()));
+        obj.insert("rollback_path".to_string(), json!("python_backend_reenable_and_flask_route_restore"));
+        obj.insert("operator_cutover_approval_ack".to_string(), json!(true));
+        obj.insert("webui_ux_unchanged".to_string(), json!(true));
+        obj.insert("webui_static_asset_paths_unchanged".to_string(), json!(true));
+        if let Some(rc) = obj.get_mut("rust_core").and_then(Value::as_object_mut) {
+            rc.insert("full_rust_backend_cutover_plan_pilot".to_string(), json!(true));
+            rc.insert("allow_full_rust_backend_cutover_plan".to_string(), json!(true));
+            rc.insert("full_rust_backend_cutover_mode".to_string(), json!("plan_only"));
+            rc.insert("full_rust_backend_cutover_require_production_readiness".to_string(), json!(true));
+            rc.insert("full_rust_backend_cutover_require_python_fallback".to_string(), json!(true));
+            rc.insert("full_rust_backend_cutover_require_manual_confirmation".to_string(), json!(true));
+            rc.insert("full_rust_backend_cutover_require_webui_unchanged".to_string(), json!(true));
+            rc.insert("full_rust_backend_cutover_require_rollback_path".to_string(), json!(true));
+            rc.insert("full_rust_backend_cutover_require_operator_approval".to_string(), json!(true));
+            rc.insert("full_rust_backend_cutover_require_no_side_effects".to_string(), json!(true));
+            rc.insert("full_rust_backend_cutover_max_shadow_age_seconds".to_string(), json!(900));
+        }
+    }
+    let (full_backend_cutover, full_backend_cutover_errors, _full_backend_cutover_warnings) = build_full_rust_backend_cutover_plan_payload(&full_backend_cutover_payload);
+    let full_backend_cutover_ok = full_backend_cutover_errors.is_empty()
+        && full_backend_cutover.get("status").and_then(Value::as_str) == Some("full_rust_backend_cutover_plan_ready")
+        && full_backend_cutover.get("full_rust_backend_cutover_plan_ready").and_then(Value::as_bool) == Some(true)
+        && full_backend_cutover.get("python_backend_removed").and_then(Value::as_bool) == Some(false)
+        && full_backend_cutover.get("python_removal_allowed").and_then(Value::as_bool) == Some(false);
+    checks.push(check("full_rust_backend_cutover_plan", full_backend_cutover_ok, json!({
+        "status": full_backend_cutover.get("status"),
+        "full_rust_backend_cutover_plan_ready": full_backend_cutover.get("full_rust_backend_cutover_plan_ready"),
+        "python_backend_removed": full_backend_cutover.get("python_backend_removed")
+    })));
+    if !full_backend_cutover_ok {
+        errors.push(Diagnostic::error("self_test_full_rust_backend_cutover_failed", Some("build-full-rust-backend-cutover-plan".to_string()), "Self-test full Rust backend cutover plan should report ready without removing Python or switching API traffic."));
     }
 
     let collector_bundle_payload = json!({
